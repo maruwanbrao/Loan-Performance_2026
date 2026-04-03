@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Q2 2026 · Loan Performance Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--bg:#0a0e1a;--s1:#111827;--s2:#1a2235;--bd:#1e2d45;--ac:#00d4ff;--ac2:#ff6b35;--tx:#e8f4f8;--tm:#6b8aaa;--red:#ff4757;--grn:#2ed573;--yel:#ffd32a;--pur:#a855f7;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--tx);font-family:'Sarabun',sans-serif;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+.app{position:relative;z-index:1;max-width:1440px;margin:0 auto;padding:20px;}
+
+/* HEADER */
+.header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--bd);}
+.title{font-family:'Bebas Neue',sans-serif;font-size:46px;letter-spacing:4px;background:linear-gradient(135deg,var(--ac),#fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;}
+.subtitle{font-size:11px;color:var(--tm);letter-spacing:2px;text-transform:uppercase;margin-top:4px;}
+.badge{background:linear-gradient(135deg,var(--ac),#0080ff);color:#000;font-weight:700;font-size:11px;letter-spacing:1px;padding:6px 14px;border-radius:20px;text-transform:uppercase;}
+.header-right{display:flex;align-items:center;gap:12px;}
+
+/* TABS */
+.tabs{display:flex;gap:4px;margin-bottom:18px;border-bottom:1px solid var(--bd);}
+.tab{padding:10px 18px;background:none;border:none;border-bottom:2px solid transparent;color:var(--tm);cursor:pointer;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;margin-bottom:-1px;transition:all .2s;}
+.tab:hover:not(.active){color:var(--tx);}
+.tab.active{color:var(--ac);border-bottom-color:var(--ac);}
+
+/* MONTH TABS */
+.mtabs{display:flex;gap:8px;margin-bottom:18px;}
+.mbtn{padding:7px 18px;background:var(--s1);border:1px solid var(--bd);color:var(--tm);cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1.5px;border-radius:8px;transition:all .2s;}
+.mbtn:hover:not(.active){color:var(--tx);border-color:rgba(0,212,255,.3);}
+.mbtn.active{background:rgba(0,212,255,.12);border-color:var(--ac);color:var(--ac);}
+
+/* KPI GRID */
+.kgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;}
+.kcard{background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:16px;position:relative;overflow:hidden;}
+.kcard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.kcard.c1::before{background:var(--ac);} .kcard.c2::before{background:var(--ac2);}
+.kcard.c3::before{background:var(--grn);} .kcard.c4::before{background:var(--yel);}
+.klabel{font-size:10px;color:var(--tm);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px;}
+.kval{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:2px;line-height:1;}
+.kcard.c1 .kval{color:var(--ac);} .kcard.c2 .kval{color:var(--ac2);}
+.kcard.c3 .kval{color:var(--grn);} .kcard.c4 .kval{color:var(--yel);}
+.ksub{font-size:11px;color:var(--tm);margin-top:5px;}
+.kdiff{font-size:12px;font-weight:700;margin-top:4px;}
+.kdiff.neg{color:var(--red);} .kdiff.pos{color:var(--grn);}
+.pbar{height:4px;background:var(--s2);border-radius:3px;overflow:hidden;margin-top:8px;}
+.pfill{height:100%;border-radius:3px;transition:width .6s ease;}
+.plabel{display:flex;justify-content:space-between;font-size:9px;color:var(--tm);margin-bottom:3px;}
+
+/* RUN RATE */
+.rrcard{background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:16px 20px;margin-bottom:16px;}
+.rrtitle{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--tm);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.rrgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
+.rritem{background:var(--s2);border-radius:8px;padding:12px;text-align:center;}
+.rrlabel{font-size:10px;color:var(--tm);margin-bottom:5px;}
+.rrval{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;line-height:1;}
+.rrunit{font-size:10px;color:var(--tm);margin-top:3px;}
+
+/* CHARTS */
+.cgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.ccard{background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:16px;}
+.ctitle{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--tm);margin-bottom:8px;display:flex;align-items:center;gap:7px;}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0;}
+.cleg{display:flex;gap:14px;margin-bottom:8px;flex-wrap:wrap;}
+.cleg-i{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--tm);}
+.lline{width:20px;height:3px;border-radius:2px;display:inline-block;}
+
+/* TABLE */
+.tcard{background:var(--s1);border:1px solid var(--bd);border-radius:12px;overflow:hidden;margin-bottom:16px;}
+.thead-bar{padding:12px 18px;border-bottom:1px solid var(--bd);font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--tm);display:flex;align-items:center;justify-content:space-between;}
+.tscroll{max-height:420px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--bd) transparent;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+thead tr{background:var(--s2);}
+thead th{padding:8px 10px;text-align:center;font-size:9px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--tm);border-bottom:1px solid var(--bd);}
+thead th.L{text-align:left;}
+tbody tr{border-bottom:1px solid rgba(30,45,69,.5);transition:background .12s;}
+tbody tr:hover{background:var(--s2);}
+tbody tr.tot-row{background:rgba(0,212,255,.05);font-weight:700;}
+tbody tr.tot-row td{color:var(--ac);}
+td{padding:9px 10px;text-align:center;}
+td.L{text-align:left;font-weight:600;}
+td.neg{color:var(--red);font-weight:700;} td.pos{color:var(--grn);font-weight:700;}
+td.phi{color:var(--grn);font-weight:700;} td.plo{color:var(--red);font-weight:700;} td.pmid{color:var(--yel);font-weight:700;}
+
+/* ADD BUTTON */
+.addbtn{background:linear-gradient(135deg,var(--ac),#0080ff);color:#000;font-weight:700;font-size:12px;padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-family:'Sarabun',sans-serif;letter-spacing:.5px;transition:all .2s;}
+.addbtn:hover{opacity:.9;transform:translateY(-1px);}
+
+/* FORM OVERLAY */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
+.overlay.show{opacity:1;pointer-events:all;}
+.fcard{background:var(--s1);border:1px solid var(--bd);border-radius:16px;padding:26px;width:500px;max-width:95vw;transform:translateY(20px);transition:transform .2s;}
+.overlay.show .fcard{transform:translateY(0);}
+.ftitle{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px;color:var(--ac);margin-bottom:18px;}
+.fsect-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--tm);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--bd);}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px;}
+.fgrp label{display:block;font-size:11px;color:var(--tm);margin-bottom:4px;}
+.fgrp input{width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:9px 12px;color:var(--tx);font-family:'Sarabun',sans-serif;font-size:14px;outline:none;transition:border-color .2s;}
+.fgrp input:focus{border-color:var(--ac);}
+.fgrp input[type="date"]{color-scheme:dark;}
+.faction{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;}
+.btn-sec{padding:9px 20px;border-radius:8px;background:var(--s2);border:1px solid var(--bd);color:var(--tm);cursor:pointer;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;transition:all .2s;}
+.btn-sec:hover{color:var(--tx);}
+.btn-pri{padding:9px 22px;border-radius:8px;background:linear-gradient(135deg,var(--ac),#0080ff);border:none;color:#000;cursor:pointer;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;letter-spacing:.5px;transition:all .2s;}
+.btn-pri:hover{opacity:.9;transform:translateY(-1px);}
+.fpreview{background:var(--s2);border-radius:8px;padding:10px 14px;margin-top:8px;font-size:11px;color:var(--tm);border:1px solid var(--bd);}
+.fpreview span{color:var(--ac);}
+
+/* TOAST */
+.toast{position:fixed;bottom:28px;right:28px;background:var(--s1);border:1px solid var(--grn);color:var(--grn);padding:12px 20px;border-radius:10px;font-size:13px;font-weight:700;z-index:300;opacity:0;transform:translateY(10px);transition:all .3s;}
+.toast.show{opacity:1;transform:translateY(0);}
+.toast.err{border-color:var(--red);color:var(--red);}
+
+/* PANEL */
+.panel{display:none;} .panel.active{display:block;}
+
+/* EDIT/DEL buttons in table */
+.ebtn{padding:3px 9px;border-radius:5px;border:none;cursor:pointer;font-size:10px;font-weight:700;margin:0 2px;transition:all .15s;}
+.ebtn.edit{background:rgba(0,212,255,.15);color:var(--ac);}
+.ebtn.edit:hover{background:rgba(0,212,255,.3);}
+.ebtn.del{background:rgba(255,71,87,.12);color:var(--red);}
+.ebtn.del:hover{background:rgba(255,71,87,.25);}
+
+@media(max-width:900px){
+  .kgrid{grid-template-columns:repeat(2,1fr);}
+  .cgrid{grid-template-columns:1fr;}
+  .rrgrid{grid-template-columns:repeat(3,1fr);}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- HEADER -->
+<div class="header">
+  <div>
+    <div class="title">Q2 2026 · Loan Performance</div>
+    <div class="subtitle">Q2 2026 · First Loan &amp; Rollover · Daily Tracker · Apr–Jun</div>
+  </div>
+  <div class="header-right">
+    <span class="badge" id="todayBadge">📅 Q2 2026</span>
+    <button class="addbtn" onclick="openForm()">+ กรอกข้อมูลประจำวัน</button>
+  </div>
+</div>
+
+<!-- MAIN TABS -->
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('dashboard',this)">📊 Dashboard</button>
+  <button class="tab" onclick="switchTab('daily',this)">📅 ตารางรายวัน</button>
+  <button class="tab" onclick="switchTab('overview',this)">🎯 Q2 Overview</button>
+</div>
+
+<!-- ===== DASHBOARD ===== -->
+<div id="panel-dashboard" class="panel active">
+  <div class="mtabs">
+    <button class="mbtn active" onclick="switchMonth('2026-04',this)">🌸 เมษายน</button>
+    <button class="mbtn" onclick="switchMonth('2026-05',this)">🌿 พฤษภาคม</button>
+    <button class="mbtn" onclick="switchMonth('2026-06',this)">☀️ มิถุนายน</button>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kgrid" id="kpiGrid"></div>
+
+  <!-- RUN RATE -->
+  <div class="rrcard">
+    <div class="rrtitle"><span class="dot" style="background:var(--yel)"></span>Run Rate Analysis · <span id="rrMonthName"></span></div>
+    <div class="rrgrid" id="rrGrid"></div>
+  </div>
+
+  <!-- CUMULATIVE CHARTS -->
+  <div class="cgrid">
+    <div class="ccard">
+      <div class="ctitle"><span class="dot" style="background:var(--ac)"></span>Cumulative Headcount (ราย)</div>
+      <div class="cleg">
+        <div class="cleg-i"><span class="lline" style="background:var(--ac)"></span>ยอดจริงสะสม</div>
+        <div class="cleg-i"><span class="lline" style="background:var(--yel);opacity:.8"></span>เป้าเชิงเส้น</div>
+        <div class="cleg-i"><span class="lline" style="background:var(--grn);opacity:.8"></span>Run Rate Projection</div>
+      </div>
+      <div style="position:relative;height:240px;"><canvas id="cumHC"></canvas></div>
+    </div>
+    <div class="ccard">
+      <div class="ctitle"><span class="dot" style="background:var(--ac2)"></span>Cumulative Amount (บาท)</div>
+      <div class="cleg">
+        <div class="cleg-i"><span class="lline" style="background:var(--ac2)"></span>ยอดจริงสะสม</div>
+        <div class="cleg-i"><span class="lline" style="background:var(--yel);opacity:.8"></span>เป้าเชิงเส้น</div>
+        <div class="cleg-i"><span class="lline" style="background:var(--grn);opacity:.8"></span>Run Rate Projection</div>
+      </div>
+      <div style="position:relative;height:240px;"><canvas id="cumAmt"></canvas></div>
+    </div>
+  </div>
+
+  <!-- DAILY HC BAR -->
+  <div class="ccard" style="margin-bottom:14px;">
+    <div class="ctitle">
+      <span class="dot" style="background:var(--pur)"></span>
+      Headcount รายวัน · First Loan &amp; Rollover
+      <span style="margin-left:auto;display:flex;gap:12px;">
+        <span class="cleg-i"><span style="width:10px;height:10px;border-radius:2px;background:rgba(0,212,255,.7);display:inline-block;"></span>FL</span>
+        <span class="cleg-i"><span style="width:10px;height:10px;border-radius:2px;background:rgba(255,107,53,.7);display:inline-block;"></span>RO</span>
+      </span>
+    </div>
+    <div style="position:relative;height:190px;"><canvas id="dailyBar"></canvas></div>
+  </div>
+
+  <!-- DAILY AMOUNT BAR -->
+  <div class="ccard" style="margin-bottom:14px;">
+    <div class="ctitle">
+      <span class="dot" style="background:var(--ac2)"></span>
+      Amount รายวัน (บาท) · First Loan &amp; Rollover
+      <span style="margin-left:auto;display:flex;gap:12px;">
+        <span class="cleg-i"><span style="width:10px;height:10px;border-radius:2px;background:rgba(0,212,255,.7);display:inline-block;"></span>FL Amount</span>
+        <span class="cleg-i"><span style="width:10px;height:10px;border-radius:2px;background:rgba(46,213,115,.7);display:inline-block;"></span>RO Amount</span>
+        <span class="cleg-i"><span style="width:18px;height:2px;border-radius:2px;background:#ffd32a;display:inline-block;"></span>Daily TG</span>
+      </span>
+    </div>
+    <div style="position:relative;height:190px;"><canvas id="dailyAmtBar"></canvas></div>
+  </div>
+</div>
+
+<!-- ===== DAILY TABLE ===== -->
+<div id="panel-daily" class="panel">
+  <div class="mtabs">
+    <button class="mbtn active" id="dtm-04" onclick="switchTblMonth('2026-04',this)">🌸 เมษายน</button>
+    <button class="mbtn" id="dtm-05" onclick="switchTblMonth('2026-05',this)">🌿 พฤษภาคม</button>
+    <button class="mbtn" id="dtm-06" onclick="switchTblMonth('2026-06',this)">☀️ มิถุนายน</button>
+  </div>
+  <div class="tcard">
+    <div class="thead-bar">
+      <span><span class="dot" style="background:var(--pur)"></span> ตารางรายวัน — <span id="tblName"></span></span>
+      <button class="addbtn" style="font-size:11px;padding:6px 12px;" onclick="openForm()">+ เพิ่มข้อมูล</button>
+    </div>
+    <div class="tscroll">
+      <table>
+        <thead>
+          <tr>
+            <th class="L" rowspan="2">วันที่</th>
+            <th colspan="2" style="color:var(--ac)">First Loan</th>
+            <th colspan="2" style="color:var(--ac2)">Rollover</th>
+            <th colspan="2" style="color:var(--grn)">Total</th>
+            <th rowspan="2">vs Daily TG (HC)</th>
+            <th rowspan="2">Cum. HC</th>
+            <th rowspan="2">% TG</th>
+            <th rowspan="2">จัดการ</th>
+          </tr>
+          <tr>
+            <th>HC</th><th>Amount (฿)</th>
+            <th>HC</th><th>Amount (฿)</th>
+            <th>HC</th><th>Amount (฿)</th>
+          </tr>
+        </thead>
+        <tbody id="dailyBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Q2 OVERVIEW ===== -->
+<div id="panel-overview" class="panel">
+  <div class="tcard">
+    <div class="thead-bar"><span><span class="dot" style="background:var(--ac)"></span> Q2 2026 — Headcount สรุปเทียบเป้าหมายรายเดือน</span></div>
+    <table>
+      <thead>
+        <tr>
+          <th class="L" rowspan="2">เดือน</th>
+          <th colspan="4" style="color:var(--ac)">First Loan</th>
+          <th colspan="4" style="color:var(--ac2)">Rollover</th>
+          <th colspan="4" style="color:var(--grn)">Total</th>
+        </tr>
+        <tr>
+          <th>MM</th><th>TG</th><th>Diff</th><th>%</th>
+          <th>MM</th><th>TG</th><th>Diff</th><th>%</th>
+          <th>MM</th><th>TG</th><th>Diff</th><th>%</th>
+        </tr>
+      </thead>
+      <tbody id="ovBody"></tbody>
+    </table>
+  </div>
+
+  <div class="tcard" style="margin-top:14px;">
+    <div class="thead-bar"><span><span class="dot" style="background:var(--ac2)"></span> Q2 2026 — Amount สรุปเทียบเป้าหมายรายเดือน (บาท)</span></div>
+    <table>
+      <thead>
+        <tr>
+          <th class="L" rowspan="2">เดือน</th>
+          <th colspan="4" style="color:var(--ac)">First Loan</th>
+          <th colspan="4" style="color:var(--ac2)">Rollover</th>
+          <th colspan="4" style="color:var(--grn)">Total</th>
+        </tr>
+        <tr>
+          <th>MM</th><th>TG</th><th>Diff</th><th>%</th>
+          <th>MM</th><th>TG</th><th>Diff</th><th>%</th>
+          <th>MM</th><th>TG</th><th>Diff</th><th>%</th>
+        </tr>
+      </thead>
+      <tbody id="ovAmtBody"></tbody>
+    </table>
+  </div>
+
+  <div class="cgrid" style="margin-top:14px;">
+    <div class="ccard">
+      <div class="ctitle"><span class="dot" style="background:var(--ac)"></span>Q2 Monthly HC Progress vs Target</div>
+      <div style="position:relative;height:240px;"><canvas id="q2HCChart"></canvas></div>
+    </div>
+    <div class="ccard">
+      <div class="ctitle"><span class="dot" style="background:var(--ac2)"></span>Q2 Monthly Amount Progress vs Target</div>
+      <div style="position:relative;height:240px;"><canvas id="q2AmtChart"></canvas></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /app -->
+
+<!-- FORM OVERLAY -->
+<div class="overlay" id="fOverlay" onclick="overlayClick(event)">
+  <div class="fcard">
+    <div class="ftitle">กรอกข้อมูลประจำวัน</div>
+    <div class="frow" style="margin-bottom:14px;">
+      <div class="fgrp" style="grid-column:span 2;">
+        <label>📅 วันที่</label>
+        <input type="date" id="fDate" min="2026-04-01" max="2026-06-30" onchange="checkExisting()">
+      </div>
+    </div>
+    <div id="existingNote" style="display:none;background:rgba(255,211,42,.1);border:1px solid rgba(255,211,42,.3);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--yel);">
+      ⚠️ มีข้อมูลของวันนี้แล้ว — การบันทึกจะ <strong>แทนที่</strong>ข้อมูลเดิม
+    </div>
+    <div style="margin-bottom:14px;">
+      <div class="fsect-title">🏦 First Loan (สินเชื่อใหม่)</div>
+      <div class="frow">
+        <div class="fgrp"><label>Headcount (จำนวนราย)</label><input type="number" id="fFlHC" placeholder="0" min="0"></div>
+        <div class="fgrp"><label>Amount (ยอดเงิน บาท)</label><input type="number" id="fFlAmt" placeholder="0" min="0"></div>
+      </div>
+    </div>
+    <div style="margin-bottom:14px;">
+      <div class="fsect-title">🔄 Rollover (ต่ออายุ)</div>
+      <div class="frow">
+        <div class="fgrp"><label>Headcount (จำนวนราย)</label><input type="number" id="fRoHC" placeholder="0" min="0"></div>
+        <div class="fgrp"><label>Amount (ยอดเงิน บาท)</label><input type="number" id="fRoAmt" placeholder="0" min="0"></div>
+      </div>
+    </div>
+    <div class="fpreview" id="fPreview" style="display:none;"></div>
+    <div class="faction">
+      <button class="btn-sec" onclick="closeForm()">ยกเลิก</button>
+      <button class="btn-pri" onclick="saveEntry()">💾 บันทึกข้อมูล</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ==============================
+// CONSTANTS
+// ==============================
+const TG = {
+  "2026-04": { fl:{hc:250,amt:2500000}, ro:{hc:60,amt:1080000}, label:"เมษายน 2026", short:"Apr" },
+  "2026-05": { fl:{hc:250,amt:2500000}, ro:{hc:90,amt:1620000}, label:"พฤษภาคม 2026", short:"May" },
+  "2026-06": { fl:{hc:300,amt:3000000}, ro:{hc:100,amt:1800000}, label:"มิถุนายน 2026", short:"Jun" },
+};
+
+const SEED = [{date:"2026-04-01",fl:{hc:13,amt:149000},ro:{hc:6,amt:96500}}];
+const STORAGE_KEY = "q2-loan-v3";
+const WEEK = ['อา','จ','อ','พ','พฤ','ศ','ส'];
+
+let entries = [];
+let currentMonth = "2026-04";
+let currentTblMonth = "2026-04";
+let charts = {};
+
+// ==============================
+// STORAGE
+// ==============================
+function save() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(entries)); } catch(e) {}
+}
+function load() {
+  try {
+    const r = localStorage.getItem(STORAGE_KEY);
+    entries = r ? JSON.parse(r) : [...SEED];
+  } catch(e) { entries = [...SEED]; }
+  if (!entries || entries.length === 0) entries = [...SEED];
+  save();
+}
+
+// ==============================
+// UTILS
+// ==============================
+function N(n) { return Math.round(n).toLocaleString('th-TH'); }
+function P(n) { return n.toFixed(2)+'%'; }
+function dl(d) {
+  const x = new Date(d+'T00:00:00');
+  return String(x.getDate()).padStart(2,'0')+'/'+ String(x.getMonth()+1).padStart(2,'0');
+}
+function dayName(d) { return WEEK[new Date(d+'T00:00:00').getDay()]; }
+function fmtAmt(v) {
+  if(v>=1000000) return (v/1000000).toFixed(2)+'M';
+  if(v>=1000) return (v/1000).toFixed(1)+'K';
+  return N(v);
+}
+function pClass(pct) { return pct>=100?'phi':pct>=50?'pmid':'plo'; }
+
+function getWD(mkey) {
+  const [y,m] = mkey.split('-').map(Number);
+  const days=[], d=new Date(y,m-1,1);
+  while(d.getMonth()===m-1){
+    const dw=d.getDay();
+    if(dw!==0&&dw!==6){
+      // Use LOCAL date (not UTC) — toISOString() shifts by timezone
+      const ds=y+'-'+String(m).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+      days.push(ds);
+    }
+    d.setDate(d.getDate()+1);
+  }
+  return days;
+}
+
+function getMe(m) {
+  return entries.filter(e=>e.date.startsWith(m)).sort((a,b)=>a.date.localeCompare(b.date));
+}
+
+function calcS(m) {
+  const me=getMe(m), tg=TG[m], wd=getWD(m);
+  const flHC=me.reduce((s,e)=>s+(e.fl?.hc||0),0);
+  const flAmt=me.reduce((s,e)=>s+(e.fl?.amt||0),0);
+  const roHC=me.reduce((s,e)=>s+(e.ro?.hc||0),0);
+  const roAmt=me.reduce((s,e)=>s+(e.ro?.amt||0),0);
+  const totHC=flHC+roHC, totAmt=flAmt+roAmt;
+  const n=me.length, wn=wd.length;
+  const drem=Math.max(0,wn-n);
+  const avgHC=n>0?totHC/n:0, avgAmt=n>0?totAmt/n:0;
+  const avgFlHC=n>0?flHC/n:0, avgRoHC=n>0?roHC/n:0;
+  const projTotHC=avgHC*wn, projTotAmt=avgAmt*wn;
+  const projFlHC=avgFlHC*wn;
+  const tgTotHC=tg.fl.hc+tg.ro.hc, tgTotAmt=tg.fl.amt+tg.ro.amt;
+  const neFlHC=drem>0?Math.max(0,tg.fl.hc-flHC)/drem:0;
+  const neRoHC=drem>0?Math.max(0,tg.ro.hc-roHC)/drem:0;
+  return {
+    flHC,flAmt,roHC,roAmt,totHC,totAmt,
+    n,wn,drem,avgHC,avgAmt,avgFlHC,avgRoHC,
+    projTotHC,projTotAmt,projFlHC,
+    neFlHC,neRoHC,tgTotHC,tgTotAmt,
+    flHCpct:tg.fl.hc>0?flHC/tg.fl.hc*100:0,
+    flAmtpct:tg.fl.amt>0?flAmt/tg.fl.amt*100:0,
+    roHCpct:tg.ro.hc>0?roHC/tg.ro.hc*100:0,
+    roAmtpct:tg.ro.amt>0?roAmt/tg.ro.amt*100:0,
+    totHCpct:tgTotHC>0?totHC/tgTotHC*100:0,
+  };
+}
+
+// ==============================
+// RENDER KPI
+// ==============================
+function renderKPI(m) {
+  const s=calcS(m), tg=TG[m];
+  document.getElementById('rrMonthName').textContent=tg.label;
+
+  const kpis=[
+    {cl:'c1',label:'FIRST LOAN — Headcount',val:N(s.flHC),unit:`/ ${N(tg.fl.hc)} ราย`,diff:s.flHC-tg.fl.hc,pct:s.flHCpct,fill:'var(--ac)'},
+    {cl:'c2',label:'FIRST LOAN — Amount (฿)',val:N(s.flAmt),unit:`/ ${N(tg.fl.amt)} บาท`,diff:s.flAmt-tg.fl.amt,pct:s.flAmtpct,fill:'var(--ac2)'},
+    {cl:'c3',label:'ROLLOVER — Headcount',val:N(s.roHC),unit:`/ ${N(tg.ro.hc)} ราย`,diff:s.roHC-tg.ro.hc,pct:s.roHCpct,fill:'var(--grn)'},
+    {cl:'c4',label:'ROLLOVER — Amount (฿)',val:N(s.roAmt),unit:`/ ${N(tg.ro.amt)} บาท`,diff:s.roAmt-tg.ro.amt,pct:s.roAmtpct,fill:'var(--yel)'},
+  ];
+
+  document.getElementById('kpiGrid').innerHTML=kpis.map(k=>`
+    <div class="kcard ${k.cl}">
+      <div class="klabel">${k.label}</div>
+      <div class="kval">${k.val}</div>
+      <div class="ksub">${k.unit}</div>
+      <div class="kdiff ${k.diff>=0?'pos':'neg'}">${k.diff>=0?'+':''}${N(k.diff)} &nbsp;(${P(k.pct)})</div>
+      <div class="plabel"><span>ความคืบหน้า</span><span>${P(Math.min(k.pct,100))}</span></div>
+      <div class="pbar"><div class="pfill" style="width:${Math.min(k.pct,100)}%;background:${k.fill}"></div></div>
+    </div>
+  `).join('');
+
+  const rrColor = c => c>=0?'var(--grn)':'var(--red)';
+  const projOK = s.projTotHC >= s.tgTotHC;
+  document.getElementById('rrGrid').innerHTML=`
+    <div class="rritem">
+      <div class="rrlabel">วันที่มีข้อมูล</div>
+      <div class="rrval" style="color:var(--ac)">${s.n}</div>
+      <div class="rrunit">/ ${s.wn} วันทำการ</div>
+    </div>
+    <div class="rritem">
+      <div class="rrlabel">วันทำการที่เหลือ</div>
+      <div class="rrval" style="color:var(--yel)">${s.drem}</div>
+      <div class="rrunit">วัน</div>
+    </div>
+    <div class="rritem">
+      <div class="rrlabel">ค่าเฉลี่ย/วัน (HC รวม)</div>
+      <div class="rrval" style="color:var(--pur)">${s.avgHC.toFixed(1)}</div>
+      <div class="rrunit">ราย/วัน</div>
+    </div>
+    <div class="rritem">
+      <div class="rrlabel">คาดการณ์สิ้นเดือน (HC)</div>
+      <div class="rrval" style="color:${projOK?'var(--grn)':'var(--red)'}">${N(s.projTotHC)}</div>
+      <div class="rrunit">vs TG ${N(s.tgTotHC)} ${projOK?'✅':'⚠️'}</div>
+    </div>
+    <div class="rritem">
+      <div class="rrlabel">ต้องการ/วัน (FL HC)</div>
+      <div class="rrval" style="color:${s.neFlHC<=s.avgFlHC?'var(--grn)':'var(--red)'}">${s.neFlHC.toFixed(1)}</div>
+      <div class="rrunit">vs avg ${s.avgFlHC.toFixed(1)} ราย</div>
+    </div>
+  `;
+}
+
+// ==============================
+// RENDER CHARTS
+// ==============================
+function destroyChart(id) { if(charts[id]){charts[id].destroy();delete charts[id];} }
+
+function renderCharts(m) {
+  const me=getMe(m), tg=TG[m], wd=getWD(m);
+  const s=calcS(m);
+  const tgTotHC=tg.fl.hc+tg.ro.hc, tgTotAmt=tg.fl.amt+tg.ro.amt;
+  const wn=wd.length;
+  const labels=wd.map(d=>dl(d));
+
+  // Find last working-day index that has real data
+  let lastActualIdx=-1;
+  wd.forEach((date,i)=>{ if(me.find(x=>x.date===date)) lastActualIdx=i; });
+  // fallback: find closest wd <= last entry date
+  if(lastActualIdx===-1&&me.length>0){
+    const ld=me[me.length-1].date;
+    for(let i=wd.length-1;i>=0;i--){ if(wd[i]<=ld){lastActualIdx=i;break;} }
+  }
+
+  const aHC=[],aAmt=[],tHCArr=[],tAmtArr=[],rHC=[],rAmt=[];
+  let cumHC=0,cumAmt=0;
+
+  wd.forEach((date,i)=>{
+    const e=me.find(x=>x.date===date);
+    if(e){ cumHC+=(e.fl?.hc||0)+(e.ro?.hc||0); cumAmt+=(e.fl?.amt||0)+(e.ro?.amt||0); }
+    // Actual cumulative: only where data exists
+    aHC.push(i<=lastActualIdx&&lastActualIdx>=0?cumHC:null);
+    aAmt.push(i<=lastActualIdx&&lastActualIdx>=0?cumAmt:null);
+    // Linear target
+    tHCArr.push(parseFloat((tgTotHC/wn*(i+1)).toFixed(1)));
+    tAmtArr.push(Math.round(tgTotAmt/wn*(i+1)));
+    // Run rate projection from last actual point forward
+    if(lastActualIdx>=0&&i>=lastActualIdx){
+      const ahead=i-lastActualIdx;
+      rHC.push(Math.round(s.totHC+s.avgHC*ahead));
+      rAmt.push(Math.round(s.totAmt+s.avgAmt*ahead));
+    } else { rHC.push(null); rAmt.push(null); }
+  });
+
+  const chOpts=(yFmt,extra={})=>({
+    responsive:true, maintainAspectRatio:false,
+    interaction:{mode:'index',intersect:false},
+    plugins:{
+      legend:{display:false},
+      tooltip:{backgroundColor:'#1a2235',borderColor:'#1e2d45',borderWidth:1,titleColor:'#e8f4f8',bodyColor:'#6b8aaa',
+        callbacks:{label:ctx=>ctx.raw!=null?` ${ctx.dataset.label}: ${yFmt(ctx.raw)}`:null}},
+    },
+    scales:{
+      x:{ticks:{color:'#6b8aaa',font:{size:10},maxRotation:45,autoSkip:true,maxTicksLimit:15},grid:{color:'#1e2d45'}},
+      y:{ticks:{color:'#6b8aaa',font:{size:10},callback:v=>yFmt(v)},grid:{color:'#1e2d45'}},
+      ...extra
+    }
+  });
+
+  // Cumulative HC
+  destroyChart('cumHC');
+  charts['cumHC']=new Chart(document.getElementById('cumHC'),{
+    type:'line',
+    data:{labels,datasets:[
+      {label:'ยอดจริงสะสม (HC)',data:aHC,borderColor:'#00d4ff',backgroundColor:'rgba(0,212,255,.08)',fill:true,tension:.3,pointRadius:4,pointHoverRadius:6,spanGaps:false},
+      {label:'เป้าเชิงเส้น',data:tHCArr,borderColor:'#ffd32a',borderWidth:1.5,borderDash:[6,4],tension:0,pointRadius:0,fill:false,spanGaps:true},
+      {label:'Run Rate Projection',data:rHC,borderColor:'#2ed573',borderWidth:1.5,borderDash:[4,3],tension:.2,pointRadius:0,fill:false,spanGaps:false},
+    ]},
+    options:chOpts(v=>v!=null?N(v):''),
+  });
+
+  // Cumulative Amount
+  destroyChart('cumAmt');
+  charts['cumAmt']=new Chart(document.getElementById('cumAmt'),{
+    type:'line',
+    data:{labels,datasets:[
+      {label:'ยอดจริงสะสม (฿)',data:aAmt,borderColor:'#ff6b35',backgroundColor:'rgba(255,107,53,.08)',fill:true,tension:.3,pointRadius:4,pointHoverRadius:6,spanGaps:false},
+      {label:'เป้าเชิงเส้น',data:tAmtArr,borderColor:'#ffd32a',borderWidth:1.5,borderDash:[6,4],tension:0,pointRadius:0,fill:false,spanGaps:true},
+      {label:'Run Rate Projection',data:rAmt,borderColor:'#2ed573',borderWidth:1.5,borderDash:[4,3],tension:.2,pointRadius:0,fill:false,spanGaps:false},
+    ]},
+    options:chOpts(v=>v!=null?fmtAmt(v):''),
+  });
+
+  const barOpts=(yFmt,stacked=true)=>({
+    responsive:true,maintainAspectRatio:false,
+    interaction:{mode:'index',intersect:false},
+    plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a2235',borderColor:'#1e2d45',borderWidth:1,titleColor:'#e8f4f8',bodyColor:'#6b8aaa',
+      callbacks:{label:ctx=>ctx.raw!=null?` ${ctx.dataset.label}: ${yFmt(ctx.raw)}`:null}}},
+    scales:{
+      x:{stacked,ticks:{color:'#6b8aaa',font:{size:9},maxRotation:45,autoSkip:true,maxTicksLimit:15},grid:{color:'#1e2d45'}},
+      y:{stacked,ticks:{color:'#6b8aaa',font:{size:10},callback:yFmt},grid:{color:'#1e2d45'}},
+    }
+  });
+
+  // Daily Headcount Bar
+  destroyChart('dailyBar');
+  const dFL=wd.map(d=>{const e=me.find(x=>x.date===d);return e?(e.fl?.hc||0):null;});
+  const dRO=wd.map(d=>{const e=me.find(x=>x.date===d);return e?(e.ro?.hc||0):null;});
+  const dailyTGLine=wd.map(()=>parseFloat((tgTotHC/wn).toFixed(1)));
+  charts['dailyBar']=new Chart(document.getElementById('dailyBar'),{
+    type:'bar',
+    data:{labels,datasets:[
+      {label:'First Loan HC',data:dFL,backgroundColor:'rgba(0,212,255,.75)',borderRadius:3,stack:'s'},
+      {label:'Rollover HC',data:dRO,backgroundColor:'rgba(255,107,53,.75)',borderRadius:3,stack:'s'},
+      {type:'line',label:'Daily TG (HC)',data:dailyTGLine,borderColor:'#ffd32a',borderWidth:1.5,borderDash:[5,3],pointRadius:0,tension:0,spanGaps:true},
+    ]},
+    options:barOpts(v=>v!=null?N(v):'')
+  });
+
+  // Daily Amount Bar
+  destroyChart('dailyAmtBar');
+  const dFlAmt=wd.map(d=>{const e=me.find(x=>x.date===d);return e?(e.fl?.amt||0):null;});
+  const dRoAmt=wd.map(d=>{const e=me.find(x=>x.date===d);return e?(e.ro?.amt||0):null;});
+  const dailyAmtTG=wd.map(()=>Math.round(tgTotAmt/wn));
+  charts['dailyAmtBar']=new Chart(document.getElementById('dailyAmtBar'),{
+    type:'bar',
+    data:{labels,datasets:[
+      {label:'First Loan Amount',data:dFlAmt,backgroundColor:'rgba(0,212,255,.7)',borderRadius:3,stack:'s'},
+      {label:'Rollover Amount',data:dRoAmt,backgroundColor:'rgba(46,213,115,.7)',borderRadius:3,stack:'s'},
+      {type:'line',label:'Daily TG (Amount)',data:dailyAmtTG,borderColor:'#ffd32a',borderWidth:1.5,borderDash:[5,3],pointRadius:0,tension:0,spanGaps:true},
+    ]},
+    options:barOpts(v=>v!=null?fmtAmt(v):'')
+  });
+}
+
+// ==============================
+// RENDER DAILY TABLE
+// ==============================
+function renderDailyTable(m) {
+  const me=getMe(m), tg=TG[m], wd=getWD(m);
+  document.getElementById('tblName').textContent=tg.label;
+  const dailyTG=Math.round((tg.fl.hc+tg.ro.hc)/wd.length);
+  const totTG=tg.fl.hc+tg.ro.hc;
+  let cumHC=0, cumAmt=0, rows='';
+
+  me.forEach(e=>{
+    const flHC=e.fl?.hc||0, flAmt=e.fl?.amt||0, roHC=e.ro?.hc||0, roAmt=e.ro?.amt||0;
+    const tHC=flHC+roHC, tAmt=flAmt+roAmt;
+    cumHC+=tHC; cumAmt+=tAmt;
+    const pct=totTG>0?cumHC/totTG*100:0;
+    const diff=tHC-dailyTG;
+    rows+=`
+      <tr>
+        <td class="L">${dl(e.date)} (${dayName(e.date)})</td>
+        <td>${N(flHC)}</td><td>${N(flAmt)}</td>
+        <td>${N(roHC)}</td><td>${N(roAmt)}</td>
+        <td><strong>${N(tHC)}</strong></td><td><strong>${N(tAmt)}</strong></td>
+        <td class="${diff>=0?'pos':'neg'}">${diff>=0?'+':''}${N(diff)}</td>
+        <td style="color:var(--ac)">${N(cumHC)}</td>
+        <td class="${pClass(pct)}">${P(pct)}</td>
+        <td>
+          <button class="ebtn edit" onclick="editEntry('${e.date}')">แก้ไข</button>
+          <button class="ebtn del" onclick="delEntry('${e.date}')">ลบ</button>
+        </td>
+      </tr>
+    `;
+  });
+
+  if(me.length>0){
+    const tfl=me.reduce((s,e)=>s+(e.fl?.hc||0),0), tflA=me.reduce((s,e)=>s+(e.fl?.amt||0),0);
+    const tro=me.reduce((s,e)=>s+(e.ro?.hc||0),0), troA=me.reduce((s,e)=>s+(e.ro?.amt||0),0);
+    const tot=tfl+tro, totA=tflA+troA;
+    const pct=totTG>0?tot/totTG*100:0;
+    rows+=`<tr class="tot-row">
+      <td class="L">รวม (${me.length} วัน)</td>
+      <td>${N(tfl)}</td><td>${N(tflA)}</td>
+      <td>${N(tro)}</td><td>${N(troA)}</td>
+      <td><strong>${N(tot)}</strong></td><td><strong>${N(totA)}</strong></td>
+      <td></td><td>${N(tot)}</td>
+      <td class="${pClass(pct)}">${P(pct)}</td><td></td>
+    </tr>`;
+  }
+
+  document.getElementById('dailyBody').innerHTML=rows||
+    '<tr><td colspan="11" style="text-align:center;color:var(--tm);padding:24px;">ยังไม่มีข้อมูล · กด "+ เพิ่มข้อมูล"</td></tr>';
+}
+
+// ==============================
+// RENDER OVERVIEW
+// ==============================
+function renderOverview() {
+  const months=["2026-04","2026-05","2026-06"];
+
+  function buildRows(type) {
+    // type = 'hc' or 'amt'
+    let rows='', totFlMM=0,totFlTG=0,totRoMM=0,totRoTG=0;
+    months.forEach(m=>{
+      const me=getMe(m), tg=TG[m];
+      const flMM=me.reduce((s,e)=>s+(type==='hc'?e.fl?.hc:e.fl?.amt)||0,0);
+      const roMM=me.reduce((s,e)=>s+(type==='hc'?e.ro?.hc:e.ro?.amt)||0,0);
+      const flTG=type==='hc'?tg.fl.hc:tg.fl.amt;
+      const roTG=type==='hc'?tg.ro.hc:tg.ro.amt;
+      totFlMM+=flMM; totFlTG+=flTG; totRoMM+=roMM; totRoTG+=roTG;
+      const totMM=flMM+roMM, totTG=flTG+roTG;
+      const flD=flMM-flTG, roD=roMM-roTG, totD=totMM-totTG;
+      const flP=flTG>0?flMM/flTG*100:0, roP=roTG>0?roMM/roTG*100:0, totP=totTG>0?totMM/totTG*100:0;
+      rows+=`<tr>
+        <td class="L" style="font-weight:700;">${tg.label}</td>
+        <td>${N(flMM)}</td><td style="color:var(--tm)">${N(flTG)}</td>
+        <td class="${flD>=0?'pos':'neg'}">${flD>=0?'+':''}${N(flD)}</td>
+        <td class="${pClass(flP)}">${P(flP)}</td>
+        <td>${N(roMM)}</td><td style="color:var(--tm)">${N(roTG)}</td>
+        <td class="${roD>=0?'pos':'neg'}">${roD>=0?'+':''}${N(roD)}</td>
+        <td class="${pClass(roP)}">${P(roP)}</td>
+        <td>${N(totMM)}</td><td style="color:var(--tm)">${N(totTG)}</td>
+        <td class="${totD>=0?'pos':'neg'}">${totD>=0?'+':''}${N(totD)}</td>
+        <td class="${pClass(totP)}">${P(totP)}</td>
+      </tr>`;
+    });
+    const gTotMM=totFlMM+totRoMM, gTotTG=totFlTG+totRoTG;
+    const gfD=totFlMM-totFlTG, grD=totRoMM-totRoTG, gtD=gTotMM-gTotTG;
+    const gfP=totFlTG>0?totFlMM/totFlTG*100:0, grP=totRoTG>0?totRoMM/totRoTG*100:0, gtP=gTotTG>0?gTotMM/gTotTG*100:0;
+    rows+=`<tr class="tot-row">
+      <td class="L">Q2 Grand Total</td>
+      <td>${N(totFlMM)}</td><td>${N(totFlTG)}</td>
+      <td class="${gfD>=0?'pos':'neg'}">${gfD>=0?'+':''}${N(gfD)}</td><td class="${pClass(gfP)}">${P(gfP)}</td>
+      <td>${N(totRoMM)}</td><td>${N(totRoTG)}</td>
+      <td class="${grD>=0?'pos':'neg'}">${grD>=0?'+':''}${N(grD)}</td><td class="${pClass(grP)}">${P(grP)}</td>
+      <td>${N(gTotMM)}</td><td>${N(gTotTG)}</td>
+      <td class="${gtD>=0?'pos':'neg'}">${gtD>=0?'+':''}${N(gtD)}</td><td class="${pClass(gtP)}">${P(gtP)}</td>
+    </tr>`;
+    return rows;
+  }
+
+  document.getElementById('ovBody').innerHTML=buildRows('hc');
+  document.getElementById('ovAmtBody').innerHTML=buildRows('amt');
+
+  // Q2 HC Chart
+  destroyChart('q2HC');
+  const mLabels=['เมษายน','พฤษภาคม','มิถุนายน'];
+  const q2ChOpt={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:'#6b8aaa',font:{size:11},boxWidth:12}},tooltip:{backgroundColor:'#1a2235',borderColor:'#1e2d45',borderWidth:1,titleColor:'#e8f4f8',bodyColor:'#6b8aaa'}},scales:{x:{ticks:{color:'#6b8aaa'},grid:{color:'#1e2d45'}},y:{ticks:{color:'#6b8aaa',callback:v=>N(v)},grid:{color:'#1e2d45'}}}};
+  charts['q2HC']=new Chart(document.getElementById('q2HCChart'),{
+    type:'bar',
+    data:{labels:mLabels,datasets:[
+      {label:'FL ยอดจริง',data:months.map(m=>getMe(m).reduce((s,e)=>s+(e.fl?.hc||0),0)),backgroundColor:'rgba(0,212,255,.75)',borderRadius:4},
+      {label:'RO ยอดจริง',data:months.map(m=>getMe(m).reduce((s,e)=>s+(e.ro?.hc||0),0)),backgroundColor:'rgba(255,107,53,.75)',borderRadius:4},
+      {label:'FL เป้า',data:[TG["2026-04"].fl.hc,TG["2026-05"].fl.hc,TG["2026-06"].fl.hc],backgroundColor:'rgba(0,212,255,.12)',borderColor:'rgba(0,212,255,.5)',borderWidth:1,borderRadius:4},
+      {label:'RO เป้า',data:[TG["2026-04"].ro.hc,TG["2026-05"].ro.hc,TG["2026-06"].ro.hc],backgroundColor:'rgba(255,107,53,.12)',borderColor:'rgba(255,107,53,.5)',borderWidth:1,borderRadius:4},
+    ]},
+    options:q2ChOpt,
+  });
+
+  // Q2 Amt Chart
+  destroyChart('q2Amt');
+  charts['q2Amt']=new Chart(document.getElementById('q2AmtChart'),{
+    type:'bar',
+    data:{labels:mLabels,datasets:[
+      {label:'FL ยอดจริง',data:months.map(m=>getMe(m).reduce((s,e)=>s+(e.fl?.amt||0),0)),backgroundColor:'rgba(0,212,255,.75)',borderRadius:4},
+      {label:'RO ยอดจริง',data:months.map(m=>getMe(m).reduce((s,e)=>s+(e.ro?.amt||0),0)),backgroundColor:'rgba(255,107,53,.75)',borderRadius:4},
+      {label:'FL เป้า',data:[TG["2026-04"].fl.amt,TG["2026-05"].fl.amt,TG["2026-06"].fl.amt],backgroundColor:'rgba(0,212,255,.12)',borderColor:'rgba(0,212,255,.5)',borderWidth:1,borderRadius:4},
+      {label:'RO เป้า',data:[TG["2026-04"].ro.amt,TG["2026-05"].ro.amt,TG["2026-06"].ro.amt],backgroundColor:'rgba(255,107,53,.12)',borderColor:'rgba(255,107,53,.5)',borderWidth:1,borderRadius:4},
+    ]},
+    options:{...q2ChOpt,scales:{...q2ChOpt.scales,y:{...q2ChOpt.scales.y,ticks:{...q2ChOpt.scales.y.ticks,callback:v=>fmtAmt(v)}}}},
+  });
+}
+
+// ==============================
+// FORM
+// ==============================
+function openForm(preDate=null) {
+  const today=new Date().toISOString().split('T')[0];
+  const d=preDate||(today>='2026-04-01'&&today<='2026-06-30'?today:'2026-04-01');
+  document.getElementById('fDate').value=d;
+  document.getElementById('fFlHC').value='';
+  document.getElementById('fFlAmt').value='';
+  document.getElementById('fRoHC').value='';
+  document.getElementById('fRoAmt').value='';
+  checkExisting();
+  document.getElementById('fOverlay').classList.add('show');
+}
+
+function closeForm() { document.getElementById('fOverlay').classList.remove('show'); }
+
+function overlayClick(e) { if(e.target===document.getElementById('fOverlay')) closeForm(); }
+
+function checkExisting() {
+  const d=document.getElementById('fDate').value;
+  const ex=entries.find(e=>e.date===d);
+  document.getElementById('existingNote').style.display=ex?'block':'none';
+  if(ex){
+    document.getElementById('fFlHC').value=ex.fl?.hc||'';
+    document.getElementById('fFlAmt').value=ex.fl?.amt||'';
+    document.getElementById('fRoHC').value=ex.ro?.hc||'';
+    document.getElementById('fRoAmt').value=ex.ro?.amt||'';
+  }
+  updatePreview();
+}
+
+function updatePreview() {
+  const flHC=parseInt(document.getElementById('fFlHC').value)||0;
+  const flAmt=parseFloat(document.getElementById('fFlAmt').value)||0;
+  const roHC=parseInt(document.getElementById('fRoHC').value)||0;
+  const roAmt=parseFloat(document.getElementById('fRoAmt').value)||0;
+  const p=document.getElementById('fPreview');
+  if(flHC||flAmt||roHC||roAmt){
+    p.style.display='block';
+    p.innerHTML=`ยอดรวม: HC = <span>${N(flHC+roHC)} ราย</span> &nbsp;|&nbsp; Amount = <span>${N(flAmt+roAmt)} บาท</span>`;
+  } else { p.style.display='none'; }
+}
+
+['fFlHC','fFlAmt','fRoHC','fRoAmt'].forEach(id=>
+  document.getElementById(id).addEventListener('input',updatePreview)
+);
+
+function saveEntry() {
+  const date=document.getElementById('fDate').value;
+  const flHC=parseInt(document.getElementById('fFlHC').value)||0;
+  const flAmt=parseFloat(document.getElementById('fFlAmt').value)||0;
+  const roHC=parseInt(document.getElementById('fRoHC').value)||0;
+  const roAmt=parseFloat(document.getElementById('fRoAmt').value)||0;
+  if(!date){showToast('กรุณาเลือกวันที่',true);return;}
+  if(!flHC&&!flAmt&&!roHC&&!roAmt){showToast('กรุณากรอกข้อมูลอย่างน้อย 1 ช่อง',true);return;}
+  const entry={date,fl:{hc:flHC,amt:flAmt},ro:{hc:roHC,amt:roAmt}};
+  entries=[...entries.filter(e=>e.date!==date),entry].sort((a,b)=>a.date.localeCompare(b.date));
+  save();
+  closeForm();
+  showToast(`✅ บันทึกวันที่ ${dl(date)} (${dayName(date)}) สำเร็จ`);
+  const em=date.substring(0,7);
+  if(em===currentMonth){ renderKPI(currentMonth); renderCharts(currentMonth); }
+  renderDailyTable(currentTblMonth);
+}
+
+function editEntry(date) {
+  openForm(date);
+}
+
+function delEntry(date) {
+  if(!confirm(`ยืนยันลบข้อมูลวันที่ ${dl(date)} (${dayName(date)})?`)) return;
+  entries=entries.filter(e=>e.date!==date);
+  save();
+  showToast(`🗑️ ลบข้อมูลวันที่ ${dl(date)} แล้ว`);
+  const em=date.substring(0,7);
+  if(em===currentMonth){ renderKPI(currentMonth); renderCharts(currentMonth); }
+  renderDailyTable(currentTblMonth);
+}
+
+// ==============================
+// TAB SWITCHING
+// ==============================
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+tab).classList.add('active');
+  if(tab==='daily') renderDailyTable(currentTblMonth);
+  if(tab==='overview') renderOverview();
+}
+
+function switchMonth(m, btn) {
+  currentMonth=m;
+  document.querySelectorAll('.mtabs .mbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderKPI(m); renderCharts(m);
+}
+
+function switchTblMonth(m, btn) {
+  currentTblMonth=m;
+  document.querySelectorAll('[id^="dtm-"]').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderDailyTable(m);
+}
+
+// ==============================
+// TOAST
+// ==============================
+let toastT=null;
+function showToast(msg,isErr=false) {
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='toast'+(isErr?' err':'')+' show';
+  if(toastT) clearTimeout(toastT);
+  toastT=setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+// ==============================
+// INIT
+// ==============================
+const now=new Date();
+document.getElementById('todayBadge').textContent=`📅 ${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}`;
+
+load();
+renderKPI(currentMonth);
+renderCharts(currentMonth);
+</script>
+</body>
+</html>
