@@ -101,6 +101,42 @@ td.phi{color:var(--grn);font-weight:700;}td.plo{color:var(--red);font-weight:700
 .loan-max-inp{background:var(--bg);border:1px solid rgba(0,212,255,.4);border-radius:6px;padding:5px 10px;color:var(--ac);font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;width:70px;text-align:center;outline:none;}
 .pie-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:4px;}
 .panel{display:none;}.panel.active{display:block;}
+/* MONTHLY SUMMARY */
+.ms-wrap{display:flex;flex-direction:column;gap:20px;}
+.ms-card{background:var(--s1);border:1px solid var(--bd);border-radius:16px;overflow:hidden;}
+.ms-header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:16px;padding:18px 22px;border-bottom:1px solid var(--bd);}
+.ms-month-badge{font-family:'Bebas Neue',sans-serif;font-size:38px;letter-spacing:3px;line-height:1;}
+.ms-meta{font-size:11px;color:var(--tm);margin-top:4px;}
+.ms-status-pill{padding:6px 16px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:1px;}
+.ms-status-pill.on-track{background:rgba(46,213,115,.15);color:var(--grn);border:1px solid rgba(46,213,115,.35);}
+.ms-status-pill.behind{background:rgba(255,71,87,.12);color:var(--red);border:1px solid rgba(255,71,87,.3);}
+.ms-status-pill.no-data{background:rgba(107,138,170,.1);color:var(--tm);border:1px solid rgba(107,138,170,.25);}
+.ms-body{padding:18px 22px;}
+.ms-row2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.ms-sect{background:var(--s2);border-radius:10px;padding:14px 16px;}
+.ms-sect-title{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--tm);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.ms-nums{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.ms-num-box{background:var(--bg);border-radius:7px;padding:10px 12px;}
+.ms-num-label{font-size:9px;color:var(--tm);letter-spacing:1px;text-transform:uppercase;margin-bottom:3px;}
+.ms-num-val{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1.5px;line-height:1;}
+.ms-num-sub{font-size:10px;color:var(--tm);margin-top:3px;}
+.ms-prog-row{margin-bottom:6px;}
+.ms-prog-label{display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px;}
+.ms-prog-bar{height:5px;background:var(--bd);border-radius:3px;overflow:hidden;}
+.ms-prog-fill{height:100%;border-radius:3px;transition:width .6s ease;}
+.ms-stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px;}
+.ms-stat{background:var(--s2);border-radius:8px;padding:10px;text-align:center;}
+.ms-stat-label{font-size:9px;color:var(--tm);letter-spacing:.5px;margin-bottom:4px;}
+.ms-stat-val{font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:1px;line-height:1;}
+.ms-diff-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;}
+.ms-diff-box{border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;}
+.ms-diff-box.pos{background:rgba(46,213,115,.07);border:1px solid rgba(46,213,115,.2);}
+.ms-diff-box.neg{background:rgba(255,71,87,.07);border:1px solid rgba(255,71,87,.2);}
+.ms-diff-lbl{font-size:11px;color:var(--tm);}
+.ms-diff-val{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;}
+.ms-diff-box.pos .ms-diff-val{color:var(--grn);}
+.ms-diff-box.neg .ms-diff-val{color:var(--red);}
+
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
 .overlay.show{opacity:1;pointer-events:all;}
 .fcard{background:var(--s1);border:1px solid var(--bd);border-radius:16px;padding:26px;width:500px;max-width:95vw;transform:translateY(20px);transition:transform .2s;}
@@ -163,7 +199,7 @@ td.phi{color:var(--grn);font-weight:700;}td.plo{color:var(--red);font-weight:700
     <button class="mbtn" onclick="switchMonth('2026-06',this)">☀️ มิถุนายน</button>
   </div>
   <div class="holiday-note" id="holidayNote"></div>
-  <div class="kgrid" id="kpiGrid"></div>
+  <div id="mswrap" style="margin-bottom:16px;"></div>
   <div class="rrcard">
     <div class="rrtitle"><span class="dot" style="background:var(--yel)"></span>Run Rate Analysis · <span id="rrMonthName"></span></div>
     <div class="rrgrid" id="rrGrid"></div>
@@ -469,20 +505,11 @@ function calcS(m){
 // KPI
 // ============================================================
 function renderKPI(m){
+  renderMonthlySummary(m);
   const s=calcS(m),tg=TG[m];
   document.getElementById('rrMonthName').textContent=tg.label;
   document.getElementById('holidayNote').textContent=HOLIDAY_INFO[m];
-  document.getElementById('kpiGrid').innerHTML=[
-    {cl:'c1',l:'First Loan — Headcount',v:N(s.flHC),u:`/ ${N(tg.fl.hc)} ราย`,d:s.flHC-tg.fl.hc,p:s.flHCpct,f:'#00d4ff'},
-    {cl:'c2',l:'First Loan — Amount (฿)',v:N(s.flAmt),u:`/ ${N(tg.fl.amt)} บาท`,d:s.flAmt-tg.fl.amt,p:s.flAmtpct,f:'#ff6b35'},
-    {cl:'c3',l:'Rollover — Headcount',v:N(s.roHC),u:`/ ${N(tg.ro.hc)} ราย`,d:s.roHC-tg.ro.hc,p:s.roHCpct,f:'#2ed573'},
-    {cl:'c4',l:'Rollover — Amount (฿)',v:N(s.roAmt),u:`/ ${N(tg.ro.amt)} บาท`,d:s.roAmt-tg.ro.amt,p:s.roAmtpct,f:'#ffd32a'},
-  ].map(k=>`<div class="kcard ${k.cl}">
-    <div class="klabel">${k.l}</div><div class="kval">${k.v}</div><div class="ksub">${k.u}</div>
-    <div class="kdiff ${k.d>=0?'pos':'neg'}">${k.d>=0?'+':''}${N(k.d)} (${P(k.p)})</div>
-    <div class="plabel"><span>ความคืบหน้า</span><span>${P(Math.min(k.p,100))}</span></div>
-    <div class="pbar"><div class="pfill" style="width:${Math.min(k.p,100)}%;background:${k.f}"></div></div>
-  </div>`).join('');
+
   const ok=s.projTotHC>=s.tgTotHC;
   document.getElementById('rrGrid').innerHTML=`
     <div class="rritem"><div class="rrlabel">วันที่มีข้อมูล</div><div class="rrval" style="color:var(--ac)">${s.n}</div><div class="rrunit">/ ${s.wn} วันทำการ</div></div>
@@ -776,6 +803,181 @@ function delEntry(date){
   const em=date.substring(0,7);
   if(em===currentMonth){renderKPI(currentMonth);renderCharts(currentMonth);}
   renderDailyTable(currentTblMonth);
+}
+
+
+// ============================================================
+// MONTHLY SUMMARY
+// ============================================================
+function renderMonthlySummary(m){
+  m=m||currentMonth;
+  const months=[m];
+  const monthColors={"2026-04":"#ff6b8a","2026-05":"#2ed573","2026-06":"#ffd32a"};
+  const monthEmoji={"2026-04":"🌸","2026-05":"🌿","2026-06":"☀️"};
+  let html='';
+
+  months.forEach(m=>{
+    const me=getMe(m),tg=TG[m],wd=getWD(m),s=calcS(m);
+    const col=monthColors[m],em=monthEmoji[m];
+    const tgTotHC=tg.fl.hc+tg.ro.hc,tgTotAmt=tg.fl.amt+tg.ro.amt;
+    const totHCpct=tgTotHC>0?s.totHC/tgTotHC*100:0;
+    const totAmtpct=tgTotAmt>0?s.totAmt/tgTotAmt*100:0;
+    const projOK=s.n>0&&s.projTotHC>=tgTotHC;
+    const statusCls=s.n===0?'no-data':projOK?'on-track':'behind';
+    const statusTxt=s.n===0?'ยังไม่มีข้อมูล':projOK?'✅ ON TRACK':'⚠️ BEHIND TARGET';
+
+    // Best/worst day
+    let bestDay='—',bestVal=0,worstDay='—',worstVal=999999;
+    me.forEach(e=>{const t=(e.fl?.hc||0)+(e.ro?.hc||0);if(t>bestVal){bestVal=t;bestDay=dl(e.date)+' ('+dayName(e.date)+')';}if(t<worstVal){worstVal=t;worstDay=dl(e.date)+' ('+dayName(e.date)+')';}});
+    if(me.length===0){worstDay='—';worstVal=0;}
+
+    // Avg amount per case
+    const avgAmt=s.totHC>0?s.totAmt/s.totHC:0;
+
+    const flHCd=s.flHC-tg.fl.hc,roHCd=s.roHC-tg.ro.hc,totHCd=s.totHC-tgTotHC;
+    const flAmtd=s.flAmt-tg.fl.amt,roAmtd=s.roAmt-tg.ro.amt,totAmtd=s.totAmt-tgTotAmt;
+
+    html+=`<div class="ms-card">
+      <div class="ms-header">
+        <div class="ms-month-badge" style="color:${col}">${em} ${tg.label}</div>
+        <div>
+          <div class="ms-meta">วันทำการทั้งหมด ${s.wn} วัน · มีข้อมูลแล้ว ${s.n} วัน · เหลืออีก ${s.drem} วัน</div>
+          <div class="ms-meta" style="margin-top:2px;">หยุดจันทร์${m==='2026-04'?' + สงกรานต์ 13–17 เม.ย.':''}</div>
+        </div>
+        <span class="ms-status-pill ${statusCls}">${statusTxt}</span>
+      </div>
+      <div class="ms-body">
+
+        <div class="ms-row2">
+          <!-- FIRST LOAN -->
+          <div class="ms-sect">
+            <div class="ms-sect-title"><span class="dot" style="background:var(--ac)"></span>First Loan (สินเชื่อใหม่)</div>
+            <div class="ms-nums">
+              <div class="ms-num-box">
+                <div class="ms-num-label">Headcount</div>
+                <div class="ms-num-val" style="color:var(--ac)">${N(s.flHC)}</div>
+                <div class="ms-num-sub">เป้า ${N(tg.fl.hc)} ราย</div>
+              </div>
+              <div class="ms-num-box">
+                <div class="ms-num-label">Amount (฿)</div>
+                <div class="ms-num-val" style="color:var(--ac)">${fmtAmt(s.flAmt)}</div>
+                <div class="ms-num-sub">เป้า ${fmtAmt(tg.fl.amt)}</div>
+              </div>
+            </div>
+            <div class="ms-prog-row">
+              <div class="ms-prog-label">
+                <span style="color:var(--tm)">HC Progress</span>
+                <span style="color:${s.flHCpct>=100?'var(--grn)':s.flHCpct>=50?'var(--yel)':'var(--red)'};font-weight:700">${P(s.flHCpct)}</span>
+              </div>
+              <div class="ms-prog-bar"><div class="ms-prog-fill" style="width:${Math.min(s.flHCpct,100)}%;background:var(--ac)"></div></div>
+            </div>
+            <div class="ms-prog-row">
+              <div class="ms-prog-label">
+                <span style="color:var(--tm)">Amount Progress</span>
+                <span style="color:${s.flAmtpct>=100?'var(--grn)':s.flAmtpct>=50?'var(--yel)':'var(--red)'};font-weight:700">${P(s.flAmtpct)}</span>
+              </div>
+              <div class="ms-prog-bar"><div class="ms-prog-fill" style="width:${Math.min(s.flAmtpct,100)}%;background:rgba(0,212,255,.5)"></div></div>
+            </div>
+            <div class="ms-diff-row" style="margin-top:10px;">
+              <div class="ms-diff-box ${flHCd>=0?'pos':'neg'}">
+                <span class="ms-diff-lbl">HC Diff</span>
+                <span class="ms-diff-val">${flHCd>=0?'+':''}${N(flHCd)}</span>
+              </div>
+              <div class="ms-diff-box ${flAmtd>=0?'pos':'neg'}">
+                <span class="ms-diff-lbl">Amt Diff</span>
+                <span class="ms-diff-val">${flAmtd>=0?'+':''}${fmtAmt(flAmtd)}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ROLLOVER -->
+          <div class="ms-sect">
+            <div class="ms-sect-title"><span class="dot" style="background:var(--ac2)"></span>Rollover (ต่ออายุ)</div>
+            <div class="ms-nums">
+              <div class="ms-num-box">
+                <div class="ms-num-label">Headcount</div>
+                <div class="ms-num-val" style="color:var(--ac2)">${N(s.roHC)}</div>
+                <div class="ms-num-sub">เป้า ${N(tg.ro.hc)} ราย</div>
+              </div>
+              <div class="ms-num-box">
+                <div class="ms-num-label">Amount (฿)</div>
+                <div class="ms-num-val" style="color:var(--ac2)">${fmtAmt(s.roAmt)}</div>
+                <div class="ms-num-sub">เป้า ${fmtAmt(tg.ro.amt)}</div>
+              </div>
+            </div>
+            <div class="ms-prog-row">
+              <div class="ms-prog-label">
+                <span style="color:var(--tm)">HC Progress</span>
+                <span style="color:${s.roHCpct>=100?'var(--grn)':s.roHCpct>=50?'var(--yel)':'var(--red)'};font-weight:700">${P(s.roHCpct)}</span>
+              </div>
+              <div class="ms-prog-bar"><div class="ms-prog-fill" style="width:${Math.min(s.roHCpct,100)}%;background:var(--ac2)"></div></div>
+            </div>
+            <div class="ms-prog-row">
+              <div class="ms-prog-label">
+                <span style="color:var(--tm)">Amount Progress</span>
+                <span style="color:${s.roAmtpct>=100?'var(--grn)':s.roAmtpct>=50?'var(--yel)':'var(--red)'};font-weight:700">${P(s.roAmtpct)}</span>
+              </div>
+              <div class="ms-prog-bar"><div class="ms-prog-fill" style="width:${Math.min(s.roAmtpct,100)}%;background:rgba(255,107,53,.5)"></div></div>
+            </div>
+            <div class="ms-diff-row" style="margin-top:10px;">
+              <div class="ms-diff-box ${roHCd>=0?'pos':'neg'}">
+                <span class="ms-diff-lbl">HC Diff</span>
+                <span class="ms-diff-val">${roHCd>=0?'+':''}${N(roHCd)}</span>
+              </div>
+              <div class="ms-diff-box ${roAmtd>=0?'pos':'neg'}">
+                <span class="ms-diff-lbl">Amt Diff</span>
+                <span class="ms-diff-val">${roAmtd>=0?'+':''}${fmtAmt(roAmtd)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TOTAL ROW -->
+        <div class="ms-sect" style="background:rgba(0,212,255,.04);border:1px solid rgba(0,212,255,.12);margin-bottom:12px;">
+          <div class="ms-sect-title"><span class="dot" style="background:var(--grn)"></span>Total รวมทั้งเดือน</div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px;">
+            <div class="ms-num-box"><div class="ms-num-label">Total HC</div><div class="ms-num-val" style="color:var(--grn)">${N(s.totHC)}</div><div class="ms-num-sub">เป้า ${N(tgTotHC)} ราย</div></div>
+            <div class="ms-num-box"><div class="ms-num-label">Total Amount</div><div class="ms-num-val" style="color:var(--grn)">${fmtAmt(s.totAmt)}</div><div class="ms-num-sub">เป้า ${fmtAmt(tgTotAmt)}</div></div>
+            <div class="ms-num-box"><div class="ms-num-label">HC vs เป้า</div><div class="ms-num-val" style="color:${totHCd>=0?'var(--grn)':'var(--red)'}">${totHCd>=0?'+':''}${N(totHCd)}</div><div class="ms-num-sub">(${P(totHCpct)})</div></div>
+            <div class="ms-num-box"><div class="ms-num-label">Amt vs เป้า</div><div class="ms-num-val" style="color:${totAmtd>=0?'var(--grn)':'var(--red)'}">${totAmtd>=0?'+':''}${fmtAmt(totAmtd)}</div><div class="ms-num-sub">(${P(totAmtpct)})</div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+            <div class="ms-prog-row" style="margin:0;">
+              <div class="ms-prog-label"><span style="color:var(--tm)">Total HC Progress</span><span style="color:${totHCpct>=100?'var(--grn)':totHCpct>=50?'var(--yel)':'var(--red)'};font-weight:700">${P(totHCpct)}</span></div>
+              <div class="ms-prog-bar" style="height:7px;"><div class="ms-prog-fill" style="width:${Math.min(totHCpct,100)}%;background:var(--grn)"></div></div>
+            </div>
+            <div class="ms-prog-row" style="margin:0;">
+              <div class="ms-prog-label"><span style="color:var(--tm)">Total Amount Progress</span><span style="color:${totAmtpct>=100?'var(--grn)':totAmtpct>=50?'var(--yel)':'var(--red)'};font-weight:700">${P(totAmtpct)}</span></div>
+              <div class="ms-prog-bar" style="height:7px;"><div class="ms-prog-fill" style="width:${Math.min(totAmtpct,100)}%;background:rgba(46,213,115,.5)"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STATS ROW -->
+        <div class="ms-stats-row">
+          <div class="ms-stat">
+            <div class="ms-stat-label">เฉลี่ย HC / วัน</div>
+            <div class="ms-stat-val" style="color:var(--pur)">${s.avgHC.toFixed(1)}</div>
+          </div>
+          <div class="ms-stat">
+            <div class="ms-stat-label">Run Rate คาดสิ้นเดือน</div>
+            <div class="ms-stat-val" style="color:${s.projTotHC>=tgTotHC?'var(--grn)':'var(--red)'}">${s.n>0?N(s.projTotHC):'—'}</div>
+          </div>
+          <div class="ms-stat">
+            <div class="ms-stat-label">สูงสุด/วัน (HC)</div>
+            <div class="ms-stat-val" style="color:var(--yel)">${me.length>0?N(bestVal)+' ราย':'—'}</div>
+          </div>
+          <div class="ms-stat">
+            <div class="ms-stat-label">เฉลี่ย ฿/ราย</div>
+            <div class="ms-stat-val" style="color:var(--ac)">${s.totHC>0?fmtAmt(avgAmt):'—'}</div>
+          </div>
+        </div>
+
+      </div>
+    </div>`;
+  });
+
+  document.getElementById('mswrap').innerHTML=html;
 }
 
 // ============================================================
