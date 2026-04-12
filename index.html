@@ -1,129 +1,1134 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <title>Loan Performance 2026</title>
-    <style>
-        /* New CSS classes for holiday date row styling */
-        .holiday-date-row {
-            display: flex;
-            justify-content: space-between;
-            margin: 5px 0;
-        }
-        .holiday-checkbox {
-            margin-right: 10px;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026 · Loan Performance Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--bg:#0a0e1a;--s1:#111827;--s2:#1a2235;--bd:#1e2d45;--ac:#00d4ff;--ac2:#ff6b35;--tx:#e8f4f8;--tm:#6b8aaa;--red:#ff4757;--grn:#2ed573;--yel:#ffd32a;--pur:#a855f7;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--tx);font-family:'Sarabun',sans-serif;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+.app{position:relative;z-index:1;max-width:1440px;margin:0 auto;padding:20px;}
+/* HEADER */
+.header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--bd);}
+.title{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:4px;background:linear-gradient(135deg,var(--ac),#fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;}
+.subtitle{font-size:11px;color:var(--tm);letter-spacing:2px;text-transform:uppercase;margin-top:4px;}
+.badge{background:linear-gradient(135deg,var(--ac),#0080ff);color:#000;font-weight:700;font-size:11px;letter-spacing:1px;padding:6px 14px;border-radius:20px;text-transform:uppercase;}
+.header-right{display:flex;align-items:center;gap:10px;}
+/* QUARTER TABS */
+.qtabs{display:flex;gap:6px;margin-bottom:0;padding-bottom:12px;border-bottom:1px solid var(--bd);align-items:center;flex-wrap:wrap;}
+.qtab{padding:8px 20px;background:var(--s1);border:1px solid var(--bd);color:var(--tm);cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;border-radius:8px;transition:all .2s;}
+.qtab:hover:not(.active){color:var(--tx);border-color:rgba(0,212,255,.3);}
+.qtab.active{background:rgba(0,212,255,.12);border-color:var(--ac);color:var(--ac);}
+.qtab.cmp{font-size:14px;font-family:'Sarabun',sans-serif;font-weight:700;letter-spacing:.5px;}
+.qtab.cmp.active{background:rgba(168,85,247,.12);border-color:var(--pur);color:var(--pur);}
+.qtab-gap{flex:1;}
+.tg-btn{padding:7px 14px;background:var(--s2);border:1px solid var(--bd);color:var(--tm);cursor:pointer;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:700;border-radius:8px;transition:all .2s;}
+.tg-btn:hover{color:var(--yel);border-color:rgba(255,211,42,.4);}
+/* SUB TABS */
+.tabs{display:flex;gap:4px;margin-bottom:18px;border-bottom:1px solid var(--bd);margin-top:14px;}
+.tab{padding:10px 18px;background:none;border:none;border-bottom:2px solid transparent;color:var(--tm);cursor:pointer;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;margin-bottom:-1px;transition:all .2s;}
+.tab:hover:not(.active){color:var(--tx);}
+.tab.active{color:var(--ac);border-bottom-color:var(--ac);}
+/* MONTH TABS */
+.mtabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+.mbtn{padding:7px 18px;background:var(--s1);border:1px solid var(--bd);color:var(--tm);cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1.5px;border-radius:8px;transition:all .2s;}
+.mbtn:hover:not(.active){color:var(--tx);border-color:rgba(0,212,255,.3);}
+.mbtn.active{background:rgba(0,212,255,.12);border-color:var(--ac);color:var(--ac);}
+/* RUN RATE */
+.rrcard{background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:16px 20px;margin-bottom:16px;}
+.rrtitle{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--tm);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.rrgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
+.rritem{background:var(--s2);border-radius:8px;padding:12px;text-align:center;}
+.rrlabel{font-size:10px;color:var(--tm);margin-bottom:5px;}
+.rrval{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;line-height:1;}
+.rrunit{font-size:10px;color:var(--tm);margin-top:3px;}
+/* CHARTS */
+.cgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.ccard{background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:16px;}
+.ctitle{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--tm);margin-bottom:8px;display:flex;align-items:center;gap:7px;}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0;}
+.cleg{display:flex;gap:14px;margin-bottom:8px;flex-wrap:wrap;}
+.cleg-i{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--tm);}
+.lline{width:20px;height:3px;border-radius:2px;display:inline-block;}
+/* TABLE */
+.tcard{background:var(--s1);border:1px solid var(--bd);border-radius:12px;overflow:hidden;margin-bottom:16px;}
+.thead-bar{padding:12px 18px;border-bottom:1px solid var(--bd);font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--tm);display:flex;align-items:center;justify-content:space-between;}
+.tscroll{max-height:420px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--bd) transparent;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+thead tr{background:var(--s2);}
+thead th{padding:8px 10px;text-align:center;font-size:9px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--tm);border-bottom:1px solid var(--bd);}
+thead th.L{text-align:left;}
+tbody tr{border-bottom:1px solid rgba(30,45,69,.5);transition:background .12s;}
+tbody tr:hover{background:var(--s2);}
+tbody tr.tot-row{background:rgba(0,212,255,.05);font-weight:700;}
+tbody tr.tot-row td{color:var(--ac);}
+td{padding:9px 10px;text-align:center;}
+td.L{text-align:left;font-weight:600;}
+td.neg{color:var(--red);font-weight:700;}td.pos{color:var(--grn);font-weight:700;}
+td.phi{color:var(--grn);font-weight:700;}td.plo{color:var(--red);font-weight:700;}td.pmid{color:var(--yel);font-weight:700;}
+/* BUTTONS */
+.addbtn{background:linear-gradient(135deg,var(--ac),#0080ff);color:#000;font-weight:700;font-size:12px;padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .2s;}
+.addbtn:hover{opacity:.9;transform:translateY(-1px);}
+.ebtn{padding:3px 9px;border-radius:5px;border:none;cursor:pointer;font-size:10px;font-weight:700;margin:0 2px;transition:all .15s;}
+.ebtn.edit{background:rgba(0,212,255,.15);color:var(--ac);}
+.ebtn.edit:hover{background:rgba(0,212,255,.3);}
+.ebtn.del{background:rgba(255,71,87,.12);color:var(--red);}
+.ebtn.del:hover{background:rgba(255,71,87,.25);}
+/* HOLIDAY NOTE */
+.holiday-note{font-size:11px;color:#ffd32a88;padding:7px 12px;background:rgba(255,211,42,.06);border:1px solid rgba(255,211,42,.2);border-radius:7px;margin-bottom:14px;}
+/* STATUS SECTION */
+.sec-card{background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+.sec-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--bd);}
+.sec-title{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--tm);display:flex;align-items:center;gap:8px;}
+.sec-btn{padding:6px 14px;border-radius:7px;border:1px solid rgba(0,212,255,.4);background:rgba(0,212,255,.08);color:var(--ac);cursor:pointer;font-family:'Sarabun',sans-serif;font-size:11px;font-weight:700;transition:all .2s;}
+.sec-btn:hover{background:rgba(0,212,255,.18);}
+.sh{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--tm);padding:0 4px;}
+.sr{display:grid;gap:10px;align-items:center;margin-bottom:8px;}
+.sr-st{grid-template-columns:180px 1fr 110px 65px 70px;}
+.sr-ln{grid-template-columns:130px 100px 1fr 65px 80px;}
+.sbar{position:relative;height:22px;background:var(--s2);border-radius:5px;overflow:hidden;}
+.sbar-fill{height:100%;border-radius:5px;transition:width .4s ease;}
+.sbar-lbl{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:10px;font-weight:700;color:rgba(255,255,255,.7);}
+.sinput{background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:5px 8px;color:var(--tx);font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;text-align:center;width:100%;outline:none;transition:border-color .2s;}
+.sinput:focus{border-color:var(--ac);}
+.spct{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;text-align:center;}
+.sname{font-size:13px;font-weight:700;cursor:pointer;padding:4px 6px;border-radius:5px;}
+.sname:hover{background:var(--s2);}
+.sname[contenteditable="true"]{background:var(--s2);border:1px solid var(--ac);border-radius:5px;outline:none;padding:3px 6px;}
+.loan-max-row{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--s2);border-radius:8px;margin-bottom:14px;}
+.loan-max-row label{font-size:12px;color:var(--tm);}
+.loan-max-inp{background:var(--bg);border:1px solid rgba(0,212,255,.4);border-radius:6px;padding:5px 10px;color:var(--ac);font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;width:70px;text-align:center;outline:none;}
+.pie-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:4px;}
+/* MONTHLY SUMMARY CARDS */
+.ms-wrap{display:flex;flex-direction:column;gap:20px;}
+.ms-card{background:var(--s1);border:1px solid var(--bd);border-radius:16px;overflow:hidden;}
+.ms-header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:16px;padding:16px 20px;border-bottom:1px solid var(--bd);}
+.ms-month-badge{font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:3px;line-height:1;}
+.ms-meta{font-size:11px;color:var(--tm);margin-top:3px;}
+.ms-status-pill{padding:5px 14px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:1px;white-space:nowrap;}
+.ms-status-pill.on-track{background:rgba(46,213,115,.15);color:var(--grn);border:1px solid rgba(46,213,115,.35);}
+.ms-status-pill.behind{background:rgba(255,71,87,.12);color:var(--red);border:1px solid rgba(255,71,87,.3);}
+.ms-status-pill.no-data{background:rgba(107,138,170,.1);color:var(--tm);border:1px solid rgba(107,138,170,.25);}
+.ms-body{padding:16px 20px;}
+.ms-row2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.ms-sect{background:var(--s2);border-radius:10px;padding:14px 16px;}
+.ms-sect-title{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--tm);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.ms-nums{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.ms-num-box{background:var(--bg);border-radius:7px;padding:10px 12px;}
+.ms-num-label{font-size:9px;color:var(--tm);letter-spacing:1px;text-transform:uppercase;margin-bottom:3px;}
+.ms-num-val{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1.5px;line-height:1;}
+.ms-num-sub{font-size:10px;color:var(--tm);margin-top:3px;}
+.ms-prog-row{margin-bottom:6px;}
+.ms-prog-label{display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px;}
+.ms-prog-bar{height:5px;background:var(--bd);border-radius:3px;overflow:hidden;}
+.ms-prog-fill{height:100%;border-radius:3px;transition:width .6s ease;}
+.ms-stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px;}
+.ms-stat{background:var(--s2);border-radius:8px;padding:10px;text-align:center;}
+.ms-stat-label{font-size:9px;color:var(--tm);letter-spacing:.5px;margin-bottom:4px;}
+.ms-stat-val{font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:1px;line-height:1;}
+.ms-diff-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}
+.ms-diff-box{border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;}
+.ms-diff-box.pos{background:rgba(46,213,115,.07);border:1px solid rgba(46,213,115,.2);}
+.ms-diff-box.neg{background:rgba(255,71,87,.07);border:1px solid rgba(255,71,87,.2);}
+.ms-diff-lbl{font-size:11px;color:var(--tm);}
+.ms-diff-val{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;}
+.ms-diff-box.pos .ms-diff-val{color:var(--grn);}
+.ms-diff-box.neg .ms-diff-val{color:var(--red);}
+/* COMPARISON */
+.cmp-qgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.cmp-qcard{background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:16px;text-align:center;}
+.cmp-qcard.active-q{border-color:rgba(0,212,255,.4);}
+.cmp-qlabel{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:3px;margin-bottom:6px;}
+.cmp-qsub{font-size:10px;color:var(--tm);margin-bottom:10px;}
+.cmp-qval{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;line-height:1.2;}
+.cmp-qpct{font-size:11px;font-weight:700;margin-top:4px;}
+.cmp-qchange{font-size:11px;font-weight:700;margin-top:6px;padding:3px 10px;border-radius:12px;display:inline-block;}
+.cmp-qchange.up{background:rgba(46,213,115,.15);color:var(--grn);}
+.cmp-qchange.dn{background:rgba(255,71,87,.1);color:var(--red);}
+.cmp-qchange.na{background:rgba(107,138,170,.1);color:var(--tm);}
+.cmp-section{background:var(--s1);border:1px solid var(--bd);border-radius:12px;overflow:hidden;margin-bottom:16px;}
+.cmp-thead{padding:12px 18px;border-bottom:1px solid var(--bd);font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--tm);}
+/* TARGET EDIT MODAL */
+.tg-grid{display:grid;gap:16px;}
+.tg-month-row{background:var(--s2);border-radius:10px;padding:14px 16px;}
+.tg-month-title{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--ac);margin-bottom:10px;}
+.tg-inputs{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.tg-inp-grp label{display:block;font-size:10px;color:var(--tm);margin-bottom:4px;letter-spacing:.5px;}
+.tg-inp-grp input{width:100%;background:var(--bg);border:1px solid var(--bd);border-radius:7px;padding:8px 10px;color:var(--tx);font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;text-align:center;outline:none;transition:border-color .2s;}
+.tg-inp-grp input:focus{border-color:var(--ac);}
+/* PANELS */
+.panel{display:none;}.panel.active{display:block;}
+/* FORM OVERLAY */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
+.overlay.show{opacity:1;pointer-events:all;}
+.fcard{background:var(--s1);border:1px solid var(--bd);border-radius:16px;padding:26px;width:500px;max-width:95vw;max-height:90vh;overflow-y:auto;transform:translateY(20px);transition:transform .2s;}
+.overlay.show .fcard{transform:translateY(0);}
+.ftitle{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px;color:var(--ac);margin-bottom:18px;}
+.fsect-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--tm);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--bd);}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px;}
+.fgrp label{display:block;font-size:11px;color:var(--tm);margin-bottom:4px;}
+.fgrp input{width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:9px 12px;color:var(--tx);font-family:'Sarabun',sans-serif;font-size:14px;outline:none;transition:border-color .2s;}
+.fgrp input:focus{border-color:var(--ac);}
+.fgrp input[type="date"]{color-scheme:dark;}
+.faction{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;}
+.btn-sec{padding:9px 20px;border-radius:8px;background:var(--s2);border:1px solid var(--bd);color:var(--tm);cursor:pointer;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;}
+.btn-sec:hover{color:var(--tx);}
+.btn-pri{padding:9px 22px;border-radius:8px;background:linear-gradient(135deg,var(--ac),#0080ff);border:none;color:#000;cursor:pointer;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;}
+.btn-pri:hover{opacity:.9;}
+.fpreview{background:var(--s2);border-radius:8px;padding:10px 14px;margin-top:8px;font-size:11px;color:var(--tm);border:1px solid var(--bd);}
+.fpreview span{color:var(--ac);}
+.btt{position:fixed;bottom:28px;right:28px;background:var(--s1);border:1px solid var(--bd);color:var(--tm);width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;font-weight:700;z-index:150;transition:all .2s;opacity:0;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.4);}
+.btt.show{opacity:1;pointer-events:all;}
+.btt:hover{border-color:var(--ac);color:var(--ac);transform:translateY(-3px);}
+.toast{position:fixed;bottom:80px;right:28px;background:var(--s1);border:1px solid var(--grn);color:var(--grn);padding:12px 20px;border-radius:10px;font-size:13px;font-weight:700;z-index:300;opacity:0;transform:translateY(10px);transition:all .3s;}
+.toast.show{opacity:1;transform:translateY(0);}
+.toast.err{border-color:var(--red);color:var(--red);}
+@media(max-width:900px){
+  .cgrid,.pie-row,.ms-row2,.cmp-qgrid{grid-template-columns:1fr;}
+  .rrgrid{grid-template-columns:repeat(3,1fr);}
+  .tg-inputs{grid-template-columns:repeat(2,1fr);}
+  .ms-stats-row{grid-template-columns:repeat(2,1fr);}
+  .sr-st{grid-template-columns:130px 1fr 80px 55px 55px;}
+  .sr-ln{grid-template-columns:100px 80px 1fr 55px 60px;}
+}
+</style>
 </head>
 <body>
-    <header>
-        <button onclick="openEdit()">Edit Target</button>
-        <button onclick="openHolEdit()">📅 จัดการวันหยุด</button> <!-- New Button -->
-    </header>
+<div class="app">
 
-    <!-- Other parts of the page -->
+<div class="header">
+  <div>
+    <div class="title">2026 · Loan Performance</div>
+    <div class="subtitle">Q1–Q4 2026 · First Loan &amp; Rollover · Daily Tracker</div>
+  </div>
+  <div class="header-right">
+    <span class="badge" id="todayBadge">📅</span>
+    <button class="tg-btn" onclick="openTargetEdit()">⚙️ ตั้งค่าเป้าหมาย</button>
+    <button class="addbtn" id="addBtn" onclick="openForm()">+ กรอกข้อมูล</button>
+  </div>
+</div>
 
-    <div id="targetEditOverlay">
-        <!-- TARGET EDIT OVERLAY CONTENT -->
+<!-- QUARTER TABS -->
+<div class="qtabs">
+  <button class="qtab" id="qtQ1" onclick="switchQuarter('Q1',this)">❄️ Q1</button>
+  <button class="qtab active" id="qtQ2" onclick="switchQuarter('Q2',this)">🌸 Q2</button>
+  <button class="qtab" id="qtQ3" onclick="switchQuarter('Q3',this)">☀️ Q3</button>
+  <button class="qtab" id="qtQ4" onclick="switchQuarter('Q4',this)">🍂 Q4</button>
+  <div class="qtab-gap"></div>
+  <button class="qtab cmp" id="qtCMP" onclick="switchQuarter('CMP',this)">📊 เปรียบเทียบ Q1–Q4</button>
+</div>
+
+<!-- SUB-TABS -->
+<div class="tabs" id="subTabBar">
+  <button class="tab active" data-tab="dashboard" onclick="switchTab('dashboard',this)">📊 Dashboard</button>
+  <button class="tab" data-tab="daily" onclick="switchTab('daily',this)">📅 ตารางรายวัน</button>
+  <button class="tab" data-tab="overview" onclick="switchTab('overview',this)">🎯 สรุปไตรมาส</button>
+  <button class="tab" data-tab="cstatus" onclick="switchTab('cstatus',this)">👥 สถานะลูกค้า</button>
+</div>
+
+<!-- DASHBOARD -->
+<div id="panel-dashboard" class="panel active">
+  <div id="qMtabs" class="mtabs"></div>
+  <div class="holiday-note" id="holidayNote"></div>
+  <div id="mswrap" style="margin-bottom:16px;"></div>
+  <div class="rrcard">
+    <div class="rrtitle"><span class="dot" style="background:var(--yel)"></span>Run Rate Analysis · <span id="rrMonthName"></span></div>
+    <div class="rrgrid" id="rrGrid"></div>
+  </div>
+  <div class="cgrid">
+    <div class="ccard">
+      <div class="ctitle"><span class="dot" style="background:var(--ac)"></span>Cumulative Headcount (ราย)</div>
+      <div class="cleg">
+        <div class="cleg-i"><span class="lline" style="background:var(--ac)"></span>ยอดจริงสะสม</div>
+        <div class="cleg-i"><span class="lline" style="background:var(--yel);opacity:.8"></span>เป้าเชิงเส้น</div>
+        <div class="cleg-i"><span class="lline" style="background:var(--grn);opacity:.8"></span>Run Rate Proj.</div>
+      </div>
+      <div style="position:relative;height:230px;"><canvas id="cumHC"></canvas></div>
     </div>
-
-    <div id="holidayManagementOverlay" style="display:none;">
-        <h2>⚙️ จัดการวันหยุด</h2>
-        <form id="holidayForm">
-            <div>
-                <h3>Weekly Holidays</h3>
-                <label><input type="checkbox" class="holiday-checkbox" value="Sun"> Sunday</label>
-                <label><input type="checkbox" class="holiday-checkbox" value="Mon"> Monday</label>
-                <label><input type="checkbox" class="holiday-checkbox" value="Tue"> Tuesday</label>
-                <label><input type="checkbox" class="holiday-checkbox" value="Wed"> Wednesday</label>
-                <label><input type="checkbox" class="holiday-checkbox" value="Thu"> Thursday</label>
-                <label><input type="checkbox" class="holiday-checkbox" value="Fri"> Friday</label>
-                <label><input type="checkbox" class="holiday-checkbox" value="Sat"> Saturday</label>
-            </div>
-            <h3>Extra Holidays</h3>
-            <div id="extraHolidaysList"></div>
-            <button type="button" onclick="addHolidayDate()">Add Holiday Date</button>
-            <div>
-                <button type="button" onclick="saveHolidaysAndRefresh()">Save</button>
-                <button type="button" onclick="closeHolEdit()">Cancel</button>
-            </div>
-        </form>
+    <div class="ccard">
+      <div class="ctitle"><span class="dot" style="background:var(--ac2)"></span>Cumulative Amount (บาท)</div>
+      <div class="cleg">
+        <div class="cleg-i"><span class="lline" style="background:var(--ac2)"></span>ยอดจริงสะสม</div>
+        <div class="cleg-i"><span class="lline" style="background:var(--yel);opacity:.8"></span>เป้าเชิงเส้น</div>
+        <div class="cleg-i"><span class="lline" style="background:var(--grn);opacity:.8"></span>Run Rate Proj.</div>
+      </div>
+      <div style="position:relative;height:230px;"><canvas id="cumAmt"></canvas></div>
     </div>
+  </div>
+  <div class="ccard" style="margin-bottom:14px;">
+    <div class="ctitle">
+      <span class="dot" style="background:var(--pur)"></span>Headcount รายวัน
+      <span style="margin-left:auto;display:flex;gap:12px;">
+        <span class="cleg-i"><span style="width:10px;height:10px;border-radius:2px;background:rgba(0,212,255,.7);display:inline-block;"></span>FL</span>
+        <span class="cleg-i"><span style="width:10px;height:10px;border-radius:2px;background:rgba(255,107,53,.7);display:inline-block;"></span>RO</span>
+        <span class="cleg-i"><span style="width:16px;height:2px;border-radius:1px;background:#ffd32a;display:inline-block;"></span>TG</span>
+      </span>
+    </div>
+    <div style="position:relative;height:180px;"><canvas id="dailyBar"></canvas></div>
+  </div>
+  <div class="ccard" style="margin-bottom:24px;">
+    <div class="ctitle">
+      <span class="dot" style="background:var(--ac2)"></span>Amount รายวัน (บาท)
+      <span style="margin-left:auto;display:flex;gap:12px;">
+        <span class="cleg-i"><span style="width:10px;height:10px;border-radius:2px;background:rgba(0,212,255,.7);display:inline-block;"></span>FL</span>
+        <span class="cleg-i"><span style="width:10px;height:10px;border-radius:2px;background:rgba(46,213,115,.7);display:inline-block;"></span>RO</span>
+        <span class="cleg-i"><span style="width:16px;height:2px;border-radius:1px;background:#ffd32a;display:inline-block;"></span>TG</span>
+      </span>
+    </div>
+    <div style="position:relative;height:180px;"><canvas id="dailyAmtBar"></canvas></div>
+  </div>
+</div>
 
-    <script>
-        // JavaScript functions for holiday management
-        function loadHolidays() {
-            // Load from localStorage
-        }
+<!-- DAILY TABLE -->
+<div id="panel-daily" class="panel">
+  <div id="qMtabsDaily" class="mtabs"></div>
+  <div class="tcard">
+    <div class="thead-bar">
+      <span><span class="dot" style="background:var(--pur)"></span> ตารางรายวัน — <span id="tblName"></span></span>
+      <button class="addbtn" style="font-size:11px;padding:6px 12px;" onclick="openForm()">+ เพิ่มข้อมูล</button>
+    </div>
+    <div class="tscroll">
+      <table>
+        <thead>
+          <tr>
+            <th class="L" rowspan="2">วันที่</th>
+            <th colspan="2" style="color:var(--ac)">First Loan</th>
+            <th colspan="2" style="color:var(--ac2)">Rollover</th>
+            <th colspan="2" style="color:var(--grn)">Total</th>
+            <th rowspan="2">vs Daily TG</th><th rowspan="2">Cum. HC</th><th rowspan="2">% TG</th><th rowspan="2">จัดการ</th>
+          </tr>
+          <tr><th>HC</th><th>Amount (฿)</th><th>HC</th><th>Amount (฿)</th><th>HC</th><th>Amount (฿)</th></tr>
+        </thead>
+        <tbody id="dailyBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
-        function saveHolidaysToStorage() {
-            // Save to localStorage
-        }
+<!-- OVERVIEW -->
+<div id="panel-overview" class="panel">
+  <div class="tcard">
+    <div class="thead-bar"><span><span class="dot" style="background:var(--ac)"></span> สรุป Headcount รายเดือน — <span id="ovQLabel"></span></span></div>
+    <table>
+      <thead>
+        <tr><th class="L" rowspan="2">เดือน</th><th colspan="4" style="color:var(--ac)">First Loan</th><th colspan="4" style="color:var(--ac2)">Rollover</th><th colspan="4" style="color:var(--grn)">Total</th></tr>
+        <tr><th>MM</th><th>TG</th><th>Diff</th><th>%</th><th>MM</th><th>TG</th><th>Diff</th><th>%</th><th>MM</th><th>TG</th><th>Diff</th><th>%</th></tr>
+      </thead>
+      <tbody id="ovBody"></tbody>
+    </table>
+  </div>
+  <div class="tcard" style="margin-top:14px;">
+    <div class="thead-bar"><span><span class="dot" style="background:var(--ac2)"></span> สรุป Amount รายเดือน (บาท) — <span id="ovQLabel2"></span></span></div>
+    <table>
+      <thead>
+        <tr><th class="L" rowspan="2">เดือน</th><th colspan="4" style="color:var(--ac)">First Loan</th><th colspan="4" style="color:var(--ac2)">Rollover</th><th colspan="4" style="color:var(--grn)">Total</th></tr>
+        <tr><th>MM</th><th>TG</th><th>Diff</th><th>%</th><th>MM</th><th>TG</th><th>Diff</th><th>%</th><th>MM</th><th>TG</th><th>Diff</th><th>%</th></tr>
+      </thead>
+      <tbody id="ovAmtBody"></tbody>
+    </table>
+  </div>
+  <div class="cgrid" style="margin-top:14px;">
+    <div class="ccard">
+      <div class="ctitle"><span class="dot" style="background:var(--ac)"></span>HC Progress vs Target</div>
+      <div style="position:relative;height:230px;"><canvas id="ovHCChart"></canvas></div>
+    </div>
+    <div class="ccard">
+      <div class="ctitle"><span class="dot" style="background:var(--ac2)"></span>Amount Progress vs Target</div>
+      <div style="position:relative;height:230px;"><canvas id="ovAmtChart"></canvas></div>
+    </div>
+  </div>
+</div>
 
-        function openHolEdit() {
-            // Open the modal
-            document.getElementById('holidayManagementOverlay').style.display = 'block';
-        }
+<!-- CUSTOMER STATUS -->
+<div id="panel-cstatus" class="panel">
+  <div id="qMtabsCs" class="mtabs"></div>
+  <div class="sec-card">
+    <div class="sec-header">
+      <div class="sec-title"><span class="dot" style="background:var(--ac)"></span>สถานะลูกค้า — <span id="csMonthName"></span></div>
+      <button class="sec-btn" onclick="addStatusRow()">+ เพิ่มสถานะ</button>
+    </div>
+    <div class="sr sr-st" style="margin-bottom:6px;"><div class="sh">สถานะ</div><div class="sh">สัดส่วน</div><div class="sh" style="text-align:center;">จำนวน (ราย)</div><div class="sh" style="text-align:center;">%</div><div class="sh" style="text-align:right;">ลบ</div></div>
+    <div id="statusGrid" style="display:flex;flex-direction:column;gap:8px;"></div>
+    <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:11px;color:var(--tm);">ยอดรวม</span>
+      <span style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px;color:var(--ac)" id="statusTotal">0 ราย</span>
+    </div>
+  </div>
+  <div class="sec-card">
+    <div class="sec-header">
+      <div class="sec-title"><span class="dot" style="background:var(--pur)"></span>ครั้งที่กู้ — <span id="lcMonthName"></span></div>
+      <div class="loan-max-row" style="margin:0;padding:6px 12px;"><label>แสดงถึงครั้งที่</label><input type="number" class="loan-max-inp" id="loanMaxInput" min="1" max="20" value="8" onchange="changeLoanMax()"></div>
+    </div>
+    <div class="sr sr-ln" style="margin-bottom:6px;"><div class="sh">ครั้งที่กู้</div><div class="sh" style="text-align:center;">จำนวน</div><div class="sh">สัดส่วน</div><div class="sh" style="text-align:center;">%</div><div class="sh" style="text-align:right;">รวม</div></div>
+    <div id="loanGrid" style="display:flex;flex-direction:column;gap:8px;"></div>
+    <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:11px;color:var(--tm);">ยอดรวม</span>
+      <span style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px;color:var(--pur)" id="loanTotal">0 ราย</span>
+    </div>
+  </div>
+  <div class="pie-row">
+    <div class="ccard"><div class="ctitle"><span class="dot" style="background:var(--ac)"></span>สัดส่วนสถานะ</div><div style="position:relative;height:260px;"><canvas id="statusPie"></canvas></div></div>
+    <div class="ccard"><div class="ctitle"><span class="dot" style="background:var(--pur)"></span>สัดส่วนครั้งที่กู้</div><div style="position:relative;height:260px;"><canvas id="loanPie"></canvas></div></div>
+  </div>
+</div>
 
-        function closeHolEdit() {
-            // Close the modal
-            document.getElementById('holidayManagementOverlay').style.display = 'none';
-        }
+<!-- COMPARISON -->
+<div id="panel-compare" class="panel">
+  <div class="cmp-qgrid" id="cmpCards"></div>
+  <div class="cmp-section">
+    <div class="cmp-thead">📋 ตารางเปรียบเทียบ Q1–Q4 · Headcount</div>
+    <div style="overflow-x:auto;">
+      <table id="cmpHCTable" style="min-width:900px;"></table>
+    </div>
+  </div>
+  <div class="cmp-section" style="margin-top:14px;">
+    <div class="cmp-thead">💰 ตารางเปรียบเทียบ Q1–Q4 · Amount (บาท)</div>
+    <div style="overflow-x:auto;">
+      <table id="cmpAmtTable" style="min-width:900px;"></table>
+    </div>
+  </div>
+  <div class="cgrid" style="margin-top:14px;">
+    <div class="ccard">
+      <div class="ctitle"><span class="dot" style="background:var(--ac)"></span>Total Headcount จริง vs เป้า รายไตรมาส</div>
+      <div style="position:relative;height:250px;"><canvas id="cmpHCChart"></canvas></div>
+    </div>
+    <div class="ccard">
+      <div class="ctitle"><span class="dot" style="background:var(--ac2)"></span>Total Amount จริง vs เป้า รายไตรมาส</div>
+      <div style="position:relative;height:250px;"><canvas id="cmpAmtChart"></canvas></div>
+    </div>
+  </div>
+  <div class="ccard" style="margin-top:14px;margin-bottom:24px;">
+    <div class="ctitle"><span class="dot" style="background:var(--grn)"></span>Monthly Total HC Trend — ทุกไตรมาส</div>
+    <div style="position:relative;height:220px;"><canvas id="cmpTrendChart"></canvas></div>
+  </div>
+</div>
 
-        function holOverlayClick() {
-            // Handle overlay click (outside of modal)
-            closeHolEdit();
-        }
+</div><!-- /app -->
 
-        function addHolidayDate() {
-            const extraHolidaysList = document.getElementById('extraHolidaysList');
-            const holidayDateInput = document.createElement('input');
-            holidayDateInput.type = 'date';
-            holidayDateInput.className = 'holiday-date-row';
-            extraHolidaysList.appendChild(holidayDateInput);
-        }
+<!-- FORM OVERLAY -->
+<div class="overlay" id="fOverlay" onclick="overlayClick(event)">
+  <div class="fcard">
+    <div class="ftitle">กรอกข้อมูลประจำวัน</div>
+    <div class="frow" style="margin-bottom:14px;">
+      <div class="fgrp" style="grid-column:span 2;"><label>📅 วันที่</label><input type="date" id="fDate" min="2026-01-01" max="2026-12-31" onchange="checkExisting()"></div>
+    </div>
+    <div id="existingNote" style="display:none;background:rgba(255,211,42,.1);border:1px solid rgba(255,211,42,.3);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--yel);">⚠️ มีข้อมูลวันนี้แล้ว — จะ <strong>แทนที่</strong>ข้อมูลเดิม</div>
+    <div style="margin-bottom:14px;">
+      <div class="fsect-title">🏦 First Loan</div>
+      <div class="frow"><div class="fgrp"><label>Headcount (ราย)</label><input type="number" id="fFlHC" placeholder="0" min="0"></div><div class="fgrp"><label>Amount (บาท)</label><input type="number" id="fFlAmt" placeholder="0" min="0"></div></div>
+    </div>
+    <div style="margin-bottom:14px;">
+      <div class="fsect-title">🔄 Rollover</div>
+      <div class="frow"><div class="fgrp"><label>Headcount (ราย)</label><input type="number" id="fRoHC" placeholder="0" min="0"></div><div class="fgrp"><label>Amount (บาท)</label><input type="number" id="fRoAmt" placeholder="0" min="0"></div></div>
+    </div>
+    <div class="fpreview" id="fPreview" style="display:none;"></div>
+    <div class="faction"><button class="btn-sec" onclick="closeForm()">ยกเลิก</button><button class="btn-pri" onclick="saveEntry()">💾 บันทึก</button></div>
+  </div>
+</div>
 
-        function renderExtraHolidays() {
-            // Render the extra holidays list
-        }
+<!-- TARGET EDIT OVERLAY -->
+<div class="overlay" id="tgOverlay" onclick="tgOverlayClick(event)">
+  <div class="fcard" style="width:620px;">
+    <div class="ftitle" id="tgTitle">⚙️ ตั้งค่าเป้าหมาย</div>
+    <div class="tg-grid" id="tgForm"></div>
+    <div class="faction"><button class="btn-sec" onclick="closeTgEdit()">ยกเลิก</button><button class="btn-pri" onclick="saveTgEdit()">💾 บันทึกเป้าหมาย</button></div>
+  </div>
+</div>
 
-        function updateExtraHolidayDate(dateInput) {
-            // Update existing holiday date
-        }
+<div class="toast" id="toast"></div>
+<button class="btt" id="bttBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
 
-        function delExtraHoliday(dateInput) {
-            // Delete a holiday date
-            dateInput.remove();
-        }
+<script>
+// ============================================================
+// CONFIG
+// ============================================================
+const QUARTERS={
+  Q1:{months:["2026-01","2026-02","2026-03"],label:"Q1 2026 (ม.ค.–มี.ค.)",emoji:"❄️",color:"#54a0ff"},
+  Q2:{months:["2026-04","2026-05","2026-06"],label:"Q2 2026 (เม.ย.–มิ.ย.)",emoji:"🌸",color:"#00d4ff"},
+  Q3:{months:["2026-07","2026-08","2026-09"],label:"Q3 2026 (ก.ค.–ก.ย.)",emoji:"☀️",color:"#ffd32a"},
+  Q4:{months:["2026-10","2026-11","2026-12"],label:"Q4 2026 (ต.ค.–ธ.ค.)",emoji:"🍂",color:"#ff6b35"},
+};
+const ML={
+  "2026-01":{label:"มกราคม 2026",short:"ม.ค.",emoji:"❄️"},
+  "2026-02":{label:"กุมภาพันธ์ 2026",short:"ก.พ.",emoji:"💐"},
+  "2026-03":{label:"มีนาคม 2026",short:"มี.ค.",emoji:"🌱"},
+  "2026-04":{label:"เมษายน 2026",short:"เม.ย.",emoji:"🌸"},
+  "2026-05":{label:"พฤษภาคม 2026",short:"พ.ค.",emoji:"🌿"},
+  "2026-06":{label:"มิถุนายน 2026",short:"มิ.ย.",emoji:"☀️"},
+  "2026-07":{label:"กรกฎาคม 2026",short:"ก.ค.",emoji:"🌊"},
+  "2026-08":{label:"สิงหาคม 2026",short:"ส.ค.",emoji:"⛅"},
+  "2026-09":{label:"กันยายน 2026",short:"ก.ย.",emoji:"🍂"},
+  "2026-10":{label:"ตุลาคม 2026",short:"ต.ค.",emoji:"🍁"},
+  "2026-11":{label:"พฤศจิกายน 2026",short:"พ.ย.",emoji:"🌧️"},
+  "2026-12":{label:"ธันวาคม 2026",short:"ธ.ค.",emoji:"🎄"},
+};
+const DEFAULT_TG={
+  "2026-01":{fl:{hc:200,amt:2000000},ro:{hc:50,amt:900000}},
+  "2026-02":{fl:{hc:220,amt:2200000},ro:{hc:55,amt:990000}},
+  "2026-03":{fl:{hc:255,amt:2550000},ro:{hc:100,amt:1800000}},
+  "2026-04":{fl:{hc:250,amt:2500000},ro:{hc:60,amt:1080000}},
+  "2026-05":{fl:{hc:250,amt:2500000},ro:{hc:90,amt:1620000}},
+  "2026-06":{fl:{hc:300,amt:3000000},ro:{hc:100,amt:1800000}},
+  "2026-07":{fl:{hc:260,amt:2600000},ro:{hc:90,amt:1620000}},
+  "2026-08":{fl:{hc:260,amt:2600000},ro:{hc:95,amt:1710000}},
+  "2026-09":{fl:{hc:280,amt:2800000},ro:{hc:100,amt:1800000}},
+  "2026-10":{fl:{hc:270,amt:2700000},ro:{hc:95,amt:1710000}},
+  "2026-11":{fl:{hc:280,amt:2800000},ro:{hc:100,amt:1800000}},
+  "2026-12":{fl:{hc:300,amt:3000000},ro:{hc:110,amt:1980000}},
+};
+// Songkran: Apr 13=Mon (already off), extra: 14-17
+const EXTRA_HOLS=new Set(["2026-04-14","2026-04-15","2026-04-16","2026-04-17"]);
+const WEEK=['อา','จ','อ','พ','พฤ','ศ','ส'];
+const SCOL=['#00d4ff','#2ed573','#ffd32a','#ff4757','#a855f7','#ff6b35','#00b8a9','#f368e0','#54a0ff','#5f27cd'];
+const SK="loan-entries-v1",CSK="loan-cstatus-v1",TGK="loan-targets-v1";
 
-        function saveHolidaysAndRefresh() {
-            saveHolidaysToStorage();
-            closeHolEdit();
-            // Optionally refresh displays
-        }
+let entries=[],csData={},TG={},currentQuarter="Q2",currentMonth="2026-04",currentTblMonth="2026-04",currentCsMonth="2026-04",charts={};
 
-        function updateHolidayNote() {
-            // Update the holiday note display
-        }
+const SEED=[
+  {date:"2026-04-01",fl:{hc:13,amt:149000},ro:{hc:6,amt:96500}},
+  {date:"2026-04-02",fl:{hc:4,amt:41000},ro:{hc:5,amt:55000}},
+  {date:"2026-04-03",fl:{hc:6,amt:60000},ro:{hc:0,amt:0}},
+  {date:"2026-04-04",fl:{hc:18,amt:177000},ro:{hc:6,amt:71000}},
+  {date:"2026-04-05",fl:{hc:28,amt:280000},ro:{hc:6,amt:71000}},
+  {date:"2026-04-07",fl:{hc:16,amt:156000},ro:{hc:5,amt:60000}},
+  {date:"2026-04-08",fl:{hc:10,amt:96000},ro:{hc:7,amt:82000}},
+  {date:"2026-04-09",fl:{hc:7,amt:68000},ro:{hc:4,amt:43000}},
+  {date:"2026-04-10",fl:{hc:11,amt:106000},ro:{hc:2,amt:24000}},
+  {date:"2026-04-11",fl:{hc:13,amt:122000},ro:{hc:2,amt:24000}},
+];
 
-        // Updated getWD() function to use custom holidays
-        function getWD() {
-            // Custom implementation
-        }
+// ============================================================
+// STORAGE
+// ============================================================
+function save(){try{localStorage.setItem(SK,JSON.stringify(entries));}catch(e){}}
+function saveCs(){try{localStorage.setItem(CSK,JSON.stringify(csData));}catch(e){}}
+function saveTG(){try{localStorage.setItem(TGK,JSON.stringify(TG));}catch(e){}}
 
-        // Updated holidayInfo() function to use custom holidays
-        function holidayInfo() {
-            // Custom implementation
-        }
+function load(){
+  // Entries
+  try{const r=localStorage.getItem(SK)||localStorage.getItem("q2-loan-v4");entries=r?JSON.parse(r):[...SEED];}catch(e){entries=[...SEED];}
+  if(!entries||!entries.length)entries=[...SEED];
+  // Targets
+  try{const r=localStorage.getItem(TGK);TG=r?JSON.parse(r):JSON.parse(JSON.stringify(DEFAULT_TG));}catch(e){TG=JSON.parse(JSON.stringify(DEFAULT_TG));}
+  // Ensure all months have targets
+  Object.keys(DEFAULT_TG).forEach(m=>{if(!TG[m])TG[m]=JSON.parse(JSON.stringify(DEFAULT_TG[m]));});
+  // csData
+  try{const r=localStorage.getItem(CSK)||localStorage.getItem("q2-cstatus-v2");csData=r?JSON.parse(r):{};}catch(e){csData={};}
+  const allMonths=Object.keys(ML);
+  allMonths.forEach(m=>{
+    if(!csData[m])csData[m]={};
+    if(!csData[m].statuses)csData[m].statuses=[{name:"DISBURSED",count:""},{name:"PENDING",count:""},{name:"POSTPONE",count:""},{name:"PRE-APPROVED",count:""},{name:"REJECT",count:""}];
+    if(!csData[m].loanMax)csData[m].loanMax=8;
+    if(!csData[m].loans)csData[m].loans={};
+  });
+  save();saveTG();saveCs();
+}
 
-        // Updated init() function to load holidays at startup
-        function init() {
-            loadHolidays();
-        }
+// ============================================================
+// UTILS
+// ============================================================
+function N(n){return Math.round(n).toLocaleString('th-TH');}
+function P(n){return n.toFixed(2)+'%';}
+function dl(d){const x=new Date(d+'T00:00:00');return String(x.getDate()).padStart(2,'0')+'/'+String(x.getMonth()+1).padStart(2,'0');}
+function dayName(d){return WEEK[new Date(d+'T00:00:00').getDay()];}
+function fmtAmt(v){if(v>=1000000)return(v/1000000).toFixed(2)+'M';if(v>=1000)return(v/1000).toFixed(1)+'K';return N(v);}
+function pClass(p){return p>=100?'phi':p>=50?'pmid':'plo';}
+function ld(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function ord(n){const s=['st','nd','rd'],v=n%100;return n+(s[(v-20)%10]||s[v-1]||'th');}
+function getQofMonth(m){for(const[q,d]of Object.entries(QUARTERS))if(d.months.includes(m))return q;return 'Q2';}
+function holidayInfo(m){
+  if(m==='2026-04')return '📅 วันหยุด: ทุกวันจันทร์ + สงกรานต์ 13–17 เม.ย.';
+  return '📅 วันหยุด: ทุกวันจันทร์';
+}
 
-        window.onload = init;
-    </script>
+// ============================================================
+// WORKING DAYS — Mon off + Songkran Apr 14-17
+// ============================================================
+function getWD(mkey){
+  const[y,m]=mkey.split('-').map(Number),days=[],d=new Date(y,m-1,1);
+  while(d.getMonth()===m-1){
+    const dw=d.getDay(),ds=ld(d);
+    if(dw!==1&&!EXTRA_HOLS.has(ds))days.push(ds);
+    d.setDate(d.getDate()+1);
+  }
+  return days;
+}
+function getMe(m){return entries.filter(e=>e.date.startsWith(m)).sort((a,b)=>a.date.localeCompare(b.date));}
+function calcS(m){
+  const me=getMe(m),tg=TG[m],wd=getWD(m);
+  const flHC=me.reduce((s,e)=>s+(e.fl?.hc||0),0),flAmt=me.reduce((s,e)=>s+(e.fl?.amt||0),0);
+  const roHC=me.reduce((s,e)=>s+(e.ro?.hc||0),0),roAmt=me.reduce((s,e)=>s+(e.ro?.amt||0),0);
+  const totHC=flHC+roHC,totAmt=flAmt+roAmt,n=me.length,wn=wd.length,drem=Math.max(0,wn-n);
+  const avgHC=n>0?totHC/n:0,avgAmt=n>0?totAmt/n:0,avgFlHC=n>0?flHC/n:0;
+  const tgTotHC=tg.fl.hc+tg.ro.hc,tgTotAmt=tg.fl.amt+tg.ro.amt;
+  return{flHC,flAmt,roHC,roAmt,totHC,totAmt,n,wn,drem,avgHC,avgAmt,avgFlHC,
+    projTotHC:avgHC*wn,projTotAmt:avgAmt*wn,tgTotHC,tgTotAmt,
+    neFlHC:drem>0?Math.max(0,tg.fl.hc-flHC)/drem:0,
+    flHCpct:tg.fl.hc>0?flHC/tg.fl.hc*100:0,flAmtpct:tg.fl.amt>0?flAmt/tg.fl.amt*100:0,
+    roHCpct:tg.ro.hc>0?roHC/tg.ro.hc*100:0,roAmtpct:tg.ro.amt>0?roAmt/tg.ro.amt*100:0};
+}
+function calcQ(q){
+  const months=QUARTERS[q].months;
+  let flHC=0,flAmt=0,roHC=0,roAmt=0,flTG=0,flAmtTG=0,roTG=0,roAmtTG=0;
+  months.forEach(m=>{
+    const s=calcS(m);
+    flHC+=s.flHC;flAmt+=s.flAmt;roHC+=s.roHC;roAmt+=s.roAmt;
+    flTG+=TG[m].fl.hc;flAmtTG+=TG[m].fl.amt;roTG+=TG[m].ro.hc;roAmtTG+=TG[m].ro.amt;
+  });
+  const totHC=flHC+roHC,totAmt=flAmt+roAmt,totTGHC=flTG+roTG,totTGAmt=flAmtTG+roAmtTG;
+  return{flHC,flAmt,roHC,roAmt,totHC,totAmt,flTG,flAmtTG,roTG,roAmtTG,totTGHC,totTGAmt,
+    totHCpct:totTGHC>0?totHC/totTGHC*100:0,totAmtpct:totTGAmt>0?totAmt/totTGAmt*100:0};
+}
+
+// ============================================================
+// MONTH TABS
+// ============================================================
+function renderMonthTabs(q){
+  const months=QUARTERS[q].months;
+  const mkBtn=(m,active,onclick)=>`<button class="mbtn ${active?'active':''}" onclick="${onclick}">${ML[m].emoji} ${ML[m].short}</button>`;
+  const dbEl=document.getElementById('qMtabs');
+  const dlEl=document.getElementById('qMtabsDaily');
+  const csEl=document.getElementById('qMtabsCs');
+  if(dbEl)dbEl.innerHTML=months.map(m=>mkBtn(m,m===currentMonth,`switchMonth('${m}',this)`)).join('');
+  if(dlEl)dlEl.innerHTML=months.map(m=>mkBtn(m,m===currentTblMonth,`switchTblMonth('${m}',this)`)).join('');
+  if(csEl)csEl.innerHTML=months.map(m=>mkBtn(m,m===currentCsMonth,`switchCsMonth('${m}',this)`)).join('');
+}
+
+// ============================================================
+// MONTHLY SUMMARY CARD
+// ============================================================
+function renderMonthlySummary(m){
+  const s=calcS(m),tg=TG[m];
+  const q=getQofMonth(m),qcol=QUARTERS[q].color;
+  const tgTotHC=tg.fl.hc+tg.ro.hc,tgTotAmt=tg.fl.amt+tg.ro.amt;
+  const totHCpct=tgTotHC>0?s.totHC/tgTotHC*100:0,totAmtpct=tgTotAmt>0?s.totAmt/tgTotAmt*100:0;
+  const ok=s.n>0&&s.projTotHC>=tgTotHC;
+  const statusCls=s.n===0?'no-data':ok?'on-track':'behind';
+  const statusTxt=s.n===0?'ยังไม่มีข้อมูล':ok?'✅ ON TRACK':'⚠️ BEHIND TARGET';
+  let bestVal=0,worstVal=999999;
+  getMe(m).forEach(e=>{const t=(e.fl?.hc||0)+(e.ro?.hc||0);if(t>bestVal)bestVal=t;if(t<worstVal)worstVal=t;});
+  if(!getMe(m).length)worstVal=0;
+  const avgAmt=s.totHC>0?s.totAmt/s.totHC:0;
+  const flHCd=s.flHC-tg.fl.hc,roHCd=s.roHC-tg.ro.hc,totHCd=s.totHC-tgTotHC;
+  const flAmtd=s.flAmt-tg.fl.amt,roAmtd=s.roAmt-tg.ro.amt;
+  document.getElementById('mswrap').innerHTML=`
+  <div class="ms-card">
+    <div class="ms-header">
+      <div class="ms-month-badge" style="color:${qcol}">${ML[m].emoji} ${ML[m].label}</div>
+      <div>
+        <div class="ms-meta">วันทำการ ${s.wn} วัน · มีข้อมูล ${s.n} วัน · เหลือ ${s.drem} วัน</div>
+        <div class="ms-meta" style="margin-top:2px;">${holidayInfo(m)}</div>
+      </div>
+      <span class="ms-status-pill ${statusCls}">${statusTxt}</span>
+    </div>
+    <div class="ms-body">
+      <div class="ms-row2">
+        <div class="ms-sect">
+          <div class="ms-sect-title"><span class="dot" style="background:var(--ac)"></span>First Loan</div>
+          <div class="ms-nums">
+            <div class="ms-num-box"><div class="ms-num-label">Headcount</div><div class="ms-num-val" style="color:var(--ac)">${N(s.flHC)}</div><div class="ms-num-sub">เป้า ${N(tg.fl.hc)} ราย</div></div>
+            <div class="ms-num-box"><div class="ms-num-label">Amount</div><div class="ms-num-val" style="color:var(--ac)">${fmtAmt(s.flAmt)}</div><div class="ms-num-sub">เป้า ${fmtAmt(tg.fl.amt)}</div></div>
+          </div>
+          <div class="ms-prog-row"><div class="ms-prog-label"><span style="color:var(--tm)">HC</span><span style="color:${s.flHCpct>=100?'var(--grn)':s.flHCpct>=50?'var(--yel)':'var(--red)'};font-weight:700">${P(s.flHCpct)}</span></div><div class="ms-prog-bar"><div class="ms-prog-fill" style="width:${Math.min(s.flHCpct,100)}%;background:var(--ac)"></div></div></div>
+          <div class="ms-prog-row"><div class="ms-prog-label"><span style="color:var(--tm)">Amount</span><span style="color:${s.flAmtpct>=100?'var(--grn)':s.flAmtpct>=50?'var(--yel)':'var(--red)'};font-weight:700">${P(s.flAmtpct)}</span></div><div class="ms-prog-bar"><div class="ms-prog-fill" style="width:${Math.min(s.flAmtpct,100)}%;background:rgba(0,212,255,.5)"></div></div></div>
+          <div class="ms-diff-row"><div class="ms-diff-box ${flHCd>=0?'pos':'neg'}"><span class="ms-diff-lbl">HC Diff</span><span class="ms-diff-val">${flHCd>=0?'+':''}${N(flHCd)}</span></div><div class="ms-diff-box ${flAmtd>=0?'pos':'neg'}"><span class="ms-diff-lbl">Amt Diff</span><span class="ms-diff-val">${flAmtd>=0?'+':''}${fmtAmt(flAmtd)}</span></div></div>
+        </div>
+        <div class="ms-sect">
+          <div class="ms-sect-title"><span class="dot" style="background:var(--ac2)"></span>Rollover</div>
+          <div class="ms-nums">
+            <div class="ms-num-box"><div class="ms-num-label">Headcount</div><div class="ms-num-val" style="color:var(--ac2)">${N(s.roHC)}</div><div class="ms-num-sub">เป้า ${N(tg.ro.hc)} ราย</div></div>
+            <div class="ms-num-box"><div class="ms-num-label">Amount</div><div class="ms-num-val" style="color:var(--ac2)">${fmtAmt(s.roAmt)}</div><div class="ms-num-sub">เป้า ${fmtAmt(tg.ro.amt)}</div></div>
+          </div>
+          <div class="ms-prog-row"><div class="ms-prog-label"><span style="color:var(--tm)">HC</span><span style="color:${s.roHCpct>=100?'var(--grn)':s.roHCpct>=50?'var(--yel)':'var(--red)'};font-weight:700">${P(s.roHCpct)}</span></div><div class="ms-prog-bar"><div class="ms-prog-fill" style="width:${Math.min(s.roHCpct,100)}%;background:var(--ac2)"></div></div></div>
+          <div class="ms-prog-row"><div class="ms-prog-label"><span style="color:var(--tm)">Amount</span><span style="color:${s.roAmtpct>=100?'var(--grn)':s.roAmtpct>=50?'var(--yel)':'var(--red)'};font-weight:700">${P(s.roAmtpct)}</span></div><div class="ms-prog-bar"><div class="ms-prog-fill" style="width:${Math.min(s.roAmtpct,100)}%;background:rgba(255,107,53,.5)"></div></div></div>
+          <div class="ms-diff-row"><div class="ms-diff-box ${roHCd>=0?'pos':'neg'}"><span class="ms-diff-lbl">HC Diff</span><span class="ms-diff-val">${roHCd>=0?'+':''}${N(roHCd)}</span></div><div class="ms-diff-box ${roAmtd>=0?'pos':'neg'}"><span class="ms-diff-lbl">Amt Diff</span><span class="ms-diff-val">${roAmtd>=0?'+':''}${fmtAmt(roAmtd)}</span></div></div>
+        </div>
+      </div>
+      <div class="ms-sect" style="background:rgba(0,212,255,.04);border:1px solid rgba(0,212,255,.12);margin-bottom:12px;">
+        <div class="ms-sect-title"><span class="dot" style="background:var(--grn)"></span>Total รวม</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px;">
+          <div class="ms-num-box"><div class="ms-num-label">Total HC</div><div class="ms-num-val" style="color:var(--grn)">${N(s.totHC)}</div><div class="ms-num-sub">เป้า ${N(tgTotHC)}</div></div>
+          <div class="ms-num-box"><div class="ms-num-label">Total Amount</div><div class="ms-num-val" style="color:var(--grn)">${fmtAmt(s.totAmt)}</div><div class="ms-num-sub">เป้า ${fmtAmt(tgTotAmt)}</div></div>
+          <div class="ms-num-box"><div class="ms-num-label">HC vs เป้า</div><div class="ms-num-val" style="color:${totHCd>=0?'var(--grn)':'var(--red)'}">${totHCd>=0?'+':''}${N(totHCd)}</div><div class="ms-num-sub">(${P(totHCpct)})</div></div>
+          <div class="ms-num-box"><div class="ms-num-label">Amt vs เป้า</div><div class="ms-num-val" style="color:${(s.totAmt-tgTotAmt)>=0?'var(--grn)':'var(--red)'}">${(s.totAmt-tgTotAmt)>=0?'+':''}${fmtAmt(s.totAmt-tgTotAmt)}</div><div class="ms-num-sub">(${P(totAmtpct)})</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+          <div class="ms-prog-row" style="margin:0;"><div class="ms-prog-label"><span style="color:var(--tm)">Total HC</span><span style="color:${totHCpct>=100?'var(--grn)':totHCpct>=50?'var(--yel)':'var(--red)'};font-weight:700">${P(totHCpct)}</span></div><div class="ms-prog-bar" style="height:7px;"><div class="ms-prog-fill" style="width:${Math.min(totHCpct,100)}%;background:var(--grn)"></div></div></div>
+          <div class="ms-prog-row" style="margin:0;"><div class="ms-prog-label"><span style="color:var(--tm)">Total Amount</span><span style="color:${totAmtpct>=100?'var(--grn)':totAmtpct>=50?'var(--yel)':'var(--red)'};font-weight:700">${P(totAmtpct)}</span></div><div class="ms-prog-bar" style="height:7px;"><div class="ms-prog-fill" style="width:${Math.min(totAmtpct,100)}%;background:rgba(46,213,115,.5)"></div></div></div>
+        </div>
+      </div>
+      <div class="ms-stats-row">
+        <div class="ms-stat"><div class="ms-stat-label">เฉลี่ย HC/วัน</div><div class="ms-stat-val" style="color:var(--pur)">${s.avgHC.toFixed(1)}</div></div>
+        <div class="ms-stat"><div class="ms-stat-label">Run Rate (สิ้นเดือน)</div><div class="ms-stat-val" style="color:${s.projTotHC>=tgTotHC?'var(--grn)':'var(--red)'}">${s.n>0?N(s.projTotHC):'—'}</div></div>
+        <div class="ms-stat"><div class="ms-stat-label">HC สูงสุด/วัน</div><div class="ms-stat-val" style="color:var(--yel)">${getMe(m).length>0?N(bestVal):'—'}</div></div>
+        <div class="ms-stat"><div class="ms-stat-label">เฉลี่ย ฿/ราย</div><div class="ms-stat-val" style="color:var(--ac)">${s.totHC>0?fmtAmt(avgAmt):'—'}</div></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ============================================================
+// RUN RATE
+// ============================================================
+function renderRR(m){
+  const s=calcS(m),tg=TG[m];
+  document.getElementById('rrMonthName').textContent=ML[m].label;
+  const ok=s.projTotHC>=s.tgTotHC;
+  document.getElementById('rrGrid').innerHTML=`
+    <div class="rritem"><div class="rrlabel">วันที่มีข้อมูล</div><div class="rrval" style="color:var(--ac)">${s.n}</div><div class="rrunit">/ ${s.wn} วันทำการ</div></div>
+    <div class="rritem"><div class="rrlabel">วันทำการที่เหลือ</div><div class="rrval" style="color:var(--yel)">${s.drem}</div><div class="rrunit">วัน</div></div>
+    <div class="rritem"><div class="rrlabel">ค่าเฉลี่ย/วัน</div><div class="rrval" style="color:var(--pur)">${s.avgHC.toFixed(1)}</div><div class="rrunit">ราย/วัน</div></div>
+    <div class="rritem"><div class="rrlabel">คาดการณ์สิ้นเดือน</div><div class="rrval" style="color:${ok?'var(--grn)':'var(--red)'}">${s.n>0?N(s.projTotHC):'—'}</div><div class="rrunit">vs TG ${N(s.tgTotHC)} ${s.n>0?(ok?'✅':'⚠️'):''}</div></div>
+    <div class="rritem"><div class="rrlabel">ต้องการ/วัน (FL)</div><div class="rrval" style="color:${s.neFlHC<=s.avgFlHC?'var(--grn)':'var(--red)'}">${s.drem>0?s.neFlHC.toFixed(1):'—'}</div><div class="rrunit">${s.n>0?'vs avg '+s.avgFlHC.toFixed(1):''}</div></div>`;
+}
+
+// ============================================================
+// CHARTS
+// ============================================================
+function dc(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+function renderCharts(m){
+  const me=getMe(m),tg=TG[m],wd=getWD(m),s=calcS(m);
+  const tgH=tg.fl.hc+tg.ro.hc,tgA=tg.fl.amt+tg.ro.amt,wn=wd.length;
+  const labels=wd.map(d=>dl(d));
+  let lastI=-1;wd.forEach((dt,i)=>{if(me.find(x=>x.date===dt))lastI=i;});
+  const aH=[],aA=[],tH=[],tA=[],rH=[],rA=[];
+  let cH=0,cA=0;
+  wd.forEach((dt,i)=>{
+    const e=me.find(x=>x.date===dt);
+    if(e){cH+=(e.fl?.hc||0)+(e.ro?.hc||0);cA+=(e.fl?.amt||0)+(e.ro?.amt||0);}
+    aH.push(i<=lastI&&lastI>=0?cH:null);aA.push(i<=lastI&&lastI>=0?cA:null);
+    tH.push(parseFloat((tgH/wn*(i+1)).toFixed(1)));tA.push(Math.round(tgA/wn*(i+1)));
+    if(lastI>=0&&i>=lastI){const ah=i-lastI;rH.push(Math.round(s.totHC+s.avgHC*ah));rA.push(Math.round(s.totAmt+s.avgAmt*ah));}
+    else{rH.push(null);rA.push(null);}
+  });
+  const lo=(yF)=>({responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+    plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a2235',borderColor:'#1e2d45',borderWidth:1,titleColor:'#e8f4f8',bodyColor:'#6b8aaa',callbacks:{label:c=>c.raw!=null?` ${c.dataset.label}: ${yF(c.raw)}`:null}}},
+    scales:{x:{ticks:{color:'#6b8aaa',font:{size:9},maxRotation:45,autoSkip:true,maxTicksLimit:14},grid:{color:'#1e2d45'}},y:{ticks:{color:'#6b8aaa',font:{size:10},callback:v=>yF(v)},grid:{color:'#1e2d45'}}}});
+  const bo=(yF)=>({responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+    plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a2235',borderColor:'#1e2d45',borderWidth:1,titleColor:'#e8f4f8',bodyColor:'#6b8aaa',callbacks:{label:c=>c.raw!=null?` ${c.dataset.label}: ${yF(c.raw)}`:null}}},
+    scales:{x:{stacked:true,ticks:{color:'#6b8aaa',font:{size:9},maxRotation:45,autoSkip:true,maxTicksLimit:14},grid:{color:'#1e2d45'}},y:{stacked:true,ticks:{color:'#6b8aaa',font:{size:10},callback:v=>yF(v)},grid:{color:'#1e2d45'}}}});
+  dc('cumHC');charts['cumHC']=new Chart(document.getElementById('cumHC'),{type:'line',data:{labels,datasets:[
+    {label:'ยอดจริง',data:aH,borderColor:'#00d4ff',backgroundColor:'rgba(0,212,255,.08)',fill:true,tension:.3,pointRadius:4,pointHoverRadius:6,spanGaps:false},
+    {label:'เป้าเชิงเส้น',data:tH,borderColor:'#ffd32a',borderWidth:1.5,borderDash:[6,4],tension:0,pointRadius:0,fill:false,spanGaps:true},
+    {label:'Run Rate',data:rH,borderColor:'#2ed573',borderWidth:1.5,borderDash:[4,3],tension:.2,pointRadius:0,fill:false,spanGaps:false},
+  ]},options:lo(v=>v!=null?N(v):'')});
+  dc('cumAmt');charts['cumAmt']=new Chart(document.getElementById('cumAmt'),{type:'line',data:{labels,datasets:[
+    {label:'ยอดจริง',data:aA,borderColor:'#ff6b35',backgroundColor:'rgba(255,107,53,.08)',fill:true,tension:.3,pointRadius:4,pointHoverRadius:6,spanGaps:false},
+    {label:'เป้าเชิงเส้น',data:tA,borderColor:'#ffd32a',borderWidth:1.5,borderDash:[6,4],tension:0,pointRadius:0,fill:false,spanGaps:true},
+    {label:'Run Rate',data:rA,borderColor:'#2ed573',borderWidth:1.5,borderDash:[4,3],tension:.2,pointRadius:0,fill:false,spanGaps:false},
+  ]},options:lo(v=>v!=null?fmtAmt(v):'')});
+  dc('dailyBar');charts['dailyBar']=new Chart(document.getElementById('dailyBar'),{type:'bar',data:{labels,datasets:[
+    {label:'FL HC',data:wd.map(d=>{const e=me.find(x=>x.date===d);return e?(e.fl?.hc||0):null;}),backgroundColor:'rgba(0,212,255,.75)',borderRadius:3,stack:'s'},
+    {label:'RO HC',data:wd.map(d=>{const e=me.find(x=>x.date===d);return e?(e.ro?.hc||0):null;}),backgroundColor:'rgba(255,107,53,.75)',borderRadius:3,stack:'s'},
+    {type:'line',label:'Daily TG',data:wd.map(()=>parseFloat((tgH/wn).toFixed(1))),borderColor:'#ffd32a',borderWidth:1.5,borderDash:[5,3],pointRadius:0,tension:0,spanGaps:true},
+  ]},options:bo(v=>v!=null?N(v):'')});
+  dc('dailyAmtBar');charts['dailyAmtBar']=new Chart(document.getElementById('dailyAmtBar'),{type:'bar',data:{labels,datasets:[
+    {label:'FL Amt',data:wd.map(d=>{const e=me.find(x=>x.date===d);return e?(e.fl?.amt||0):null;}),backgroundColor:'rgba(0,212,255,.7)',borderRadius:3,stack:'s'},
+    {label:'RO Amt',data:wd.map(d=>{const e=me.find(x=>x.date===d);return e?(e.ro?.amt||0):null;}),backgroundColor:'rgba(46,213,115,.7)',borderRadius:3,stack:'s'},
+    {type:'line',label:'Daily TG',data:wd.map(()=>Math.round(tgA/wn)),borderColor:'#ffd32a',borderWidth:1.5,borderDash:[5,3],pointRadius:0,tension:0,spanGaps:true},
+  ]},options:bo(v=>v!=null?fmtAmt(v):'')});
+}
+
+// ============================================================
+// DAILY TABLE
+// ============================================================
+function renderDailyTable(m){
+  const me=getMe(m),tg=TG[m],wd=getWD(m);
+  document.getElementById('tblName').textContent=ML[m].label;
+  const dTG=Math.round((tg.fl.hc+tg.ro.hc)/wd.length),totTG=tg.fl.hc+tg.ro.hc;
+  let cumHC=0,rows='';
+  me.forEach(e=>{
+    const fH=e.fl?.hc||0,fA=e.fl?.amt||0,rH=e.ro?.hc||0,rA=e.ro?.amt||0,tH=fH+rH,tA=fA+rA;
+    cumHC+=tH;const pct=totTG>0?cumHC/totTG*100:0,diff=tH-dTG;
+    rows+=`<tr><td class="L">${dl(e.date)} (${dayName(e.date)})</td>
+      <td>${N(fH)}</td><td>${N(fA)}</td><td>${N(rH)}</td><td>${N(rA)}</td>
+      <td><strong>${N(tH)}</strong></td><td><strong>${N(tA)}</strong></td>
+      <td class="${diff>=0?'pos':'neg'}">${diff>=0?'+':''}${N(diff)}</td>
+      <td style="color:var(--ac)">${N(cumHC)}</td><td class="${pClass(pct)}">${P(pct)}</td>
+      <td><button class="ebtn edit" onclick="editEntry('${e.date}')">แก้ไข</button><button class="ebtn del" onclick="delEntry('${e.date}')">ลบ</button></td>
+    </tr>`;
+  });
+  if(me.length>0){
+    const tf=me.reduce((s,e)=>s+(e.fl?.hc||0),0),ta=me.reduce((s,e)=>s+(e.fl?.amt||0),0);
+    const tr=me.reduce((s,e)=>s+(e.ro?.hc||0),0),ra=me.reduce((s,e)=>s+(e.ro?.amt||0),0);
+    const tot=tf+tr,totA=ta+ra,pct=totTG>0?tot/totTG*100:0;
+    rows+=`<tr class="tot-row"><td class="L">รวม (${me.length} วัน)</td><td>${N(tf)}</td><td>${N(ta)}</td><td>${N(tr)}</td><td>${N(ra)}</td><td><strong>${N(tot)}</strong></td><td><strong>${N(totA)}</strong></td><td></td><td>${N(tot)}</td><td class="${pClass(pct)}">${P(pct)}</td><td></td></tr>`;
+  }
+  document.getElementById('dailyBody').innerHTML=rows||'<tr><td colspan="11" style="text-align:center;color:var(--tm);padding:24px;">ยังไม่มีข้อมูล</td></tr>';
+}
+
+// ============================================================
+// OVERVIEW (per quarter)
+// ============================================================
+function renderOverview(q){
+  const months=QUARTERS[q].months;
+  const ql=QUARTERS[q].label;
+  document.getElementById('ovQLabel').textContent=ql;
+  document.getElementById('ovQLabel2').textContent=ql;
+  function rows(type){
+    let html='',fMM=0,fTG=0,rMM=0,rTG=0;
+    months.forEach(m=>{
+      const me=getMe(m),tg=TG[m];
+      const fl=me.reduce((s,e)=>s+(type==='hc'?e.fl?.hc:e.fl?.amt)||0,0);
+      const ro=me.reduce((s,e)=>s+(type==='hc'?e.ro?.hc:e.ro?.amt)||0,0);
+      const ft=type==='hc'?tg.fl.hc:tg.fl.amt,rt=type==='hc'?tg.ro.hc:tg.ro.amt;
+      fMM+=fl;fTG+=ft;rMM+=ro;rTG+=rt;
+      const tot=fl+ro,tt=ft+rt,fd=fl-ft,rd=ro-rt,td=tot-tt;
+      const fp=ft>0?fl/ft*100:0,rp=rt>0?ro/rt*100:0,tp=tt>0?tot/tt*100:0;
+      html+=`<tr><td class="L">${ML[m].emoji} ${ML[m].label}</td>
+        <td>${N(fl)}</td><td style="color:var(--tm)">${N(ft)}</td><td class="${fd>=0?'pos':'neg'}">${fd>=0?'+':''}${N(fd)}</td><td class="${pClass(fp)}">${P(fp)}</td>
+        <td>${N(ro)}</td><td style="color:var(--tm)">${N(rt)}</td><td class="${rd>=0?'pos':'neg'}">${rd>=0?'+':''}${N(rd)}</td><td class="${pClass(rp)}">${P(rp)}</td>
+        <td>${N(tot)}</td><td style="color:var(--tm)">${N(tt)}</td><td class="${td>=0?'pos':'neg'}">${td>=0?'+':''}${N(td)}</td><td class="${pClass(tp)}">${P(tp)}</td></tr>`;
+    });
+    const gM=fMM+rMM,gT=fTG+rTG,gfD=fMM-fTG,grD=rMM-rTG,gtD=gM-gT;
+    const gfP=fTG>0?fMM/fTG*100:0,grP=rTG>0?rMM/rTG*100:0,gtP=gT>0?gM/gT*100:0;
+    html+=`<tr class="tot-row"><td class="L">${q} Total</td>
+      <td>${N(fMM)}</td><td>${N(fTG)}</td><td class="${gfD>=0?'pos':'neg'}">${gfD>=0?'+':''}${N(gfD)}</td><td class="${pClass(gfP)}">${P(gfP)}</td>
+      <td>${N(rMM)}</td><td>${N(rTG)}</td><td class="${grD>=0?'pos':'neg'}">${grD>=0?'+':''}${N(grD)}</td><td class="${pClass(grP)}">${P(grP)}</td>
+      <td>${N(gM)}</td><td>${N(gT)}</td><td class="${gtD>=0?'pos':'neg'}">${gtD>=0?'+':''}${N(gtD)}</td><td class="${pClass(gtP)}">${P(gtP)}</td></tr>`;
+    return html;
+  }
+  document.getElementById('ovBody').innerHTML=rows('hc');
+  document.getElementById('ovAmtBody').innerHTML=rows('amt');
+  const ml=months.map(m=>ML[m].short);
+  const qOpt={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:'#6b8aaa',font:{size:11},boxWidth:12}},tooltip:{backgroundColor:'#1a2235',borderColor:'#1e2d45',borderWidth:1,titleColor:'#e8f4f8',bodyColor:'#6b8aaa'}},scales:{x:{ticks:{color:'#6b8aaa'},grid:{color:'#1e2d45'}},y:{ticks:{color:'#6b8aaa',callback:v=>N(v)},grid:{color:'#1e2d45'}}}};
+  dc('ovHC');charts['ovHC']=new Chart(document.getElementById('ovHCChart'),{type:'bar',data:{labels:ml,datasets:[
+    {label:'FL จริง',data:months.map(m=>getMe(m).reduce((s,e)=>s+(e.fl?.hc||0),0)),backgroundColor:'rgba(0,212,255,.75)',borderRadius:4},
+    {label:'RO จริง',data:months.map(m=>getMe(m).reduce((s,e)=>s+(e.ro?.hc||0),0)),backgroundColor:'rgba(255,107,53,.75)',borderRadius:4},
+    {label:'FL เป้า',data:months.map(m=>TG[m].fl.hc),backgroundColor:'rgba(0,212,255,.12)',borderColor:'rgba(0,212,255,.5)',borderWidth:1,borderRadius:4},
+    {label:'RO เป้า',data:months.map(m=>TG[m].ro.hc),backgroundColor:'rgba(255,107,53,.12)',borderColor:'rgba(255,107,53,.5)',borderWidth:1,borderRadius:4},
+  ]},options:qOpt});
+  dc('ovAmt');charts['ovAmt']=new Chart(document.getElementById('ovAmtChart'),{type:'bar',data:{labels:ml,datasets:[
+    {label:'FL จริง',data:months.map(m=>getMe(m).reduce((s,e)=>s+(e.fl?.amt||0),0)),backgroundColor:'rgba(0,212,255,.75)',borderRadius:4},
+    {label:'RO จริง',data:months.map(m=>getMe(m).reduce((s,e)=>s+(e.ro?.amt||0),0)),backgroundColor:'rgba(255,107,53,.75)',borderRadius:4},
+    {label:'FL เป้า',data:months.map(m=>TG[m].fl.amt),backgroundColor:'rgba(0,212,255,.12)',borderColor:'rgba(0,212,255,.5)',borderWidth:1,borderRadius:4},
+    {label:'RO เป้า',data:months.map(m=>TG[m].ro.amt),backgroundColor:'rgba(255,107,53,.12)',borderColor:'rgba(255,107,53,.5)',borderWidth:1,borderRadius:4},
+  ]},options:{...qOpt,scales:{...qOpt.scales,y:{...qOpt.scales.y,ticks:{color:'#6b8aaa',callback:v=>fmtAmt(v)}}}}});
+}
+
+// ============================================================
+// COMPARISON
+// ============================================================
+function renderCompare(){
+  const qs=['Q1','Q2','Q3','Q4'];
+  const qData=Object.fromEntries(qs.map(q=>[q,calcQ(q)]));
+  // Summary Cards
+  document.getElementById('cmpCards').innerHTML=qs.map((q,i)=>{
+    const d=qData[q],prev=i>0?qData[qs[i-1]]:null;
+    const pct=d.totTGHC>0?d.totHC/d.totTGHC*100:0;
+    let changeHtml='<span class="cmp-qchange na">—</span>';
+    if(prev&&prev.totHC>0){
+      const chg=(d.totHC-prev.totHC)/prev.totHC*100;
+      changeHtml=`<span class="cmp-qchange ${chg>=0?'up':'dn'}">${chg>=0?'▲':'▼'} ${Math.abs(chg).toFixed(1)}% vs ${qs[i-1]}</span>`;
+    }
+    return `<div class="cmp-qcard ${q==='Q2'?'active-q':''}">
+      <div class="cmp-qlabel" style="color:${QUARTERS[q].color}">${QUARTERS[q].emoji} ${q}</div>
+      <div class="cmp-qsub">${QUARTERS[q].label.split(' ')[2]||''}</div>
+      <div class="cmp-qval" style="color:${QUARTERS[q].color}">${N(d.totHC)} <span style="font-size:13px;font-family:'Sarabun',sans-serif;">ราย</span></div>
+      <div style="font-size:11px;color:var(--tm);margin-top:2px;">เป้า ${N(d.totTGHC)} ราย</div>
+      <div class="cmp-qpct" style="color:${pct>=100?'var(--grn)':pct>=50?'var(--yel)':'var(--red)'}">${P(pct)}</div>
+      <div style="font-size:11px;color:var(--tm);margin-top:6px;">${fmtAmt(d.totAmt)} บาท</div>
+      ${changeHtml}
+    </div>`;
+  }).join('');
+
+  // HC Table
+  function cmpTable(type){
+    const isHC=type==='hc';
+    const metrics=isHC?[
+      {k:'flHC',tgK:'flTG',label:'First Loan HC'},
+      {k:'roHC',tgK:'roTG',label:'Rollover HC'},
+      {k:'totHC',tgK:'totTGHC',label:'Total HC'},
+    ]:[
+      {k:'flAmt',tgK:'flAmtTG',label:'First Loan Amount'},
+      {k:'roAmt',tgK:'roAmtTG',label:'Rollover Amount'},
+      {k:'totAmt',tgK:'totTGAmt',label:'Total Amount'},
+    ];
+    const fmt=isHC?N:fmtAmt;
+    let th=`<thead><tr><th class="L" style="min-width:130px;">ตัวชี้วัด</th>`;
+    qs.forEach(q=>{th+=`<th colspan="2" style="color:${QUARTERS[q].color}">${QUARTERS[q].emoji} ${q}</th>`;});
+    th+=`<th style="color:var(--grn)">Q1→Q2</th><th style="color:var(--yel)">Q2→Q3</th><th style="color:var(--ac2)">Q3→Q4</th></tr>`;
+    th+=`<tr><th class="L"></th>`;
+    qs.forEach(()=>{th+=`<th style="font-size:9px;color:var(--tm)">จริง</th><th style="font-size:9px;color:var(--tm)">เป้า</th>`;});
+    th+=`<th></th><th></th><th></th></tr></thead>`;
+    let tb='<tbody>';
+    metrics.forEach(({k,tgK,label})=>{
+      tb+=`<tr><td class="L" style="font-weight:700">${label}</td>`;
+      const vals=qs.map(q=>qData[q][k]||0);
+      const tgVals=qs.map(q=>qData[q][tgK]||0);
+      qs.forEach((q,i)=>{
+        const v=vals[i],tg=tgVals[i],pct=tg>0?v/tg*100:0;
+        tb+=`<td style="color:${QUARTERS[q].color};font-weight:700">${fmt(v)}</td>`;
+        tb+=`<td style="color:var(--tm)">${fmt(tg)}</td>`;
+      });
+      // QoQ changes
+      [[0,1],[1,2],[2,3]].forEach(([a,b])=>{
+        const va=vals[a],vb=vals[b];
+        if(va>0){const chg=(vb-va)/va*100;tb+=`<td class="${chg>=0?'pos':'neg'}">${chg>=0?'+':''}${chg.toFixed(1)}%</td>`;}
+        else tb+=`<td style="color:var(--tm)">—</td>`;
+      });
+      tb+='</tr>';
+    });
+    tb+='</tbody>';
+    return th+tb;
+  }
+  document.getElementById('cmpHCTable').innerHTML=cmpTable('hc');
+  document.getElementById('cmpAmtTable').innerHTML=cmpTable('amt');
+
+  // Charts
+  const qLabels=qs.map(q=>QUARTERS[q].emoji+' '+q);
+  const qColors=qs.map(q=>QUARTERS[q].color);
+  const cmpOpt={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:'#6b8aaa',font:{size:11},boxWidth:12}},tooltip:{backgroundColor:'#1a2235',borderColor:'#1e2d45',borderWidth:1,titleColor:'#e8f4f8',bodyColor:'#6b8aaa'}},scales:{x:{ticks:{color:'#6b8aaa'},grid:{color:'#1e2d45'}},y:{ticks:{color:'#6b8aaa',callback:v=>N(v)},grid:{color:'#1e2d45'}}}};
+  dc('cmpHC');charts['cmpHC']=new Chart(document.getElementById('cmpHCChart'),{type:'bar',data:{labels:qLabels,datasets:[
+    {label:'Total HC จริง',data:qs.map(q=>qData[q].totHC),backgroundColor:qColors.map(c=>c+'bb'),borderColor:qColors,borderWidth:1.5,borderRadius:6},
+    {label:'Total HC เป้า',data:qs.map(q=>qData[q].totTGHC),backgroundColor:qColors.map(c=>c+'22'),borderColor:qColors.map(c=>c+'66'),borderWidth:1,borderRadius:6},
+  ]},options:cmpOpt});
+  dc('cmpAmt');charts['cmpAmt']=new Chart(document.getElementById('cmpAmtChart'),{type:'bar',data:{labels:qLabels,datasets:[
+    {label:'Total Amount จริง',data:qs.map(q=>qData[q].totAmt),backgroundColor:qColors.map(c=>c+'bb'),borderColor:qColors,borderWidth:1.5,borderRadius:6},
+    {label:'Total Amount เป้า',data:qs.map(q=>qData[q].totTGAmt),backgroundColor:qColors.map(c=>c+'22'),borderColor:qColors.map(c=>c+'66'),borderWidth:1,borderRadius:6},
+  ]},options:{...cmpOpt,scales:{...cmpOpt.scales,y:{...cmpOpt.scales.y,ticks:{color:'#6b8aaa',callback:v=>fmtAmt(v)}}}}});
+  // Trend line - monthly
+  const allMonths=["2026-01","2026-02","2026-03","2026-04","2026-05","2026-06","2026-07","2026-08","2026-09","2026-10","2026-11","2026-12"];
+  const trendLabels=allMonths.map(m=>ML[m].short);
+  const trendData=allMonths.map(m=>{const me=getMe(m);return me.reduce((s,e)=>(s+(e.fl?.hc||0)+(e.ro?.hc||0)),0)||null;});
+  const trendTG=allMonths.map(m=>(TG[m].fl.hc+TG[m].ro.hc));
+  const bgColors=allMonths.map(m=>{const q=getQofMonth(m);return QUARTERS[q].color;});
+  dc('cmpTrend');charts['cmpTrend']=new Chart(document.getElementById('cmpTrendChart'),{type:'bar',data:{labels:trendLabels,datasets:[
+    {label:'Total HC จริง',data:trendData,backgroundColor:bgColors.map(c=>c+'99'),borderColor:bgColors,borderWidth:1,borderRadius:3},
+    {type:'line',label:'เป้ารายเดือน',data:trendTG,borderColor:'#ffd32a',borderWidth:1.5,borderDash:[5,3],pointRadius:0,tension:0,spanGaps:true},
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:'#6b8aaa',font:{size:11},boxWidth:12}},tooltip:{backgroundColor:'#1a2235',borderColor:'#1e2d45',borderWidth:1,titleColor:'#e8f4f8',bodyColor:'#6b8aaa'}},scales:{x:{ticks:{color:'#6b8aaa',font:{size:10}},grid:{color:'#1e2d45'}},y:{ticks:{color:'#6b8aaa',callback:v=>N(v)},grid:{color:'#1e2d45'}}}}});
+}
+
+// ============================================================
+// CUSTOMER STATUS
+// ============================================================
+function stTotal(m){return csData[m].statuses.reduce((s,x)=>s+(parseInt(x.count)||0),0);}
+function lnTotal(m){const d=csData[m],lm=d.loanMax||8;let t=0;for(let i=1;i<=lm;i++)t+=parseInt(d.loans[i]||0)||0;return t;}
+function renderCsMonth(m){
+  document.getElementById('csMonthName').textContent=ML[m].label;
+  document.getElementById('lcMonthName').textContent=ML[m].label;
+  document.getElementById('loanMaxInput').value=csData[m].loanMax||8;
+  renderStatusGrid(m);renderLoanGrid(m);renderPieCharts(m);
+}
+function renderStatusGrid(m){
+  const d=csData[m],tot=stTotal(m);
+  document.getElementById('statusGrid').innerHTML=d.statuses.map((st,i)=>{
+    const cnt=parseInt(st.count)||0,pct=tot>0?cnt/tot*100:0,col=SCOL[i%SCOL.length];
+    return `<div class="sr sr-st" data-sidx="${i}">
+      <div class="sname" style="color:${col}" onclick="editStatusName('${m}',${i},this)">${st.name}</div>
+      <div class="sbar"><div class="sbar-fill" style="width:${pct}%;background:${col}40;border-right:2px solid ${col}"></div><div class="sbar-lbl">${pct>8?pct.toFixed(1)+'%':''}</div></div>
+      <input class="sinput" type="number" min="0" value="${st.count}" placeholder="—" oninput="updSt('${m}',${i},this.value)" style="border-color:${col}55">
+      <div class="spct" style="color:${col}">${cnt>0?pct.toFixed(1)+'%':'—'}</div>
+      <div style="text-align:right"><button class="ebtn del" onclick="delSt('${m}',${i})">ลบ</button></div>
+    </div>`;
+  }).join('');
+  document.getElementById('statusTotal').textContent=N(tot)+' ราย';
+}
+function renderLoanGrid(m){
+  const d=csData[m],lm=d.loanMax||8,tot=lnTotal(m);
+  document.getElementById('loanGrid').innerHTML=Array.from({length:lm},(_,i)=>{
+    const n=i+1,cnt=parseInt(d.loans[n]||0)||0,pct=tot>0?cnt/tot*100:0,col=SCOL[i%SCOL.length];
+    return `<div class="sr sr-ln">
+      <div style="font-size:13px;font-weight:700;color:${col}">${ord(n)} Loan</div>
+      <input class="sinput" type="number" min="0" value="${d.loans[n]||''}" placeholder="—" oninput="updLn('${m}',${n},this.value)" style="border-color:${col}55">
+      <div class="sbar"><div class="sbar-fill" style="width:${pct}%;background:${col}40;border-right:2px solid ${col}"></div><div class="sbar-lbl">${pct>8?pct.toFixed(1)+'%':''}</div></div>
+      <div class="spct" style="color:${col}">${cnt>0?pct.toFixed(1)+'%':'—'}</div>
+      <div style="text-align:right;font-size:12px;font-weight:700;color:${col}">${cnt>0?N(cnt)+' ราย':''}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('loanTotal').textContent=N(tot)+' ราย';
+}
+function renderPieCharts(m){
+  const d=csData[m],lm=d.loanMax||8;
+  const pieOpt={responsive:true,maintainAspectRatio:false,cutout:'50%',plugins:{legend:{position:'right',labels:{color:'#6b8aaa',font:{size:11},boxWidth:12,padding:8}},tooltip:{backgroundColor:'#1a2235',borderColor:'#1e2d45',borderWidth:1,titleColor:'#e8f4f8',bodyColor:'#6b8aaa',callbacks:{label:c=>{const tot=c.dataset.data.reduce((a,b)=>a+b,0);return ` ${c.label}: ${N(c.raw)} ราย (${tot>0?(c.raw/tot*100).toFixed(1):'0'}%)`}}}}};
+  dc('statusPie');
+  const sD=d.statuses.map(x=>parseInt(x.count)||0),sCols=d.statuses.map((_,i)=>SCOL[i%SCOL.length]);
+  if(sD.some(v=>v>0)){charts['statusPie']=new Chart(document.getElementById('statusPie'),{type:'doughnut',data:{labels:d.statuses.map(x=>x.name),datasets:[{data:sD,backgroundColor:sCols.map(c=>c+'bb'),borderColor:sCols,borderWidth:1.5}]},options:pieOpt});}
+  else drawEmpty('statusPie','ยังไม่มีข้อมูล');
+  dc('loanPie');
+  const lLbl=[],lD=[],lCols=[];
+  for(let i=1;i<=lm;i++){lLbl.push(ord(i)+' Loan');lD.push(parseInt(d.loans[i]||0)||0);lCols.push(SCOL[(i-1)%SCOL.length]);}
+  if(lD.some(v=>v>0)){charts['loanPie']=new Chart(document.getElementById('loanPie'),{type:'doughnut',data:{labels:lLbl,datasets:[{data:lD,backgroundColor:lCols.map(c=>c+'bb'),borderColor:lCols,borderWidth:1.5}]},options:pieOpt});}
+  else drawEmpty('loanPie','ยังไม่มีข้อมูล');
+}
+function drawEmpty(id,msg){const cv=document.getElementById(id);if(!cv)return;const ctx=cv.getContext('2d');ctx.clearRect(0,0,cv.width,cv.height);ctx.fillStyle='#6b8aaa';ctx.font='13px Sarabun';ctx.textAlign='center';ctx.fillText(msg,cv.width/2,cv.height/2);}
+function updSt(m,i,v){csData[m].statuses[i].count=v;saveCs();renderStatusGrid(m);renderPieCharts(m);}
+function updLn(m,n,v){csData[m].loans[n]=v;saveCs();renderLoanGrid(m);renderPieCharts(m);}
+function delSt(m,i){if(!confirm('ลบสถานะ "'+csData[m].statuses[i].name+'"?'))return;csData[m].statuses.splice(i,1);saveCs();renderStatusGrid(m);renderPieCharts(m);}
+function editStatusName(m,i,el){
+  el.contentEditable='true';el.focus();
+  const sel=window.getSelection(),r=document.createRange();r.selectNodeContents(el);sel.removeAllRanges();sel.addRange(r);
+  el.onblur=()=>{csData[m].statuses[i].name=el.textContent.trim()||csData[m].statuses[i].name;el.contentEditable='false';el.onblur=null;saveCs();renderStatusGrid(m);renderPieCharts(m);};
+  el.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();el.blur();}};
+}
+function addStatusRow(){
+  const m=currentCsMonth;csData[m].statuses.push({name:'สถานะใหม่',count:''});
+  saveCs();renderStatusGrid(m);renderPieCharts(m);
+  setTimeout(()=>{const rows=document.querySelectorAll('#statusGrid .sr');const last=rows[rows.length-1];if(last){const nm=last.querySelector('.sname');if(nm)editStatusName(m,csData[m].statuses.length-1,nm);}},50);
+}
+function changeLoanMax(){
+  const m=currentCsMonth,v=parseInt(document.getElementById('loanMaxInput').value)||8;
+  csData[m].loanMax=Math.max(1,Math.min(20,v));saveCs();renderLoanGrid(m);renderPieCharts(m);
+}
+
+// ============================================================
+// TARGET EDIT
+// ============================================================
+function openTargetEdit(){
+  const q=currentQuarter==='CMP'?'Q2':currentQuarter;
+  document.getElementById('tgTitle').textContent='⚙️ ตั้งค่าเป้าหมาย — '+QUARTERS[q].emoji+' '+q+' 2026';
+  const months=QUARTERS[q].months;
+  document.getElementById('tgForm').innerHTML=months.map(m=>`
+    <div class="tg-month-row">
+      <div class="tg-month-title">${ML[m].emoji} ${ML[m].label}</div>
+      <div class="tg-inputs">
+        <div class="tg-inp-grp"><label>FL Headcount</label><input type="number" id="tg_${m}_flhc" value="${TG[m].fl.hc}" min="0"></div>
+        <div class="tg-inp-grp"><label>FL Amount (฿)</label><input type="number" id="tg_${m}_flamt" value="${TG[m].fl.amt}" min="0"></div>
+        <div class="tg-inp-grp"><label>RO Headcount</label><input type="number" id="tg_${m}_rohc" value="${TG[m].ro.hc}" min="0"></div>
+        <div class="tg-inp-grp"><label>RO Amount (฿)</label><input type="number" id="tg_${m}_roamt" value="${TG[m].ro.amt}" min="0"></div>
+      </div>
+    </div>`).join('');
+  document.getElementById('tgOverlay').classList.add('show');
+}
+function closeTgEdit(){document.getElementById('tgOverlay').classList.remove('show');}
+function tgOverlayClick(e){if(e.target===document.getElementById('tgOverlay'))closeTgEdit();}
+function saveTgEdit(){
+  const q=currentQuarter==='CMP'?'Q2':currentQuarter;
+  QUARTERS[q].months.forEach(m=>{
+    TG[m].fl.hc=parseInt(document.getElementById(`tg_${m}_flhc`).value)||0;
+    TG[m].fl.amt=parseFloat(document.getElementById(`tg_${m}_flamt`).value)||0;
+    TG[m].ro.hc=parseInt(document.getElementById(`tg_${m}_rohc`).value)||0;
+    TG[m].ro.amt=parseFloat(document.getElementById(`tg_${m}_roamt`).value)||0;
+  });
+  saveTG();closeTgEdit();showToast('✅ บันทึกเป้าหมาย '+q+' สำเร็จ');
+  if(currentQuarter!=='CMP'){renderMonthlySummary(currentMonth);renderRR(currentMonth);renderCharts(currentMonth);}
+}
+
+// ============================================================
+// FORM
+// ============================================================
+function openForm(preDate=null){
+  const today=new Date(),td=ld(today);
+  const d=preDate||(td>='2026-01-01'&&td<='2026-12-31'?td:'2026-04-01');
+  document.getElementById('fDate').value=d;
+  ['fFlHC','fFlAmt','fRoHC','fRoAmt'].forEach(id=>document.getElementById(id).value='');
+  checkExisting();document.getElementById('fOverlay').classList.add('show');
+}
+function closeForm(){document.getElementById('fOverlay').classList.remove('show');}
+function overlayClick(e){if(e.target===document.getElementById('fOverlay'))closeForm();}
+function checkExisting(){
+  const d=document.getElementById('fDate').value,ex=entries.find(e=>e.date===d);
+  document.getElementById('existingNote').style.display=ex?'block':'none';
+  if(ex){document.getElementById('fFlHC').value=ex.fl?.hc||'';document.getElementById('fFlAmt').value=ex.fl?.amt||'';
+    document.getElementById('fRoHC').value=ex.ro?.hc||'';document.getElementById('fRoAmt').value=ex.ro?.amt||'';}
+  updatePreview();
+}
+function updatePreview(){
+  const fH=parseInt(document.getElementById('fFlHC').value)||0,fA=parseFloat(document.getElementById('fFlAmt').value)||0;
+  const rH=parseInt(document.getElementById('fRoHC').value)||0,rA=parseFloat(document.getElementById('fRoAmt').value)||0;
+  const p=document.getElementById('fPreview');
+  if(fH||fA||rH||rA){p.style.display='block';p.innerHTML=`รวม HC = <span>${N(fH+rH)} ราย</span> | Amount = <span>${N(fA+rA)} บาท</span>`;}
+  else p.style.display='none';
+}
+['fFlHC','fFlAmt','fRoHC','fRoAmt'].forEach(id=>document.getElementById(id).addEventListener('input',updatePreview));
+function saveEntry(){
+  const date=document.getElementById('fDate').value;
+  const fH=parseInt(document.getElementById('fFlHC').value)||0,fA=parseFloat(document.getElementById('fFlAmt').value)||0;
+  const rH=parseInt(document.getElementById('fRoHC').value)||0,rA=parseFloat(document.getElementById('fRoAmt').value)||0;
+  if(!date){showToast('กรุณาเลือกวันที่',true);return;}
+  if(!fH&&!fA&&!rH&&!rA){showToast('กรุณากรอกข้อมูลอย่างน้อย 1 ช่อง',true);return;}
+  entries=[...entries.filter(e=>e.date!==date),{date,fl:{hc:fH,amt:fA},ro:{hc:rH,amt:rA}}].sort((a,b)=>a.date.localeCompare(b.date));
+  save();closeForm();showToast(`✅ บันทึก ${dl(date)} (${dayName(date)}) สำเร็จ`);
+  const em=date.substring(0,7);
+  if(em===currentMonth){renderMonthlySummary(currentMonth);renderRR(currentMonth);renderCharts(currentMonth);}
+  if(em===currentTblMonth)renderDailyTable(currentTblMonth);
+}
+function editEntry(date){openForm(date);}
+function delEntry(date){
+  if(!confirm(`ยืนยันลบ ${dl(date)} (${dayName(date)})?`))return;
+  entries=entries.filter(e=>e.date!==date);save();showToast(`🗑️ ลบ ${dl(date)} แล้ว`);
+  const em=date.substring(0,7);
+  if(em===currentMonth){renderMonthlySummary(currentMonth);renderRR(currentMonth);renderCharts(currentMonth);}
+  if(em===currentTblMonth)renderDailyTable(currentTblMonth);
+}
+
+// ============================================================
+// QUARTER + TAB SWITCHING
+// ============================================================
+function switchQuarter(q,btn){
+  currentQuarter=q;
+  document.querySelectorAll('.qtab').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  const isCmp=q==='CMP';
+  document.getElementById('subTabBar').style.display=isCmp?'none':'';
+  document.getElementById('addBtn').style.display=isCmp?'none':'';
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  if(isCmp){document.getElementById('panel-compare').classList.add('active');renderCompare();return;}
+  // Restore last active sub-tab
+  const activeTab=document.querySelector('.tab.active');
+  const tabName=activeTab?activeTab.dataset.tab:'dashboard';
+  document.getElementById('panel-'+tabName).classList.add('active');
+  currentMonth=QUARTERS[q].months[0];currentTblMonth=QUARTERS[q].months[0];currentCsMonth=QUARTERS[q].months[0];
+  renderMonthTabs(q);
+  document.getElementById('holidayNote').textContent=holidayInfo(currentMonth);
+  renderMonthlySummary(currentMonth);renderRR(currentMonth);renderCharts(currentMonth);
+  renderDailyTable(currentTblMonth);
+  renderOverview(q);
+  renderCsMonth(currentCsMonth);
+}
+function switchTab(tab,btn){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  document.querySelectorAll('.panel:not(#panel-compare)').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+tab).classList.add('active');
+  if(tab==='daily')renderDailyTable(currentTblMonth);
+  if(tab==='overview')renderOverview(currentQuarter);
+  if(tab==='cstatus')renderCsMonth(currentCsMonth);
+}
+function switchMonth(m,btn){
+  currentMonth=m;
+  document.querySelectorAll('#qMtabs .mbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  document.getElementById('holidayNote').textContent=holidayInfo(m);
+  renderMonthlySummary(m);renderRR(m);renderCharts(m);
+}
+function switchTblMonth(m,btn){
+  currentTblMonth=m;
+  document.querySelectorAll('#qMtabsDaily .mbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  renderDailyTable(m);
+}
+function switchCsMonth(m,btn){
+  currentCsMonth=m;
+  document.querySelectorAll('#qMtabsCs .mbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  renderCsMonth(m);
+}
+
+// ============================================================
+// TOAST + BTT
+// ============================================================
+let toastT=null;
+function showToast(msg,isErr=false){
+  const t=document.getElementById('toast');t.textContent=msg;
+  t.className='toast'+(isErr?' err':'')+' show';
+  if(toastT)clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2800);
+}
+window.addEventListener('scroll',()=>{document.getElementById('bttBtn').classList.toggle('show',window.scrollY>300);});
+
+// ============================================================
+// INIT
+// ============================================================
+const now=new Date();
+document.getElementById('todayBadge').textContent=`📅 ${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}`;
+load();
+// Start on Q2
+renderMonthTabs('Q2');
+document.getElementById('holidayNote').textContent=holidayInfo('2026-04');
+renderMonthlySummary('2026-04');
+renderRR('2026-04');
+renderCharts('2026-04');
+renderDailyTable('2026-04');
+</script>
 </body>
 </html>
