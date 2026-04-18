@@ -785,6 +785,7 @@ function calcQ(q){
 // MONTH TABS
 // ============================================================
 function renderMonthTabs(q){
+  if(!QUARTERS[q]||!QUARTERS[q].months)return;
   const months=QUARTERS[q].months;
   const mkBtn=(m,active,onclick)=>`<button class="mbtn ${active?'active':''}" onclick="${onclick}">${ML[m].emoji} ${ML[m].short}</button>`;
   const dbEl=document.getElementById('qMtabs');
@@ -1196,7 +1197,7 @@ function openTargetEdit(){
 function closeTgEdit(){document.getElementById('tgOverlay').classList.remove('show');}
 function tgOverlayClick(e){if(e.target===document.getElementById('tgOverlay'))closeTgEdit();}
 function saveTgEdit(){
-  const q=currentQuarter==='CMP'?'Q2':currentQuarter;
+  const q=(currentQuarter==='CMP'||!QUARTERS[currentQuarter])?'Q2':currentQuarter;
   QUARTERS[q].months.forEach(m=>{
     TG[m].fl.hc=parseInt(document.getElementById(`tg_${m}_flhc`).value)||0;
     TG[m].fl.amt=parseFloat(document.getElementById(`tg_${m}_flamt`).value)||0;
@@ -1519,15 +1520,13 @@ function scheduleSync(){
 function syncNow(){pullFromGist();}
 
 function refreshCurrentView(){
-  if(currentQuarter==='CMP'){
-    renderCompare();
+  if(currentQuarter==='CMP'||!QUARTERS[currentQuarter]){
+    if(document.getElementById('panel-compare').classList.contains('active'))renderCompare();
     return;
   }
-  // Guard: ensure currentMonth belongs to currentQuarter
-  if(!QUARTERS[currentQuarter].months.includes(currentMonth)){
-    currentMonth=QUARTERS[currentQuarter].months[0];
-    currentTblMonth=currentMonth;
-    currentCsMonth=currentMonth;
+  const qMonths=QUARTERS[currentQuarter].months;
+  if(!qMonths.includes(currentMonth)){
+    currentMonth=qMonths[0];currentTblMonth=qMonths[0];currentCsMonth=qMonths[0];
   }
   renderMonthTabs(currentQuarter);
   document.getElementById('holidayNote').textContent=holidayInfo(currentMonth);
@@ -1647,7 +1646,7 @@ function importData(event){
       });
       save();saveTG();saveHols();saveCs();
       // Refresh UI
-      renderMonthTabs(currentQuarter);
+      refreshCurrentView();
       document.getElementById('holidayNote').textContent=holidayInfo(currentMonth);
       renderMonthlySummary(currentMonth);renderRR(currentMonth);renderCharts(currentMonth);
       renderDailyTable(currentTblMonth);
