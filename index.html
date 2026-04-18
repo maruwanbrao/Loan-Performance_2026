@@ -1519,6 +1519,16 @@ function scheduleSync(){
 function syncNow(){pullFromGist();}
 
 function refreshCurrentView(){
+  if(currentQuarter==='CMP'){
+    renderCompare();
+    return;
+  }
+  // Guard: ensure currentMonth belongs to currentQuarter
+  if(!QUARTERS[currentQuarter].months.includes(currentMonth)){
+    currentMonth=QUARTERS[currentQuarter].months[0];
+    currentTblMonth=currentMonth;
+    currentCsMonth=currentMonth;
+  }
   renderMonthTabs(currentQuarter);
   document.getElementById('holidayNote').textContent=holidayInfo(currentMonth);
   renderMonthlySummary(currentMonth);renderRR(currentMonth);renderCharts(currentMonth);
