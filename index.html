@@ -1156,13 +1156,13 @@ function renderPieCharts(m){
   else drawEmpty('loanPie','ยังไม่มีข้อมูล');
 }
 function drawEmpty(id,msg){const cv=document.getElementById(id);if(!cv)return;const ctx=cv.getContext('2d');ctx.clearRect(0,0,cv.width,cv.height);ctx.fillStyle='#6b8aaa';ctx.font='13px Sarabun';ctx.textAlign='center';ctx.fillText(msg,cv.width/2,cv.height/2);}
-function updSt(m,i,v){csData[m].statuses[i].count=v;saveCs();renderStatusGrid(m);renderPieCharts(m);}
-function updLn(m,n,v){csData[m].loans[n]=v;saveCs();renderLoanGrid(m);renderPieCharts(m);}
-function delSt(m,i){if(!confirm('ลบสถานะ "'+csData[m].statuses[i].name+'"?'))return;csData[m].statuses.splice(i,1);saveCs();renderStatusGrid(m);renderPieCharts(m);}
+function updSt(m,i,v){csData[m].statuses[i].count=v;saveCs();scheduleSync();renderStatusGrid(m);renderPieCharts(m);}
+function updLn(m,n,v){csData[m].loans[n]=v;saveCs();scheduleSync();renderLoanGrid(m);renderPieCharts(m);}
+function delSt(m,i){if(!confirm('ลบสถานะ "'+csData[m].statuses[i].name+'"?'))return;csData[m].statuses.splice(i,1);saveCs();scheduleSync();renderStatusGrid(m);renderPieCharts(m);}
 function editStatusName(m,i,el){
   el.contentEditable='true';el.focus();
   const sel=window.getSelection(),r=document.createRange();r.selectNodeContents(el);sel.removeAllRanges();sel.addRange(r);
-  el.onblur=()=>{csData[m].statuses[i].name=el.textContent.trim()||csData[m].statuses[i].name;el.contentEditable='false';el.onblur=null;saveCs();renderStatusGrid(m);renderPieCharts(m);};
+  el.onblur=()=>{csData[m].statuses[i].name=el.textContent.trim()||csData[m].statuses[i].name;el.contentEditable='false';el.onblur=null;saveCs();scheduleSync();renderStatusGrid(m);renderPieCharts(m);};
   el.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();el.blur();}};
 }
 function addStatusRow(){
@@ -1172,7 +1172,7 @@ function addStatusRow(){
 }
 function changeLoanMax(){
   const m=currentCsMonth,v=parseInt(document.getElementById('loanMaxInput').value)||8;
-  csData[m].loanMax=Math.max(1,Math.min(20,v));saveCs();renderLoanGrid(m);renderPieCharts(m);
+  csData[m].loanMax=Math.max(1,Math.min(20,v));saveCs();scheduleSync();renderLoanGrid(m);renderPieCharts(m);
 }
 
 // ============================================================
@@ -1238,7 +1238,7 @@ function switchHolMonth(m,btn){
 function toggleMonOff(){
   const m=currentHolMonth;
   holsData[m].monOff=document.getElementById('monOffToggle').checked;
-  saveHols();renderHolCal(m);
+  saveHols();scheduleSync();renderHolCal(m);
 }
 function toggleHolDay(ds){
   const m=ds.substring(0,7);
@@ -1246,12 +1246,12 @@ function toggleHolDay(ds){
   const idx=h.extra.indexOf(ds);
   if(idx>=0)h.extra.splice(idx,1);
   else h.extra.push(ds);
-  saveHols();renderHolCal(m);
+  saveHols();scheduleSync();renderHolCal(m);
 }
 function removeHolDay(ds){
   const m=ds.substring(0,7);
   holsData[m].extra=holsData[m].extra.filter(d=>d!==ds);
-  saveHols();renderHolCal(m);
+  saveHols();scheduleSync();renderHolCal(m);
 }
 
 function renderHolCal(m){
