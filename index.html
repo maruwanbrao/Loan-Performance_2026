@@ -466,7 +466,7 @@ td.phi{color:var(--grn);font-weight:700;}td.plo{color:var(--red);font-weight:700
   <div class="fcard">
     <div class="ftitle">กรอกข้อมูลประจำวัน</div>
     <div class="frow" style="margin-bottom:14px;">
-      <div class="fgrp" style="grid-column:span 2;"><label>📅 วันที่</label><input type="date" id="fDate" min="2026-01-01" max="2026-12-31" onchange="checkExisting()"></div>
+      <div class="fgrp" style="grid-column:span 2;"><label>📅 วันที่</label><input type="date" id="fDate" min="2026-01-01" max="2026-12-31" onchange="checkExisting();updatePreview();"></div>
     </div>
     <div id="existingNote" style="display:none;background:rgba(255,211,42,.1);border:1px solid rgba(255,211,42,.3);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--yel);">⚠️ มีข้อมูลวันนี้แล้ว — จะ <strong>แทนที่</strong>ข้อมูลเดิม</div>
     <div style="margin-bottom:14px;">
@@ -844,7 +844,9 @@ function renderDailyTable(m){
   me.forEach(e=>{
     const fH=e.fl?.hc||0,fA=e.fl?.amt||0,rH=e.ro?.hc||0,rA=e.ro?.amt||0,tH=fH+rH,tA=fA+rA;
     cumHC+=tH;const pct=totTG>0?cumHC/totTG*100:0,diff=tH-dTG;
-    rows+=`<tr><td class="L">${dl(e.date)} (${dayName(e.date)})</td>
+    const isZeroDay=fH===0&&fA===0&&rH===0&&rA===0;
+    rows+=`<tr style="${isZeroDay?'opacity:.55':''}">
+      <td class="L">${dl(e.date)} (${dayName(e.date)})${isZeroDay?' <span style="font-size:9px;color:var(--yel);background:rgba(255,211,42,.1);border:1px solid rgba(255,211,42,.25);padding:1px 6px;border-radius:8px;margin-left:4px;">ยอด 0</span>':''}</td>
       <td>${N(fH)}</td><td>${N(fA)}</td><td>${N(rH)}</td><td>${N(rA)}</td>
       <td><strong>${N(tH)}</strong></td><td><strong>${N(tA)}</strong></td>
       <td class="${diff>=0?'pos':'neg'}">${diff>=0?'+':''}${N(diff)}</td>
@@ -1234,9 +1236,16 @@ function checkExisting(){
 function updatePreview(){
   const fH=parseInt(document.getElementById('fFlHC').value)||0,fA=parseFloat(document.getElementById('fFlAmt').value)||0;
   const rH=parseInt(document.getElementById('fRoHC').value)||0,rA=parseFloat(document.getElementById('fRoAmt').value)||0;
+  const fDateVal=document.getElementById('fDate').value;
   const p=document.getElementById('fPreview');
-  if(fH||fA||rH||rA){p.style.display='block';p.innerHTML=`รวม HC = <span>${N(fH+rH)} ราย</span> | Amount = <span>${N(fA+rA)} บาท</span>`;}
-  else p.style.display='none';
+  if(fDateVal){
+    p.style.display='block';
+    if(fH===0&&fA===0&&rH===0&&rA===0){
+      p.innerHTML=`<span style="color:var(--yel)">📌 บันทึกวันทำงานที่ยอด = 0</span> · นับเป็นวันทำงานในการคำนวณ Run Rate`;
+    } else {
+      p.innerHTML=`รวม HC = <span>${N(fH+rH)} ราย</span> | Amount = <span>${N(fA+rA)} บาท</span>`;
+    }
+  } else p.style.display='none';
 }
 ['fFlHC','fFlAmt','fRoHC','fRoAmt'].forEach(id=>document.getElementById(id).addEventListener('input',updatePreview));
 function saveEntry(){
@@ -1244,7 +1253,7 @@ function saveEntry(){
   const fH=parseInt(document.getElementById('fFlHC').value)||0,fA=parseFloat(document.getElementById('fFlAmt').value)||0;
   const rH=parseInt(document.getElementById('fRoHC').value)||0,rA=parseFloat(document.getElementById('fRoAmt').value)||0;
   if(!date){showToast('กรุณาเลือกวันที่',true);return;}
-  if(!fH&&!fA&&!rH&&!rA){showToast('กรุณากรอกข้อมูลอย่างน้อย 1 ช่อง',true);return;}
+  // Allow zero entries — records the day as a working day with 0 customers
   entries=[...entries.filter(e=>e.date!==date),{date,fl:{hc:fH,amt:fA},ro:{hc:rH,amt:rA}}].sort((a,b)=>a.date.localeCompare(b.date));
   save();closeForm();showToast(`✅ บันทึก ${dl(date)} (${dayName(date)}) สำเร็จ`);
   const em=date.substring(0,7);
