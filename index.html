@@ -211,6 +211,36 @@ td.phi{color:var(--grn);font-weight:700;}td.plo{color:var(--red);font-weight:700
 .hol-list-title{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--tm);margin-bottom:8px;}
 .hol-tag{display:inline-flex;align-items:center;gap:5px;background:rgba(255,71,87,.12);border:1px solid rgba(255,71,87,.3);color:var(--red);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;margin:2px;}
 .hol-tag button{background:none;border:none;cursor:pointer;color:var(--red);font-size:13px;line-height:1;padding:0;}
+
+/* SYNC / CLOUD */
+.sync-bar{display:flex;align-items:center;gap:8px;padding:7px 14px;background:var(--s2);border-bottom:1px solid var(--bd);font-size:11px;}
+.sync-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.sync-dot.ok{background:var(--grn);box-shadow:0 0 6px rgba(46,213,115,.6);}
+.sync-dot.err{background:var(--red);}
+.sync-dot.loading{background:var(--yel);animation:pulse 1s infinite;}
+.sync-dot.off{background:var(--tm);}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+.sync-txt{color:var(--tm);flex:1;}
+.sync-btn{padding:3px 10px;border-radius:5px;border:1px solid rgba(0,212,255,.3);background:rgba(0,212,255,.08);color:var(--ac);cursor:pointer;font-size:11px;font-weight:700;transition:all .15s;}
+.sync-btn:hover{background:rgba(0,212,255,.18);}
+.sync-btn:disabled{opacity:.4;cursor:not-allowed;}
+/* GIST SETUP MODAL */
+.gist-card{width:540px;}
+.gist-step{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--bd);}
+.gist-step:last-child{border:none;}
+.gist-step-num{width:24px;height:24px;border-radius:50%;background:rgba(0,212,255,.15);border:1px solid rgba(0,212,255,.3);color:var(--ac);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+.gist-step-body{flex:1;}
+.gist-step-title{font-size:12px;font-weight:700;color:var(--tx);margin-bottom:4px;}
+.gist-step-desc{font-size:11px;color:var(--tm);line-height:1.6;}
+.gist-step-desc a{color:var(--ac);text-decoration:none;}
+.gist-step-desc a:hover{text-decoration:underline;}
+.gist-inp{width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:7px;padding:8px 12px;color:var(--tx);font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;outline:none;margin-top:6px;transition:border-color .2s;}
+.gist-inp:focus{border-color:var(--ac);}
+.gist-test-row{display:flex;gap:8px;margin-top:8px;align-items:center;}
+.gist-status{font-size:11px;font-weight:700;padding:4px 12px;border-radius:6px;}
+.gist-status.ok{background:rgba(46,213,115,.1);color:var(--grn);border:1px solid rgba(46,213,115,.3);}
+.gist-status.err{background:rgba(255,71,87,.1);color:var(--red);border:1px solid rgba(255,71,87,.3);}
+.gist-status.loading{background:rgba(255,211,42,.08);color:var(--yel);border:1px solid rgba(255,211,42,.25);}
 /* PANELS */
 .panel{display:none;}.panel.active{display:block;}
 /* FORM OVERLAY */
@@ -258,10 +288,21 @@ td.phi{color:var(--grn);font-weight:700;}td.plo{color:var(--red);font-weight:700
   </div>
   <div class="header-right">
     <span class="badge" id="todayBadge">📅</span>
+    <button class="tg-btn" onclick="exportData()" style="color:#2ed573;border-color:rgba(46,213,115,.4);">⬇️ Export</button>
+    <label class="tg-btn" for="importFile" style="color:#a855f7;border-color:rgba(168,85,247,.4);cursor:pointer;">⬆️ Import</label>
+    <input type="file" id="importFile" accept=".json" onchange="importData(event)" style="display:none;">
     <button class="tg-btn" onclick="openHolMgr()">📅 จัดการวันหยุด</button>
     <button class="tg-btn" onclick="openTargetEdit()">⚙️ ตั้งค่าเป้าหมาย</button>
     <button class="addbtn" id="addBtn" onclick="openForm()">+ กรอกข้อมูล</button>
   </div>
+</div>
+
+<!-- SYNC BAR -->
+<div class="sync-bar" id="syncBar">
+  <div class="sync-dot off" id="syncDot"></div>
+  <span class="sync-txt" id="syncTxt">ยังไม่ได้เชื่อมต่อ GitHub Gist — <a href="#" onclick="openGistSetup();return false;" style="color:var(--ac);">ตั้งค่า Sync</a></span>
+  <button class="sync-btn" id="syncNowBtn" onclick="syncNow()" disabled>🔄 Sync</button>
+  <button class="sync-btn" onclick="openGistSetup()" style="border-color:rgba(168,85,247,.35);color:var(--pur);">⚙️ Cloud</button>
 </div>
 
 <!-- QUARTER TABS -->
@@ -517,6 +558,62 @@ td.phi{color:var(--grn);font-weight:700;}td.plo{color:var(--red);font-weight:700
     <div class="hol-cal" id="holCal"></div>
     <div class="hol-list" id="holList"></div>
     <div class="faction"><button class="btn-pri" onclick="closeHolMgr()">✅ เสร็จสิ้น</button></div>
+  </div>
+</div>
+
+<!-- GIST SETUP MODAL -->
+<div class="overlay" id="gistOverlay" onclick="gistOverlayClick(event)">
+  <div class="fcard gist-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--bd);">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:3px;color:var(--pur);">☁️ Cloud Sync — GitHub Gist</div>
+      <button class="btn-sec" onclick="closeGistSetup()">✕</button>
+    </div>
+    <div class="gist-step">
+      <div class="gist-step-num">1</div>
+      <div class="gist-step-body">
+        <div class="gist-step-title">สร้าง Personal Access Token</div>
+        <div class="gist-step-desc">
+          ไปที่ <a href="https://github.com/settings/tokens/new" target="_blank">github.com/settings/tokens/new</a><br>
+          ตั้งชื่อ เช่น "Loan Tracker Sync" → เลือก Scope: <strong style="color:var(--ac);">✅ gist</strong> เท่านั้น → Generate token<br>
+          <span style="color:var(--yel);">⚠️ Copy token ไว้ก่อน จะมองเห็นครั้งเดียว</span>
+        </div>
+        <input type="password" class="gist-inp" id="gistToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" oninput="onGistInputChange()">
+      </div>
+    </div>
+    <div class="gist-step">
+      <div class="gist-step-num">2</div>
+      <div class="gist-step-body">
+        <div class="gist-step-title">Gist ID (ว่างไว้ = สร้างใหม่อัตโนมัติ)</div>
+        <div class="gist-step-desc">
+          ถ้ามี Gist อยู่แล้ว ใส่ Gist ID (ตัวเลขหลัง gist.github.com/user/<strong>ID</strong>)<br>
+          ถ้าเพิ่งเริ่ม ว่างไว้แล้วกด "ทดสอบ" — ระบบจะสร้าง Gist ใหม่ให้
+        </div>
+        <input type="text" class="gist-inp" id="gistId" placeholder="ว่างไว้ = สร้าง Gist ใหม่อัตโนมัติ" oninput="onGistInputChange()">
+      </div>
+    </div>
+    <div class="gist-step">
+      <div class="gist-step-num">3</div>
+      <div class="gist-step-body">
+        <div class="gist-step-title">ทดสอบการเชื่อมต่อ</div>
+        <div class="gist-step-desc">กดปุ่มเพื่อทดสอบ Token และ Gist ID</div>
+        <div class="gist-test-row">
+          <button class="btn-pri" onclick="testGistConnection()" id="gistTestBtn">🔌 ทดสอบ</button>
+          <div class="gist-status" id="gistTestStatus" style="display:none;"></div>
+        </div>
+      </div>
+    </div>
+    <div style="padding:12px 0;border-top:1px solid var(--bd);margin-top:4px;">
+      <div style="font-size:11px;color:var(--tm);margin-bottom:8px;">
+        🔒 Token เก็บใน localStorage ของ Browser นี้เท่านั้น ไม่ถูกส่งไปที่ใดนอกจาก GitHub API
+      </div>
+      <div style="display:flex;gap:8px;justify-content:space-between;">
+        <button class="btn-sec" onclick="clearGistConfig()" style="color:var(--red);">🗑️ ล้างการตั้งค่า</button>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-sec" onclick="closeGistSetup()">ยกเลิก</button>
+          <button class="btn-pri" id="gistSaveBtn" onclick="saveGistConfig()" disabled>💾 บันทึกและเชื่อมต่อ</button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1106,7 +1203,7 @@ function saveTgEdit(){
     TG[m].ro.hc=parseInt(document.getElementById(`tg_${m}_rohc`).value)||0;
     TG[m].ro.amt=parseFloat(document.getElementById(`tg_${m}_roamt`).value)||0;
   });
-  saveTG();closeTgEdit();showToast('✅ บันทึกเป้าหมาย '+q+' สำเร็จ');
+  saveTG();scheduleSync();closeTgEdit();showToast('✅ บันทึกเป้าหมาย '+q+' สำเร็จ');
   if(currentQuarter!=='CMP'){renderMonthlySummary(currentMonth);renderRR(currentMonth);renderCharts(currentMonth);}
 }
 
@@ -1255,7 +1352,7 @@ function saveEntry(){
   if(!date){showToast('กรุณาเลือกวันที่',true);return;}
   // Allow zero entries — records the day as a working day with 0 customers
   entries=[...entries.filter(e=>e.date!==date),{date,fl:{hc:fH,amt:fA},ro:{hc:rH,amt:rA}}].sort((a,b)=>a.date.localeCompare(b.date));
-  save();closeForm();showToast(`✅ บันทึก ${dl(date)} (${dayName(date)}) สำเร็จ`);
+  save();scheduleSync();closeForm();showToast(`✅ บันทึก ${dl(date)} (${dayName(date)}) สำเร็จ`);
   const em=date.substring(0,7);
   if(em===currentMonth){renderMonthlySummary(currentMonth);renderRR(currentMonth);renderCharts(currentMonth);}
   if(em===currentTblMonth)renderDailyTable(currentTblMonth);
@@ -1263,7 +1360,7 @@ function saveEntry(){
 function editEntry(date){openForm(date);}
 function delEntry(date){
   if(!confirm(`ยืนยันลบ ${dl(date)} (${dayName(date)})?`))return;
-  entries=entries.filter(e=>e.date!==date);save();showToast(`🗑️ ลบ ${dl(date)} แล้ว`);
+  entries=entries.filter(e=>e.date!==date);save();scheduleSync();showToast(`🗑️ ลบ ${dl(date)} แล้ว`);
   const em=date.substring(0,7);
   if(em===currentMonth){renderMonthlySummary(currentMonth);renderRR(currentMonth);renderCharts(currentMonth);}
   if(em===currentTblMonth)renderDailyTable(currentTblMonth);
@@ -1321,6 +1418,238 @@ function switchCsMonth(m,btn){
 // ============================================================
 // TOAST + BTT
 // ============================================================
+
+
+// ============================================================
+// GITHUB GIST SYNC
+// ============================================================
+const GIST_CFG_KEY='loan-gist-cfg';
+let gistCfg={token:'',gistId:''},syncStatus='off',lastSyncTime=null,syncQueue=null;
+
+function loadGistCfg(){
+  try{const r=localStorage.getItem(GIST_CFG_KEY);if(r)gistCfg=JSON.parse(r);}catch(e){}
+  updateSyncBar();
+  if(gistCfg.token&&gistCfg.gistId) pullFromGist();
+}
+function saveGistCfg(){
+  try{localStorage.setItem(GIST_CFG_KEY,JSON.stringify(gistCfg));}catch(e){}
+}
+function clearGistConfig(){
+  if(!confirm('ล้างการตั้งค่า Cloud Sync?\n\nข้อมูลใน Browser ยังคงอยู่ แค่ยกเลิกการ sync เท่านั้น'))return;
+  gistCfg={token:'',gistId:''};saveGistCfg();
+  syncStatus='off';lastSyncTime=null;updateSyncBar();closeGistSetup();
+  showToast('ล้างการตั้งค่า Cloud Sync แล้ว');
+}
+
+function setSyncStatus(s,msg){
+  syncStatus=s;
+  const dot=document.getElementById('syncDot');
+  const txt=document.getElementById('syncTxt');
+  const btn=document.getElementById('syncNowBtn');
+  dot.className='sync-dot '+s;
+  if(s==='ok'){
+    const t=new Date().toLocaleTimeString('th-TH');
+    txt.textContent='✅ Sync สำเร็จ · '+t+(msg?' · '+msg:'');
+    lastSyncTime=t;btn.disabled=false;
+  }else if(s==='loading'){
+    txt.innerHTML='🔄 กำลัง Sync...';btn.disabled=true;
+  }else if(s==='err'){
+    txt.textContent='❌ Sync ล้มเหลว: '+(msg||'ไม่ทราบสาเหตุ');btn.disabled=false;
+  }else{
+    txt.innerHTML='ยังไม่ได้เชื่อมต่อ GitHub Gist — <a href="#" onclick="openGistSetup();return false;" style="color:var(--ac);">ตั้งค่า Sync</a>';
+    btn.disabled=true;
+  }
+}
+function updateSyncBar(){
+  if(!gistCfg.token||!gistCfg.gistId){setSyncStatus('off');}
+}
+
+// Pull latest data from Gist
+async function pullFromGist(){
+  if(!gistCfg.token||!gistCfg.gistId)return;
+  setSyncStatus('loading');
+  try{
+    const res=await fetch(`https://api.github.com/gists/${gistCfg.gistId}`,{
+      headers:{Authorization:'token '+gistCfg.token,'Accept':'application/vnd.github+json'}
+    });
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const data=await res.json();
+    const fileContent=data.files['loan-data.json']?.content;
+    if(!fileContent)throw new Error('ไม่พบไฟล์ loan-data.json ใน Gist');
+    const payload=JSON.parse(fileContent);
+    // Merge: Gist wins (newer data)
+    entries=payload.entries||entries;
+    TG=payload.TG||TG;
+    holsData=payload.holsData||holsData;
+    csData=payload.csData||csData;
+    // Ensure structure
+    Object.keys(ML).forEach(m=>{
+      if(!TG[m])TG[m]=JSON.parse(JSON.stringify(DEFAULT_TG[m]));
+      if(!holsData[m])holsData[m]={monOff:true,extra:[]};
+      if(!csData[m])csData[m]={statuses:[{name:"DISBURSED",count:""},{name:"PENDING",count:""},{name:"POSTPONE",count:""},{name:"PRE-APPROVED",count:""},{name:"REJECT",count:""}],loanMax:8,loans:{}};
+    });
+    save();saveTG();saveHols();saveCs();
+    setSyncStatus('ok','ดึงข้อมูลจาก Cloud');
+    refreshCurrentView();
+  }catch(err){setSyncStatus('err',err.message);}
+}
+
+// Push local data to Gist
+async function pushToGist(){
+  if(!gistCfg.token||!gistCfg.gistId)return;
+  setSyncStatus('loading');
+  const payload={version:2,updatedAt:new Date().toISOString(),entries,TG,holsData,csData};
+  try{
+    const res=await fetch(`https://api.github.com/gists/${gistCfg.gistId}`,{
+      method:'PATCH',
+      headers:{Authorization:'token '+gistCfg.token,'Accept':'application/vnd.github+json','Content-Type':'application/json'},
+      body:JSON.stringify({files:{'loan-data.json':{content:JSON.stringify(payload,null,2)}}})
+    });
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    setSyncStatus('ok','บันทึกขึ้น Cloud');
+  }catch(err){setSyncStatus('err',err.message);}
+}
+
+// Debounce push — wait 1.5s after last change
+function scheduleSync(){
+  if(!gistCfg.token||!gistCfg.gistId)return;
+  if(syncQueue)clearTimeout(syncQueue);
+  syncQueue=setTimeout(()=>pushToGist(),1500);
+}
+function syncNow(){pullFromGist();}
+
+function refreshCurrentView(){
+  renderMonthTabs(currentQuarter);
+  document.getElementById('holidayNote').textContent=holidayInfo(currentMonth);
+  renderMonthlySummary(currentMonth);renderRR(currentMonth);renderCharts(currentMonth);
+  renderDailyTable(currentTblMonth);
+}
+
+// ── GIST SETUP MODAL ──────────────────────────────────────
+function openGistSetup(){
+  document.getElementById('gistToken').value=gistCfg.token||'';
+  document.getElementById('gistId').value=gistCfg.gistId||'';
+  document.getElementById('gistTestStatus').style.display='none';
+  document.getElementById('gistSaveBtn').disabled=!gistCfg.token;
+  document.getElementById('gistOverlay').classList.add('show');
+}
+function closeGistSetup(){document.getElementById('gistOverlay').classList.remove('show');}
+function gistOverlayClick(e){if(e.target===document.getElementById('gistOverlay'))closeGistSetup();}
+function onGistInputChange(){
+  document.getElementById('gistSaveBtn').disabled=!document.getElementById('gistToken').value.trim();
+  document.getElementById('gistTestStatus').style.display='none';
+}
+
+async function testGistConnection(){
+  const token=document.getElementById('gistToken').value.trim();
+  const gistId=document.getElementById('gistId').value.trim();
+  if(!token){showToast('กรุณาใส่ Token',true);return;}
+  const statusEl=document.getElementById('gistTestStatus');
+  statusEl.className='gist-status loading';statusEl.textContent='กำลังทดสอบ...';statusEl.style.display='';
+  document.getElementById('gistTestBtn').disabled=true;
+  try{
+    if(gistId){
+      // Test existing gist
+      const res=await fetch(`https://api.github.com/gists/${gistId}`,{
+        headers:{Authorization:'token '+token,'Accept':'application/vnd.github+json'}
+      });
+      if(res.status===404)throw new Error('ไม่พบ Gist ID นี้');
+      if(res.status===401)throw new Error('Token ไม่ถูกต้องหรือหมดอายุ');
+      if(!res.ok)throw new Error('HTTP '+res.status);
+      statusEl.className='gist-status ok';statusEl.textContent='✅ เชื่อมต่อสำเร็จ!';
+    }else{
+      // Create new gist
+      const res=await fetch('https://api.github.com/gists',{
+        method:'POST',
+        headers:{Authorization:'token '+token,'Accept':'application/vnd.github+json','Content-Type':'application/json'},
+        body:JSON.stringify({description:'Loan Performance Tracker Data 2026',public:false,files:{'loan-data.json':{content:JSON.stringify({version:2,entries:[],TG:{},holsData:{},csData:{}})}}})
+      });
+      if(res.status===401)throw new Error('Token ไม่ถูกต้อง หรือไม่มี scope "gist"');
+      if(!res.ok)throw new Error('HTTP '+res.status);
+      const data=await res.json();
+      document.getElementById('gistId').value=data.id;
+      statusEl.className='gist-status ok';statusEl.textContent='✅ สร้าง Gist ใหม่สำเร็จ ID: '+data.id;
+    }
+    document.getElementById('gistSaveBtn').disabled=false;
+  }catch(err){
+    statusEl.className='gist-status err';statusEl.textContent='❌ '+err.message;
+  }
+  document.getElementById('gistTestBtn').disabled=false;
+}
+
+async function saveGistConfig(){
+  const token=document.getElementById('gistToken').value.trim();
+  const gistId=document.getElementById('gistId').value.trim();
+  if(!token){showToast('กรุณาใส่ Token',true);return;}
+  if(!gistId){showToast('กรุณากด "ทดสอบ" ก่อนเพื่อสร้าง Gist ID',true);return;}
+  gistCfg={token,gistId};saveGistCfg();
+  closeGistSetup();
+  showToast('✅ บันทึกการตั้งค่าแล้ว — กำลัง Sync...');
+  await pushToGist();
+}
+
+// ============================================================
+// EXPORT / IMPORT DATA
+// ============================================================
+function exportData(){
+  const payload={
+    version:2,
+    exportedAt:new Date().toISOString(),
+    entries,
+    TG,
+    holsData,
+    csData,
+  };
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const dateStr=new Date().toISOString().split('T')[0];
+  a.href=url;a.download=`loan-data-${dateStr}.json`;
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);URL.revokeObjectURL(url);
+  showToast('✅ Export สำเร็จ — นำไฟล์ไป Import ใน Browser อื่นได้เลย');
+}
+
+function importData(event){
+  const file=event.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const payload=JSON.parse(e.target.result);
+      if(!payload.entries||!payload.TG){
+        showToast('❌ ไฟล์ไม่ถูกต้อง — กรุณาใช้ไฟล์ที่ Export จากระบบนี้',true);
+        return;
+      }
+      const entryCount=payload.entries.length;
+      if(!confirm(`นำเข้าข้อมูล ${entryCount} รายการ?\n\n⚠️ ข้อมูลปัจจุบันใน Browser นี้จะถูกแทนที่ทั้งหมด`)){
+        document.getElementById('importFile').value='';return;
+      }
+      entries=payload.entries||[];
+      TG=payload.TG||JSON.parse(JSON.stringify(DEFAULT_TG));
+      holsData=payload.holsData||{};
+      csData=payload.csData||{};
+      // Ensure all months have required structure
+      Object.keys(ML).forEach(m=>{
+        if(!TG[m])TG[m]=JSON.parse(JSON.stringify(DEFAULT_TG[m]));
+        if(!holsData[m])holsData[m]={monOff:true,extra:[]};
+        if(!csData[m])csData[m]={statuses:[{name:"DISBURSED",count:""},{name:"PENDING",count:""},{name:"POSTPONE",count:""},{name:"PRE-APPROVED",count:""},{name:"REJECT",count:""}],loanMax:8,loans:{}};
+      });
+      save();saveTG();saveHols();saveCs();
+      // Refresh UI
+      renderMonthTabs(currentQuarter);
+      document.getElementById('holidayNote').textContent=holidayInfo(currentMonth);
+      renderMonthlySummary(currentMonth);renderRR(currentMonth);renderCharts(currentMonth);
+      renderDailyTable(currentTblMonth);
+      document.getElementById('importFile').value='';
+      showToast(`✅ Import สำเร็จ — นำเข้า ${entryCount} รายการ`);
+    }catch(err){
+      showToast('❌ อ่านไฟล์ไม่สำเร็จ: '+err.message,true);
+    }
+  };
+  reader.readAsText(file);
+}
+
 let toastT=null;
 function showToast(msg,isErr=false){
   const t=document.getElementById('toast');t.textContent=msg;
@@ -1342,6 +1671,7 @@ renderMonthlySummary('2026-04');
 renderRR('2026-04');
 renderCharts('2026-04');
 renderDailyTable('2026-04');
+loadGistCfg();
 </script>
 </body>
 </html>
