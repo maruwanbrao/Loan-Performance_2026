@@ -7,8 +7,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>
 :root{--bg:#0a0e1a;--s1:#111827;--s2:#1a2235;--bd:#1e2d45;--ac:#00d4ff;--ac2:#ff6b35;--tx:#e8f4f8;--tm:#6b8aaa;--red:#ff4757;--grn:#2ed573;--yel:#ffd32a;--pur:#a855f7;}
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -575,15 +573,15 @@ td.phi{color:var(--grn);font-weight:700;}td.plo{color:var(--red);font-weight:700
       <div class="rpt-section-title"><span class="dot" style="background:var(--ac)"></span>ประเภทรายงาน</div>
       <div class="rpt-optgrid">
         <div class="rpt-opt">
-          <input type="radio" name="rptType" id="rptTypeMonth" value="month" checked onchange="updateRptPreview()">
+          <input type="radio" name="rptType" id="rptTypeMonth" value="month" checked onchange="switchRptType()">
           <label for="rptTypeMonth"><span class="rpt-icon">📅</span>รายเดือน</label>
         </div>
         <div class="rpt-opt">
-          <input type="radio" name="rptType" id="rptTypeQuarter" value="quarter" onchange="updateRptPreview()">
+          <input type="radio" name="rptType" id="rptTypeQuarter" value="quarter" onchange="switchRptType()">
           <label for="rptTypeQuarter"><span class="rpt-icon">📊</span>รายไตรมาส</label>
         </div>
         <div class="rpt-opt">
-          <input type="radio" name="rptType" id="rptTypeYear" value="year" onchange="updateRptPreview()">
+          <input type="radio" name="rptType" id="rptTypeYear" value="year" onchange="switchRptType()">
           <label for="rptTypeYear"><span class="rpt-icon">📆</span>รายปี (ทั้งหมด)</label>
         </div>
       </div>
@@ -1788,8 +1786,11 @@ function updateRptScopeGrid(){
   }
 }
 
-function updateRptPreview(){
+function switchRptType(){
   updateRptScopeGrid();
+  updateRptPreview();
+}
+function updateRptPreview(){
   const type=getRptType();
   const scope=getRptScope();
   const incDaily=document.getElementById('rptIncDaily').checked;
@@ -1941,62 +1942,83 @@ function styleXLSXHeader(ws){
   ws['!cols']=Array.from({length:range.e.c+1},()=>({wch:14}));
 }
 
-// ── PDF ───────────────────────────────────────────────────────────────
-function buildPDF(months,incDaily,incSum,incRR,incSt,title){
-  const {jsPDF}=window.jspdf;
-  const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
-  let y=15;
-  const pageW=doc.internal.pageSize.getWidth();
-  // Title
-  doc.setFontSize(16);doc.setTextColor(0,180,220);
-  doc.text(title,pageW/2,y,{align:'center'});y+=8;
-  doc.setFontSize(9);doc.setTextColor(130,150,170);
-  doc.text('ออกรายงาน: '+new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'}),pageW/2,y,{align:'center'});y+=8;
+// ── PDF via Browser Print ─────────────────────────────────────────────
+function printPDF(months,incDaily,incSum,incRR,incSt,title){
+  const dateStr=new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
 
-  function addTable(titleText,head,body){
-    if(doc.lastAutoTable)y=doc.lastAutoTable.finalY+8;
-    if(y>170){doc.addPage();y=15;}
-    doc.setFontSize(11);doc.setTextColor(220,220,220);
-    doc.text(titleText,14,y);y+=4;
-    doc.autoTable({
-      startY:y,head:[head],body,
-      theme:'grid',
-      headStyles:{fillColor:[26,34,53],textColor:[0,212,255],fontSize:8,fontStyle:'bold'},
-      bodyStyles:{textColor:[220,230,240],fontSize:8,fillColor:[17,24,39]},
-      alternateRowStyles:{fillColor:[22,32,48]},
-      margin:{left:14,right:14},
-    });
-    y=doc.lastAutoTable.finalY+6;
+  function tbl(headers,rows,caption){
+    let h=headers.map(h=>`<th>${h}</th>`).join('');
+    let b=rows.map(r=>`<tr>${r.map(c=>`<td>${c??''}</td>`).join('')}</tr>`).join('');
+    return `<div class="pt-section"><div class="pt-caption">${caption}</div><table><thead><tr>${h}</tr></thead><tbody>${b}</tbody></table></div>`;
   }
 
+  let body='';
   if(incSum){
     const rows=buildSummaryRows(months);
-    addTable('สรุปรายเดือน',
-      ['เดือน','FL HC','FL HC เป้า','FL HC%','FL Amt','RO HC','RO HC เป้า','RO HC%','Total HC','Total เป้า','วันทำการ','เฉลี่ย/วัน','Run Rate'],
-      rows.map(r=>[r['เดือน'],r['FL HC จริง'],r['FL HC เป้า'],r['FL HC %']+'%',N(r['FL Amt จริง']),r['RO HC จริง'],r['RO HC เป้า'],r['RO HC %']+'%',r['Total HC จริง'],r['Total HC เป้า'],r['วันทำการ'],r['เฉลี่ย HC/วัน'],r['Run Rate HC']])
+    body+=tbl(
+      ['เดือน','FL HC','FL เป้า','FL%','FL Amt','RO HC','RO เป้า','RO%','Total HC','Total เป้า','วันทำการ','เฉลี่ย/วัน','Run Rate'],
+      rows.map(r=>[r['เดือน'],r['FL HC จริง'],r['FL HC เป้า'],r['FL HC %']+'%',N(r['FL Amt จริง']),r['RO HC จริง'],r['RO HC เป้า'],r['RO HC %']+'%',r['Total HC จริง'],r['Total HC เป้า'],r['วันทำการ'],r['เฉลี่ย HC/วัน'],r['Run Rate HC']]),
+      'สรุปรายเดือน — First Loan & Rollover vs เป้าหมาย'
     );
   }
   if(incRR){
     const rows=buildRRRows(months);
-    addTable('Run Rate Analysis',
-      ['เดือน','วันทำการ','มีข้อมูล','เหลือ','เฉลี่ย HC/วัน','คาดสิ้นเดือน HC','เป้า HC','ต้องการ/วัน FL'],
-      rows.map(r=>[r['เดือน'],r['วันทำการ'],r['มีข้อมูล'],r['เหลือ'],r['เฉลี่ย HC/วัน'],r['คาดสิ้นเดือน HC'],r['เป้า HC'],r['ต้องการ/วัน FL HC']])
+    body+=tbl(
+      ['เดือน','วันทำการ','มีข้อมูล','เหลือ','เฉลี่ย HC/วัน','เฉลี่ย Amt/วัน','คาดสิ้นเดือน HC','เป้า HC','ต้องการ/วัน FL'],
+      rows.map(r=>[r['เดือน'],r['วันทำการ'],r['มีข้อมูล'],r['เหลือ'],r['เฉลี่ย HC/วัน'],N(r['เฉลี่ย Amt/วัน']),r['คาดสิ้นเดือน HC'],r['เป้า HC'],r['ต้องการ/วัน FL HC']]),
+      'Run Rate Analysis'
     );
   }
   if(incDaily){
     const rows=buildDailyRows(months);
-    addTable('ตารางรายวัน',
-      ['วันที่','เดือน','FL HC','FL Amount','RO HC','RO Amount','Total HC','Total Amount'],
-      rows.map(r=>[r['วันที'],r['เดือน'],r['FL Headcount'],N(r['FL Amount']),r['RO Headcount'],N(r['RO Amount']),r['Total HC'],N(r['Total Amount'])])
+    body+=tbl(
+      ['วันที่','เดือน','FL HC','FL Amount (฿)','RO HC','RO Amount (฿)','Total HC','Total Amount (฿)'],
+      rows.map(r=>[r['วันที'],r['เดือน'],r['FL Headcount'],N(r['FL Amount']),r['RO Headcount'],N(r['RO Amount']),r['Total HC'],N(r['Total Amount'])]),
+      'ตารางรายวัน'
     );
   }
   if(incSt){
     const rows=buildStatusRows(months);
-    addTable('สถานะลูกค้า',['เดือน','สถานะ','จำนวน','%'],
-      rows.map(r=>[r['เดือน'],r['สถานะ'],r['จำนวน'],r['% รวม']+'%'])
+    body+=tbl(['เดือน','สถานะ','จำนวน (ราย)','% รวม'],
+      rows.map(r=>[r['เดือน'],r['สถานะ'],r['จำนวน'],r['% รวม']+'%']),
+      'สถานะลูกค้า'
     );
   }
-  return doc;
+
+  const printWin=window.open('','_blank','width=1100,height=800');
+  printWin.document.write(`<!DOCTYPE html><html lang="th"><head>
+<meta charset="UTF-8">
+<title>${title}</title>
+<style>
+  @page{size:A4 landscape;margin:12mm 10mm;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Sarabun',sans-serif;background:#fff;color:#111;font-size:9pt;}
+  .pt-header{text-align:center;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid #0066cc;}
+  .pt-header h1{font-size:16pt;color:#0055aa;margin-bottom:4px;}
+  .pt-header p{font-size:8pt;color:#666;}
+  .pt-section{margin-bottom:16px;}
+  .pt-caption{font-size:10pt;font-weight:700;color:#003888;margin-bottom:5px;padding:4px 8px;background:#e8f0fe;border-left:4px solid #0055aa;border-radius:2px;}
+  table{width:100%;border-collapse:collapse;font-size:8pt;}
+  thead tr{background:#0055aa;color:#fff;}
+  thead th{padding:5px 6px;text-align:center;font-weight:700;white-space:nowrap;}
+  tbody tr:nth-child(even){background:#f0f4ff;}
+  tbody tr:nth-child(odd){background:#fff;}
+  td{padding:4px 6px;text-align:center;border-bottom:1px solid #dde;}
+  td:first-child{text-align:left;}
+  .pt-footer{text-align:center;font-size:7.5pt;color:#888;margin-top:10px;border-top:1px solid #ccc;padding-top:6px;}
+  @media print{button{display:none;}}
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+</head><body>
+<div class="pt-header">
+  <h1>${title}</h1>
+  <p>ออกรายงานวันที่: ${dateStr} &nbsp;|&nbsp; ระบบ Loan Performance Tracker 2026</p>
+</div>
+${body}
+<div class="pt-footer">Loan Performance Tracker 2026 &nbsp;|&nbsp; ออกรายงาน: ${dateStr}</div>
+<script>window.onload=()=>{setTimeout(()=>window.print(),400);};<\/script>
+</body></html>`);
+  printWin.document.close();
 }
 
 // ── MAIN DOWNLOAD ─────────────────────────────────────────────────────
@@ -2034,10 +2056,9 @@ function downloadReport(fmt){
       showToast('✅ ดาวน์โหลด Excel สำเร็จ');
 
     } else if(fmt==='pdf'){
-      if(!window.jspdf){showToast('กำลังโหลด library...',true);return;}
-      const doc=buildPDF(months,incDaily,incSum,incRR,incSt,title);
-      doc.save(fname+'.pdf');
-      showToast('✅ ดาวน์โหลด PDF สำเร็จ');
+      printPDF(months,incDaily,incSum,incRR,incSt,title);
+      showToast('✅ เปิดหน้า Print — กด Ctrl+P หรือ ⌘P เพื่อบันทึก PDF');
+      return; // don't close modal
     }
     closeReportModal();
   }catch(err){
