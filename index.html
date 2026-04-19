@@ -1121,7 +1121,7 @@ function renderStatusGrid(m){
     return `<div class="sr sr-st" data-sidx="${i}">
       <div class="sname" style="color:${col}" onclick="editStatusName('${m}',${i},this)">${st.name}</div>
       <div class="sbar"><div class="sbar-fill" style="width:${pct}%;background:${col}40;border-right:2px solid ${col}"></div><div class="sbar-lbl">${pct>8?pct.toFixed(1)+'%':''}</div></div>
-      <input class="sinput" type="number" min="0" value="${st.count}" placeholder="—" oninput="updSt('${m}',${i},this.value)" style="border-color:${col}55">
+      <input class="sinput" type="number" min="0" value="${st.count}" placeholder="—" onchange="updSt('${m}',${i},this.value)" onblur="updSt('${m}',${i},this.value)" onkeydown="if(event.key==='Enter')this.blur()" style="border-color:${col}55">
       <div class="spct" style="color:${col}">${cnt>0?pct.toFixed(1)+'%':'—'}</div>
       <div style="text-align:right"><button class="ebtn del" onclick="delSt('${m}',${i})">ลบ</button></div>
     </div>`;
@@ -1134,7 +1134,7 @@ function renderLoanGrid(m){
     const n=i+1,cnt=parseInt(d.loans[n]||0)||0,pct=tot>0?cnt/tot*100:0,col=SCOL[i%SCOL.length];
     return `<div class="sr sr-ln">
       <div style="font-size:13px;font-weight:700;color:${col}">${ord(n)} Loan</div>
-      <input class="sinput" type="number" min="0" value="${d.loans[n]||''}" placeholder="—" oninput="updLn('${m}',${n},this.value)" style="border-color:${col}55">
+      <input class="sinput" type="number" min="0" value="${d.loans[n]||''}" placeholder="—" onchange="updLn('${m}',${n},this.value)" onblur="updLn('${m}',${n},this.value)" onkeydown="if(event.key==='Enter')this.blur()" style="border-color:${col}55">
       <div class="sbar"><div class="sbar-fill" style="width:${pct}%;background:${col}40;border-right:2px solid ${col}"></div><div class="sbar-lbl">${pct>8?pct.toFixed(1)+'%':''}</div></div>
       <div class="spct" style="color:${col}">${cnt>0?pct.toFixed(1)+'%':'—'}</div>
       <div style="text-align:right;font-size:12px;font-weight:700;color:${col}">${cnt>0?N(cnt)+' ราย':''}</div>
