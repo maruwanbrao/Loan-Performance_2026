@@ -268,6 +268,39 @@ td.phi{color:var(--grn);font-weight:700;}td.plo{color:var(--red);font-weight:700
 .rpt-dl-btn.xlsx{background:rgba(0,212,255,.12);color:var(--ac);border:1px solid rgba(0,212,255,.3);}
 .rpt-dl-btn.pdf{background:rgba(255,71,87,.1);color:var(--red);border:1px solid rgba(255,71,87,.3);}
 .rpt-dl-btn:disabled{opacity:.35;cursor:not-allowed;transform:none;}
+
+/* MONTH COMPARISON */
+.mcmp-filter{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px;padding:12px 16px;background:var(--s2);border-radius:10px;}
+.mcmp-filter label{font-size:11px;color:var(--tm);white-space:nowrap;}
+.mcmp-sel{background:var(--bg);border:1px solid var(--bd);border-radius:7px;padding:6px 10px;color:var(--tx);font-family:'Sarabun',sans-serif;font-size:12px;outline:none;cursor:pointer;}
+.mcmp-sel:focus{border-color:var(--ac);}
+.mcmp-pill-row{display:flex;gap:6px;flex-wrap:wrap;}
+.mcmp-pill{padding:4px 12px;border-radius:16px;border:1px solid var(--bd);background:var(--s2);color:var(--tm);cursor:pointer;font-size:11px;font-weight:600;transition:all .15s;}
+.mcmp-pill:hover{color:var(--tx);}
+.mcmp-pill.active{background:rgba(0,212,255,.12);border-color:var(--ac);color:var(--ac);}
+.mcmp-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
+.mcmp-card{background:var(--s1);border:1px solid var(--bd);border-radius:12px;overflow:hidden;}
+.mcmp-card-top{padding:12px 14px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;}
+.mcmp-card-month{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;}
+.mcmp-card-body{padding:12px 14px;}
+.mcmp-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;padding-bottom:7px;border-bottom:1px solid rgba(30,45,69,.5);}
+.mcmp-row:last-child{margin:0;padding:0;border:none;}
+.mcmp-row-label{font-size:10px;color:var(--tm);letter-spacing:.5px;}
+.mcmp-row-vals{display:flex;gap:16px;align-items:center;}
+.mcmp-val{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;}
+.mcmp-tg{font-size:10px;color:var(--tm);}
+.mcmp-delta{font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;}
+.mcmp-delta.up{background:rgba(46,213,115,.12);color:var(--grn);}
+.mcmp-delta.dn{background:rgba(255,71,87,.1);color:var(--red);}
+.mcmp-delta.na{color:var(--tm);}
+.mcmp-pbar{height:4px;background:var(--s2);border-radius:3px;overflow:hidden;margin-top:3px;}
+.mcmp-pfill{height:100%;border-radius:3px;}
+.mcmp-top-section{background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:14px;}
+.mcmp-rank-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:4px;}
+.mcmp-rank-box{background:var(--s2);border-radius:8px;padding:10px 12px;text-align:center;}
+.mcmp-rank-label{font-size:9px;color:var(--tm);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;}
+.mcmp-rank-val{font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:1px;line-height:1;}
+.mcmp-rank-sub{font-size:10px;color:var(--tm);margin-top:3px;}
 /* PANELS */
 .panel{display:none;}.panel.active{display:block;}
 /* FORM OVERLAY */
@@ -526,6 +559,67 @@ td.phi{color:var(--grn);font-weight:700;}td.plo{color:var(--red);font-weight:700
     <div class="ctitle"><span class="dot" style="background:var(--grn)"></span>Monthly Total HC Trend — ทุกไตรมาส</div>
     <div style="position:relative;height:220px;"><canvas id="cmpTrendChart"></canvas></div>
   </div>
+
+  <!-- MONTH VS MONTH SECTION -->
+  <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px;color:var(--ac);margin:24px 0 14px;padding-top:20px;border-top:1px solid var(--bd);">
+    📅 เปรียบเทียบรายเดือน
+  </div>
+
+  <!-- FILTER -->
+  <div class="mcmp-filter">
+    <label>กรอง Quarter:</label>
+    <select class="mcmp-sel" id="mcmpQFilter" onchange="renderMonthCmp()">
+      <option value="all">ทุกไตรมาส</option>
+      <option value="Q1">❄️ Q1</option>
+      <option value="Q2" selected>🌸 Q2</option>
+      <option value="Q3">☀️ Q3</option>
+      <option value="Q4">🍂 Q4</option>
+    </select>
+    <label style="margin-left:8px;">เรียงตาม:</label>
+    <select class="mcmp-sel" id="mcmpSort" onchange="renderMonthCmp()">
+      <option value="date">ลำดับเดือน</option>
+      <option value="hc_desc">Total HC (มาก→น้อย)</option>
+      <option value="hc_asc">Total HC (น้อย→มาก)</option>
+      <option value="pct_desc">% บรรลุเป้า (มาก→น้อย)</option>
+      <option value="amt_desc">Amount (มาก→น้อย)</option>
+    </select>
+    <label style="margin-left:8px;">แสดง:</label>
+    <select class="mcmp-sel" id="mcmpView" onchange="renderMonthCmp()">
+      <option value="cards">Cards</option>
+      <option value="table">ตาราง</option>
+    </select>
+  </div>
+
+  <!-- RANKING SUMMARY -->
+  <div class="mcmp-top-section">
+    <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--tm);margin-bottom:12px;display:flex;align-items:center;gap:6px;"><span class="dot" style="background:var(--yel)"></span>สรุปอันดับ</div>
+    <div class="mcmp-rank-grid" id="mcmpRankGrid"></div>
+  </div>
+
+  <!-- CHARTS -->
+  <div class="cgrid" style="margin-bottom:14px;">
+    <div class="ccard">
+      <div class="ctitle"><span class="dot" style="background:var(--ac)"></span>Total HC จริง vs เป้า — รายเดือน</div>
+      <div style="position:relative;height:220px;"><canvas id="mcmpHCChart"></canvas></div>
+    </div>
+    <div class="ccard">
+      <div class="ctitle"><span class="dot" style="background:var(--ac2)"></span>% บรรลุเป้า HC — รายเดือน</div>
+      <div style="position:relative;height:220px;"><canvas id="mcmpPctChart"></canvas></div>
+    </div>
+  </div>
+  <div class="cgrid" style="margin-bottom:16px;">
+    <div class="ccard">
+      <div class="ctitle"><span class="dot" style="background:var(--grn)"></span>Total Amount จริง vs เป้า — รายเดือน</div>
+      <div style="position:relative;height:220px;"><canvas id="mcmpAmtChart"></canvas></div>
+    </div>
+    <div class="ccard">
+      <div class="ctitle"><span class="dot" style="background:var(--pur)"></span>MoM Change % (HC) — การเปลี่ยนแปลงรายเดือน</div>
+      <div style="position:relative;height:220px;"><canvas id="mcmpMoMChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- CARDS or TABLE -->
+  <div id="mcmpContent" style="margin-bottom:24px;"></div>
 </div>
 
 </div><!-- /app -->
@@ -1194,6 +1288,7 @@ function renderCompare(){
   const trendData=allMonths.map(m=>{const me=getMe(m);return me.reduce((s,e)=>(s+(e.fl?.hc||0)+(e.ro?.hc||0)),0)||null;});
   const trendTG=allMonths.map(m=>(TG[m].fl.hc+TG[m].ro.hc));
   const bgColors=allMonths.map(m=>{const q=getQofMonth(m);return QUARTERS[q].color;});
+  renderMonthCmp();
   dc('cmpTrend');charts['cmpTrend']=new Chart(document.getElementById('cmpTrendChart'),{type:'bar',data:{labels:trendLabels,datasets:[
     {label:'Total HC จริง',data:trendData,backgroundColor:bgColors.map(c=>c+'99'),borderColor:bgColors,borderWidth:1,borderRadius:3},
     {type:'line',label:'เป้ารายเดือน',data:trendTG,borderColor:'#ffd32a',borderWidth:1.5,borderDash:[5,3],pointRadius:0,tension:0,spanGaps:true},
