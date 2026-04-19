@@ -1120,13 +1120,22 @@ function renderStatusGrid(m){
     const cnt=parseInt(st.count)||0,pct=tot>0?cnt/tot*100:0,col=SCOL[i%SCOL.length];
     return `<div class="sr sr-st" data-sidx="${i}">
       <div class="sname" style="color:${col}" onclick="editStatusName('${m}',${i},this)">${st.name}</div>
-      <div class="sbar"><div class="sbar-fill" style="width:${pct}%;background:${col}40;border-right:2px solid ${col}"></div><div class="sbar-lbl">${pct>8?pct.toFixed(1)+'%':''}</div></div>
-      <input class="sinput" type="number" min="0" value="${st.count}" placeholder="—" onchange="updSt('${m}',${i},this.value)" onblur="updSt('${m}',${i},this.value)" onkeydown="if(event.key==='Enter')this.blur()" style="border-color:${col}55">
-      <div class="spct" style="color:${col}">${cnt>0?pct.toFixed(1)+'%':'—'}</div>
+      <div class="sbar"><div class="sbar-fill" id="stbar_${m}_${i}" style="width:${pct}%;background:${col}40;border-right:2px solid ${col}"></div><div class="sbar-lbl" id="stbarlbl_${m}_${i}">${pct>8?pct.toFixed(1)+'%':''}</div></div>
+      <input class="sinput" type="number" min="0" value="${st.count}" placeholder="—" data-m="${m}" data-i="${i}" data-type="st" style="border-color:${col}55">
+      <div class="spct" style="color:${col}" id="stpct_${m}_${i}">${cnt>0?pct.toFixed(1)+'%':'—'}</div>
       <div style="text-align:right"><button class="ebtn del" onclick="delSt('${m}',${i})">ลบ</button></div>
     </div>`;
   }).join('');
   document.getElementById('statusTotal').textContent=N(tot)+' ราย';
+  // Attach listeners via event delegation — avoid inline onchange
+  const sg=document.getElementById('statusGrid');
+  if(sg){sg.oninput=null;sg.addEventListener('input',function(e){
+    const inp=e.target.closest('input[data-type="st"]');
+    if(!inp)return;
+    updSt(inp.dataset.m,parseInt(inp.dataset.i),inp.value);
+  },{once:false});
+  // Override to avoid duplicate — use a flag
+  sg._hasDelegation=true;}
 }
 function renderLoanGrid(m){
   const d=csData[m],lm=d.loanMax||8,tot=lnTotal(m);
@@ -1134,13 +1143,19 @@ function renderLoanGrid(m){
     const n=i+1,cnt=parseInt(d.loans[n]||0)||0,pct=tot>0?cnt/tot*100:0,col=SCOL[i%SCOL.length];
     return `<div class="sr sr-ln">
       <div style="font-size:13px;font-weight:700;color:${col}">${ord(n)} Loan</div>
-      <input class="sinput" type="number" min="0" value="${d.loans[n]||''}" placeholder="—" onchange="updLn('${m}',${n},this.value)" onblur="updLn('${m}',${n},this.value)" onkeydown="if(event.key==='Enter')this.blur()" style="border-color:${col}55">
-      <div class="sbar"><div class="sbar-fill" style="width:${pct}%;background:${col}40;border-right:2px solid ${col}"></div><div class="sbar-lbl">${pct>8?pct.toFixed(1)+'%':''}</div></div>
-      <div class="spct" style="color:${col}">${cnt>0?pct.toFixed(1)+'%':'—'}</div>
+      <input class="sinput" type="number" min="0" value="${d.loans[n]||''}" placeholder="—" data-m="${m}" data-n="${n}" data-type="ln" style="border-color:${col}55">
+      <div class="sbar"><div class="sbar-fill" id="lnbar_${m}_${n}" style="width:${pct}%;background:${col}40;border-right:2px solid ${col}"></div><div class="sbar-lbl" id="lnbarlbl_${m}_${n}">${pct>8?pct.toFixed(1)+'%':''}</div></div>
+      <div class="spct" style="color:${col}" id="lnpct_${m}_${n}">${cnt>0?pct.toFixed(1)+'%':'—'}</div>
       <div style="text-align:right;font-size:12px;font-weight:700;color:${col}">${cnt>0?N(cnt)+' ราย':''}</div>
     </div>`;
   }).join('');
   document.getElementById('loanTotal').textContent=N(tot)+' ราย';
+  const lg=document.getElementById('loanGrid');
+  if(lg){lg.oninput=null;lg.addEventListener('input',function(e){
+    const inp=e.target.closest('input[data-type="ln"]');
+    if(!inp)return;
+    updLn(inp.dataset.m,parseInt(inp.dataset.n),inp.value);
+  },{once:false});}
 }
 function renderPieCharts(m){
   const d=csData[m],lm=d.loanMax||8;
@@ -1156,8 +1171,44 @@ function renderPieCharts(m){
   else drawEmpty('loanPie','ยังไม่มีข้อมูล');
 }
 function drawEmpty(id,msg){const cv=document.getElementById(id);if(!cv)return;const ctx=cv.getContext('2d');ctx.clearRect(0,0,cv.width,cv.height);ctx.fillStyle='#6b8aaa';ctx.font='13px Sarabun';ctx.textAlign='center';ctx.fillText(msg,cv.width/2,cv.height/2);}
-function updSt(m,i,v){csData[m].statuses[i].count=v;saveCs();scheduleSync();renderStatusGrid(m);renderPieCharts(m);}
-function updLn(m,n,v){csData[m].loans[n]=v;saveCs();scheduleSync();renderLoanGrid(m);renderPieCharts(m);}
+function updSt(m,i,v){
+  csData[m].statuses[i].count=v;
+  saveCs();scheduleSync();
+  // Update only bar + pct — no full re-render so input keeps focus
+  const tot=stTotal(m);
+  csData[m].statuses.forEach((st,idx)=>{
+    const cnt=parseInt(st.count)||0,pct=tot>0?cnt/tot*100:0;
+    const bar=document.getElementById('stbar_'+m+'_'+idx);
+    const lbl=document.getElementById('stbarlbl_'+m+'_'+idx);
+    const pctEl=document.getElementById('stpct_'+m+'_'+idx);
+    if(bar)bar.style.width=Math.min(pct,100)+'%';
+    if(lbl)lbl.textContent=pct>8?pct.toFixed(1)+'%':'';
+    if(pctEl)pctEl.textContent=cnt>0?pct.toFixed(1)+'%':'—';
+  });
+  const totEl=document.getElementById('statusTotal');
+  if(totEl)totEl.textContent=N(tot)+' ราย';
+  renderPieCharts(m);
+}
+function updLn(m,n,v){
+  csData[m].loans[n]=v;
+  saveCs();scheduleSync();
+  // Update only bar + pct — no full re-render so input keeps focus
+  const tot=lnTotal(m);
+  const lm=csData[m].loanMax||8;
+  for(let i=1;i<=lm;i++){
+    const cnt=parseInt(csData[m].loans[i]||0)||0,pct=tot>0?cnt/tot*100:0;
+    const bar=document.getElementById('lnbar_'+m+'_'+i);
+    const lbl=document.getElementById('lnbarlbl_'+m+'_'+i);
+    const pctEl=document.getElementById('lnpct_'+m+'_'+i);
+    const totEl2=document.querySelectorAll('[data-m="'+m+'"][data-n="'+i+'"]')[0];
+    if(bar)bar.style.width=Math.min(pct,100)+'%';
+    if(lbl)lbl.textContent=pct>8?pct.toFixed(1)+'%':'';
+    if(pctEl)pctEl.textContent=cnt>0?pct.toFixed(1)+'%':'—';
+  }
+  const totEl=document.getElementById('loanTotal');
+  if(totEl)totEl.textContent=N(tot)+' ราย';
+  renderPieCharts(m);
+}
 function delSt(m,i){if(!confirm('ลบสถานะ "'+csData[m].statuses[i].name+'"?'))return;csData[m].statuses.splice(i,1);saveCs();scheduleSync();renderStatusGrid(m);renderPieCharts(m);}
 function editStatusName(m,i,el){
   el.contentEditable='true';el.focus();
