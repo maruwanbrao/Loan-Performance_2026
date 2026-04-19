@@ -1288,7 +1288,7 @@ function renderCompare(){
   const trendData=allMonths.map(m=>{const me=getMe(m);return me.reduce((s,e)=>(s+(e.fl?.hc||0)+(e.ro?.hc||0)),0)||null;});
   const trendTG=allMonths.map(m=>(TG[m].fl.hc+TG[m].ro.hc));
   const bgColors=allMonths.map(m=>{const q=getQofMonth(m);return QUARTERS[q].color;});
-  renderMonthCmp();
+  setTimeout(()=>renderMonthCmp(),100);
   dc('cmpTrend');charts['cmpTrend']=new Chart(document.getElementById('cmpTrendChart'),{type:'bar',data:{labels:trendLabels,datasets:[
     {label:'Total HC จริง',data:trendData,backgroundColor:bgColors.map(c=>c+'99'),borderColor:bgColors,borderWidth:1,borderRadius:3},
     {type:'line',label:'เป้ารายเดือน',data:trendTG,borderColor:'#ffd32a',borderWidth:1.5,borderDash:[5,3],pointRadius:0,tension:0,spanGaps:true},
@@ -1611,6 +1611,127 @@ function delEntry(date){
 }
 
 // ============================================================
+
+// ============================================================
+// MONTH VS MONTH COMPARISON
+// ============================================================
+function getMcmpMonths(){
+  const qEl=document.getElementById('mcmpQFilter');
+  const sortEl=document.getElementById('mcmpSort');
+  const q=qEl?qEl.value:'Q2';
+  const sort=sortEl?sortEl.value:'date';
+  let months=(q==='all')?Object.keys(ML):(QUARTERS[q]?QUARTERS[q].months:QUARTERS['Q2'].months);
+  const sData=months.map(function(m){return{m:m,s:calcS(m)};});
+  if(sort==='hc_desc') sData.sort(function(a,b){return b.s.totHC-a.s.totHC;});
+  else if(sort==='hc_asc') sData.sort(function(a,b){return a.s.totHC-b.s.totHC;});
+  else if(sort==='pct_desc') sData.sort(function(a,b){var pa=a.s.tgTotHC>0?a.s.totHC/a.s.tgTotHC:0,pb=b.s.tgTotHC>0?b.s.totHC/b.s.tgTotHC:0;return pb-pa;});
+  else if(sort==='amt_desc') sData.sort(function(a,b){return b.s.totAmt-a.s.totAmt;});
+  return sData;
+}
+function renderMonthCmp(){
+  var sData=getMcmpMonths();
+  if(!sData||!sData.length)return;
+  renderMcmpRanking(sData);
+  setTimeout(function(){renderMcmpCharts(sData);},80);
+  var viewEl=document.getElementById('mcmpView');
+  var view=viewEl?viewEl.value:'cards';
+  if(view==='table')renderMcmpTable(sData);
+  else renderMcmpCards(sData);
+}
+function renderMcmpRanking(sData){
+  var el=document.getElementById('mcmpRankGrid');if(!el)return;
+  var withData=sData.filter(function(d){return d.s.n>0;});
+  if(!withData.length){el.innerHTML='<div style="color:var(--tm);font-size:12px;grid-column:span 4;padding:10px;">ยังไม่มีข้อมูลในช่วงที่เลือก</div>';return;}
+  var bestHC=withData.reduce(function(a,b){return b.s.totHC>a.s.totHC?b:a;});
+  var worstHC=withData.reduce(function(a,b){return b.s.totHC<a.s.totHC?b:a;});
+  var bestPct=withData.reduce(function(a,b){var pa=a.s.tgTotHC>0?a.s.totHC/a.s.tgTotHC:0,pb=b.s.tgTotHC>0?b.s.totHC/b.s.tgTotHC:0;return pb>pa?b:a;});
+  var bestAmt=withData.reduce(function(a,b){return b.s.totAmt>a.s.totAmt?b:a;});
+  function rb(icon,label,mkey,val,col){return '<div class="mcmp-rank-box"><div class="mcmp-rank-label">'+icon+' '+label+'</div><div class="mcmp-rank-val" style="color:'+col+'">'+ML[mkey].emoji+' '+ML[mkey].short+'</div><div class="mcmp-rank-sub">'+val+'</div></div>';}
+  el.innerHTML=rb('🏆','HC สูงสุด',bestHC.m,N(bestHC.s.totHC)+' ราย','var(--grn)')+rb('📉','HC ต่ำสุด',worstHC.m,N(worstHC.s.totHC)+' ราย','var(--red)')+rb('🎯','% เป้าสูงสุด',bestPct.m,P(bestPct.s.tgTotHC>0?bestPct.s.totHC/bestPct.s.tgTotHC*100:0),'var(--ac)')+rb('💰','Amount สูงสุด',bestAmt.m,fmtAmt(bestAmt.s.totAmt),'var(--yel)');
+}
+function renderMcmpCharts(sData){
+  var hcEl=document.getElementById('mcmpHCChart'),pctEl=document.getElementById('mcmpPctChart'),amtEl=document.getElementById('mcmpAmtChart'),momEl=document.getElementById('mcmpMoMChart');
+  if(!hcEl||!pctEl||!amtEl||!momEl)return;
+  var labels=sData.map(function(d){return ML[d.m].emoji+' '+ML[d.m].short;});
+  var qColors=sData.map(function(d){return QUARTERS[getQofMonth(d.m)].color;});
+  var cOpt=function(yF){return{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:true,labels:{color:'#6b8aaa',font:{size:10},boxWidth:10,padding:6}},tooltip:{backgroundColor:'#1a2235',borderColor:'#1e2d45',borderWidth:1,titleColor:'#e8f4f8',bodyColor:'#6b8aaa',callbacks:{label:function(c){return c.raw!=null?' '+c.dataset.label+': '+yF(c.raw):null;}}}},scales:{x:{ticks:{color:'#6b8aaa',font:{size:9}},grid:{color:'#1e2d45'}},y:{ticks:{color:'#6b8aaa',font:{size:9},callback:function(v){return yF(v);}},grid:{color:'#1e2d45'}}}};};
+  dc('mcmpHC');charts['mcmpHC']=new Chart(hcEl,{type:'bar',data:{labels:labels,datasets:[{label:'Total HC จริง',data:sData.map(function(d){return d.s.totHC>0?d.s.totHC:null;}),backgroundColor:qColors.map(function(c){return c+'bb';}),borderColor:qColors,borderWidth:1.5,borderRadius:4},{label:'เป้า HC',data:sData.map(function(d){return d.s.tgTotHC;}),backgroundColor:'rgba(255,255,255,.05)',borderColor:'rgba(255,255,255,.25)',borderWidth:1,borderRadius:4}]},options:cOpt(function(v){return N(v);})});
+  dc('mcmpPct');var pctData=sData.map(function(d){return d.s.tgTotHC>0?parseFloat((d.s.totHC/d.s.tgTotHC*100).toFixed(1)):null;});charts['mcmpPct']=new Chart(pctEl,{type:'bar',data:{labels:labels,datasets:[{label:'% บรรลุเป้า HC',data:pctData,backgroundColor:pctData.map(function(v){return v==null?'transparent':v>=100?'rgba(46,213,115,.75)':v>=75?'rgba(255,211,42,.75)':v>=50?'rgba(255,107,53,.75)':'rgba(255,71,87,.75)';}),borderRadius:4},{type:'line',label:'เป้า 100%',data:sData.map(function(){return 100;}),borderColor:'rgba(255,255,255,.2)',borderWidth:1.5,borderDash:[4,3],pointRadius:0,spanGaps:true}]},options:cOpt(function(v){return v!=null?v.toFixed(1)+'%':'';})});
+  dc('mcmpAmt');charts['mcmpAmt']=new Chart(amtEl,{type:'bar',data:{labels:labels,datasets:[{label:'Total Amount จริง',data:sData.map(function(d){return d.s.totAmt>0?d.s.totAmt:null;}),backgroundColor:qColors.map(function(c){return c+'99';}),borderColor:qColors,borderWidth:1.5,borderRadius:4},{label:'เป้า Amount',data:sData.map(function(d){return d.s.tgTotAmt;}),backgroundColor:'rgba(255,255,255,.05)',borderColor:'rgba(255,255,255,.25)',borderWidth:1,borderRadius:4}]},options:cOpt(function(v){return fmtAmt(v);})});
+  dc('mcmpMoM');var momData=sData.map(function(d,i){if(i===0||!sData[i-1].s.totHC)return null;return parseFloat(((d.s.totHC-sData[i-1].s.totHC)/sData[i-1].s.totHC*100).toFixed(1));});charts['mcmpMoM']=new Chart(momEl,{type:'bar',data:{labels:labels,datasets:[{label:'MoM HC %',data:momData,backgroundColor:momData.map(function(v){return v==null?'transparent':v>=0?'rgba(46,213,115,.75)':'rgba(255,71,87,.75)';}),borderRadius:4}]},options:cOpt(function(v){return v!=null?v.toFixed(1)+'%':'';})});
+}
+function renderMcmpCards(sData){
+  var el=document.getElementById('mcmpContent');if(!el)return;
+  var allM=Object.keys(ML);
+  var cards=sData.map(function(item){
+    var m=item.m,s=item.s;
+    var prevIdx=allM.indexOf(m)-1;
+    var ps=prevIdx>=0?calcS(allM[prevIdx]):null;
+    var q=getQofMonth(m),qcol=QUARTERS[q].color,tg=TG[m];
+    var hcPct=s.tgTotHC>0?s.totHC/s.tgTotHC*100:0;
+    function delta(cur,prev){if(!prev||prev===0)return '<span class="mcmp-delta na">—</span>';var chg=(cur-prev)/prev*100;return '<span class="mcmp-delta '+(chg>=0?'up':'dn')+'">'+(chg>=0?'▲':'▼')+' '+Math.abs(chg).toFixed(1)+'%</span>';}
+    function dTag(diff){return '<span style="font-size:10px;font-weight:700;color:'+(diff>=0?'var(--grn)':'var(--red)')+';">'+(diff>=0?'+':'')+N(diff)+'</span>';}
+    var sCol=hcPct>=100?'var(--grn)':hcPct>=75?'var(--yel)':'var(--red)';
+    var sBg=hcPct>=100?'rgba(46,213,115,.15)':hcPct>=75?'rgba(255,211,42,.1)':'rgba(255,71,87,.1)';
+    var sBd=hcPct>=100?'rgba(46,213,115,.3)':hcPct>=75?'rgba(255,211,42,.2)':'rgba(255,71,87,.2)';
+    return '<div class="mcmp-card">'
+      +'<div class="mcmp-card-top"><div class="mcmp-card-month" style="color:'+qcol+'">'+ML[m].emoji+' '+ML[m].label+'</div>'
+      +'<span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:12px;background:'+sBg+';color:'+sCol+';border:1px solid '+sBd+'">'+P(hcPct)+'</span></div>'
+      +'<div class="mcmp-card-body">'
+      +'<div class="mcmp-row"><span class="mcmp-row-label">FL Headcount</span><div class="mcmp-row-vals"><div><span class="mcmp-val" style="color:var(--ac)">'+N(s.flHC)+'</span><div class="mcmp-tg">/ '+N(tg.fl.hc)+' '+dTag(s.flHC-tg.fl.hc)+'</div></div>'+delta(s.flHC,ps?ps.flHC:0)+'</div></div>'
+      +'<div class="mcmp-row"><span class="mcmp-row-label">RO Headcount</span><div class="mcmp-row-vals"><div><span class="mcmp-val" style="color:var(--ac2)">'+N(s.roHC)+'</span><div class="mcmp-tg">/ '+N(tg.ro.hc)+' '+dTag(s.roHC-tg.ro.hc)+'</div></div>'+delta(s.roHC,ps?ps.roHC:0)+'</div></div>'
+      +'<div class="mcmp-row"><span class="mcmp-row-label">Total HC</span><div class="mcmp-row-vals"><div><span class="mcmp-val" style="color:var(--grn)">'+N(s.totHC)+'</span><div class="mcmp-tg">/ '+N(s.tgTotHC)+'</div></div>'+delta(s.totHC,ps?ps.totHC:0)+'</div></div>'
+      +'<div style="margin:8px 0 6px;"><div style="display:flex;justify-content:space-between;font-size:9px;color:var(--tm);margin-bottom:2px;"><span>HC Progress</span><span style="color:'+sCol+';font-weight:700">'+P(hcPct)+'</span></div><div class="mcmp-pbar"><div class="mcmp-pfill" style="width:'+Math.min(hcPct,100)+'%;background:'+qcol+'"></div></div></div>'
+      +'<div class="mcmp-row"><span class="mcmp-row-label">Total Amount</span><div class="mcmp-row-vals"><div><span class="mcmp-val" style="color:var(--yel);font-size:14px;">'+fmtAmt(s.totAmt)+'</span><div class="mcmp-tg">/ '+fmtAmt(s.tgTotAmt)+'</div></div>'+delta(s.totAmt,ps?ps.totAmt:0)+'</div></div>'
+      +'<div class="mcmp-row"><span class="mcmp-row-label">วันทำการ / มีข้อมูล</span><span style="font-size:12px;color:var(--tm)">'+s.n+' / '+s.wn+' วัน</span></div>'
+      +'<div class="mcmp-row"><span class="mcmp-row-label">เฉลี่ย HC/วัน</span><div class="mcmp-row-vals"><span class="mcmp-val" style="color:var(--pur);font-size:15px;">'+(s.n>0?s.avgHC.toFixed(1):'—')+'</span>'+delta(s.avgHC,ps?ps.avgHC:0)+'</div></div>'
+      +'</div></div>';
+  });
+  el.innerHTML='<div class="mcmp-cards">'+cards.join('')+'</div>';
+}
+function renderMcmpTable(sData){
+  var el=document.getElementById('mcmpContent');if(!el)return;
+  var allM=Object.keys(ML);
+  var rows=sData.map(function(item,i){
+    var m=item.m,s=item.s,q=getQofMonth(m),qcol=QUARTERS[q].color;
+    var hcPct=s.tgTotHC>0?s.totHC/s.tgTotHC*100:0,amtPct=s.tgTotAmt>0?s.totAmt/s.tgTotAmt*100:0;
+    var ps=i>0?calcS(sData[i-1].m):null;
+    var mom='—',momCol='var(--tm)';
+    if(ps&&ps.totHC>0){var chg=(s.totHC-ps.totHC)/ps.totHC*100;mom=(chg>=0?'+':'')+chg.toFixed(1)+'%';momCol=chg>=0?'var(--grn)':'var(--red)';}
+    var hcCol=hcPct>=100?'var(--grn)':hcPct>=75?'var(--yel)':'var(--red)';
+    var amtCol=amtPct>=100?'var(--grn)':amtPct>=75?'var(--yel)':'var(--red)';
+    return '<tr>'
+      +'<td style="padding:9px 10px;font-weight:700;color:'+qcol+';border-bottom:1px solid rgba(30,45,69,.5);">'+ML[m].emoji+' '+ML[m].label+'</td>'
+      +'<td style="padding:9px 10px;text-align:center;border-bottom:1px solid rgba(30,45,69,.5);color:var(--ac);font-weight:700">'+N(s.flHC)+'</td>'
+      +'<td style="padding:9px 10px;text-align:center;border-bottom:1px solid rgba(30,45,69,.5);">'+N(TG[m].fl.hc)+'</td>'
+      +'<td style="padding:9px 10px;text-align:center;border-bottom:1px solid rgba(30,45,69,.5);color:var(--ac2);font-weight:700">'+N(s.roHC)+'</td>'
+      +'<td style="padding:9px 10px;text-align:center;border-bottom:1px solid rgba(30,45,69,.5);">'+N(TG[m].ro.hc)+'</td>'
+      +'<td style="padding:9px 10px;text-align:center;border-bottom:1px solid rgba(30,45,69,.5);color:var(--grn);font-weight:700">'+N(s.totHC)+'</td>'
+      +'<td style="padding:9px 10px;text-align:center;border-bottom:1px solid rgba(30,45,69,.5);">'+N(s.tgTotHC)+'</td>'
+      +'<td style="padding:9px 10px;text-align:center;border-bottom:1px solid rgba(30,45,69,.5);color:'+hcCol+';font-weight:700">'+P(hcPct)+'</td>'
+      +'<td style="padding:9px 10px;text-align:center;border-bottom:1px solid rgba(30,45,69,.5);color:var(--yel);font-weight:700">'+fmtAmt(s.totAmt)+'</td>'
+      +'<td style="padding:9px 10px;text-align:center;border-bottom:1px solid rgba(30,45,69,.5);color:'+amtCol+';font-weight:700">'+P(amtPct)+'</td>'
+      +'<td style="padding:9px 10px;text-align:center;border-bottom:1px solid rgba(30,45,69,.5);color:var(--pur);font-weight:700">'+(s.n>0?s.avgHC.toFixed(1):'—')+'</td>'
+      +'<td style="padding:9px 10px;text-align:center;border-bottom:1px solid rgba(30,45,69,.5);color:'+momCol+';font-weight:700">'+mom+'</td>'
+      +'</tr>';
+  });
+  var thead='<thead><tr style="background:var(--s2);">'
+    +'<th style="padding:8px 10px;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--tm);border-bottom:1px solid var(--bd);text-align:left;">เดือน</th>'
+    +'<th style="padding:8px 10px;font-size:9px;color:var(--ac);border-bottom:1px solid var(--bd);text-align:center;">FL HC</th>'
+    +'<th style="padding:8px 10px;font-size:9px;color:var(--tm);border-bottom:1px solid var(--bd);text-align:center;">FL เป้า</th>'
+    +'<th style="padding:8px 10px;font-size:9px;color:var(--ac2);border-bottom:1px solid var(--bd);text-align:center;">RO HC</th>'
+    +'<th style="padding:8px 10px;font-size:9px;color:var(--tm);border-bottom:1px solid var(--bd);text-align:center;">RO เป้า</th>'
+    +'<th style="padding:8px 10px;font-size:9px;color:var(--grn);border-bottom:1px solid var(--bd);text-align:center;">Total HC</th>'
+    +'<th style="padding:8px 10px;font-size:9px;color:var(--tm);border-bottom:1px solid var(--bd);text-align:center;">Total เป้า</th>'
+    +'<th style="padding:8px 10px;font-size:9px;color:var(--tm);border-bottom:1px solid var(--bd);text-align:center;">% HC</th>'
+    +'<th style="padding:8px 10px;font-size:9px;color:var(--yel);border-bottom:1px solid var(--bd);text-align:center;">Total Amt</th>'
+    +'<th style="padding:8px 10px;font-size:9px;color:var(--tm);border-bottom:1px solid var(--bd);text-align:center;">% Amt</th>'
+    +'<th style="padding:8px 10px;font-size:9px;color:var(--pur);border-bottom:1px solid var(--bd);text-align:center;">เฉลี่ย/วัน</th>'
+    +'<th style="padding:8px 10px;font-size:9px;color:var(--tm);border-bottom:1px solid var(--bd);text-align:center;">MoM HC%</th>'
+    +'</tr></thead>';
+  el.innerHTML='<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:12px;min-width:800px;">'+thead+'<tbody>'+rows.join('')+'</tbody></table></div>';
+}
+
 // QUARTER + TAB SWITCHING
 // ============================================================
 function switchQuarter(q,btn){
