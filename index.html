@@ -6,6 +6,9 @@
 <title>2026 · Loan Performance Tracker</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>
 :root{--bg:#0a0e1a;--s1:#111827;--s2:#1a2235;--bd:#1e2d45;--ac:#00d4ff;--ac2:#ff6b35;--tx:#e8f4f8;--tm:#6b8aaa;--red:#ff4757;--grn:#2ed573;--yel:#ffd32a;--pur:#a855f7;}
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -241,6 +244,32 @@ td.phi{color:var(--grn);font-weight:700;}td.plo{color:var(--red);font-weight:700
 .gist-status.ok{background:rgba(46,213,115,.1);color:var(--grn);border:1px solid rgba(46,213,115,.3);}
 .gist-status.err{background:rgba(255,71,87,.1);color:var(--red);border:1px solid rgba(255,71,87,.3);}
 .gist-status.loading{background:rgba(255,211,42,.08);color:var(--yel);border:1px solid rgba(255,211,42,.25);}
+
+/* REPORT EXPORT */
+.rpt-card{width:640px;}
+.rpt-section{margin-bottom:18px;}
+.rpt-section-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--tm);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.rpt-optgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.rpt-opt{position:relative;}
+.rpt-opt input[type=radio],.rpt-opt input[type=checkbox]{position:absolute;opacity:0;width:0;height:0;}
+.rpt-opt label{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 8px;background:var(--s2);border:1px solid var(--bd);border-radius:10px;cursor:pointer;transition:all .15s;font-size:12px;font-weight:600;color:var(--tm);text-align:center;}
+.rpt-opt label:hover{border-color:rgba(0,212,255,.3);color:var(--tx);}
+.rpt-opt input:checked + label{background:rgba(0,212,255,.1);border-color:var(--ac);color:var(--ac);}
+.rpt-opt .rpt-icon{font-size:22px;line-height:1;}
+.rpt-month-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.rpt-month-grid .rpt-opt label{padding:8px 6px;font-size:11px;}
+.rpt-fmt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.rpt-fmt-opt input:checked + label{background:rgba(168,85,247,.1);border-color:var(--pur);color:var(--pur);}
+.rpt-preview{background:var(--s2);border-radius:8px;padding:12px 14px;font-size:11px;color:var(--tm);border:1px solid var(--bd);line-height:1.7;}
+.rpt-preview strong{color:var(--tx);}
+.rpt-btn-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:4px;}
+.rpt-dl-btn{padding:12px 8px;border-radius:10px;border:none;cursor:pointer;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.rpt-dl-btn:hover{transform:translateY(-2px);opacity:.9;}
+.rpt-dl-btn .rpt-dl-icon{font-size:20px;}
+.rpt-dl-btn.csv{background:rgba(46,213,115,.15);color:var(--grn);border:1px solid rgba(46,213,115,.3);}
+.rpt-dl-btn.xlsx{background:rgba(0,212,255,.12);color:var(--ac);border:1px solid rgba(0,212,255,.3);}
+.rpt-dl-btn.pdf{background:rgba(255,71,87,.1);color:var(--red);border:1px solid rgba(255,71,87,.3);}
+.rpt-dl-btn:disabled{opacity:.35;cursor:not-allowed;transform:none;}
 /* PANELS */
 .panel{display:none;}.panel.active{display:block;}
 /* FORM OVERLAY */
@@ -291,6 +320,7 @@ td.phi{color:var(--grn);font-weight:700;}td.plo{color:var(--red);font-weight:700
     <button class="tg-btn" onclick="exportData()" style="color:#2ed573;border-color:rgba(46,213,115,.4);">⬇️ Export</button>
     <label class="tg-btn" for="importFile" style="color:#a855f7;border-color:rgba(168,85,247,.4);cursor:pointer;">⬆️ Import</label>
     <input type="file" id="importFile" accept=".json" onchange="importData(event)" style="display:none;">
+    <button class="tg-btn" onclick="openReportModal()" style="color:#a855f7;border-color:rgba(168,85,247,.4);">📄 ออกรายงาน</button>
     <button class="tg-btn" onclick="openHolMgr()">📅 จัดการวันหยุด</button>
     <button class="tg-btn" onclick="openTargetEdit()">⚙️ ตั้งค่าเป้าหมาย</button>
     <button class="addbtn" id="addBtn" onclick="openForm()">+ กรอกข้อมูล</button>
@@ -529,6 +559,75 @@ td.phi{color:var(--grn);font-weight:700;}td.plo{color:var(--red);font-weight:700
     <div class="ftitle" id="tgTitle">⚙️ ตั้งค่าเป้าหมาย</div>
     <div class="tg-grid" id="tgForm"></div>
     <div class="faction"><button class="btn-sec" onclick="closeTgEdit()">ยกเลิก</button><button class="btn-pri" onclick="saveTgEdit()">💾 บันทึกเป้าหมาย</button></div>
+  </div>
+</div>
+
+<!-- REPORT EXPORT MODAL -->
+<div class="overlay" id="rptOverlay" onclick="rptOverlayClick(event)">
+  <div class="fcard rpt-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--bd);">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:3px;color:var(--pur);">📄 ออกรายงาน</div>
+      <button class="btn-sec" onclick="closeReportModal()">✕</button>
+    </div>
+
+    <!-- PERIOD TYPE -->
+    <div class="rpt-section">
+      <div class="rpt-section-title"><span class="dot" style="background:var(--ac)"></span>ประเภทรายงาน</div>
+      <div class="rpt-optgrid">
+        <div class="rpt-opt">
+          <input type="radio" name="rptType" id="rptTypeMonth" value="month" checked onchange="updateRptPreview()">
+          <label for="rptTypeMonth"><span class="rpt-icon">📅</span>รายเดือน</label>
+        </div>
+        <div class="rpt-opt">
+          <input type="radio" name="rptType" id="rptTypeQuarter" value="quarter" onchange="updateRptPreview()">
+          <label for="rptTypeQuarter"><span class="rpt-icon">📊</span>รายไตรมาส</label>
+        </div>
+        <div class="rpt-opt">
+          <input type="radio" name="rptType" id="rptTypeYear" value="year" onchange="updateRptPreview()">
+          <label for="rptTypeYear"><span class="rpt-icon">📆</span>รายปี (ทั้งหมด)</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCOPE SELECTOR -->
+    <div class="rpt-section" id="rptScopeSection">
+      <div class="rpt-section-title"><span class="dot" style="background:var(--yel)"></span>เลือกช่วงเวลา</div>
+      <div id="rptScopeGrid" class="rpt-month-grid"></div>
+    </div>
+
+    <!-- CONTENT OPTIONS -->
+    <div class="rpt-section">
+      <div class="rpt-section-title"><span class="dot" style="background:var(--grn)"></span>เนื้อหารายงาน</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div class="rpt-opt"><input type="checkbox" id="rptIncDaily" checked onchange="updateRptPreview()"><label for="rptIncDaily"><span class="rpt-icon">📋</span>ตารางรายวัน</label></div>
+        <div class="rpt-opt"><input type="checkbox" id="rptIncSummary" checked onchange="updateRptPreview()"><label for="rptIncSummary"><span class="rpt-icon">📈</span>สรุป FL/RO/Total</label></div>
+        <div class="rpt-opt"><input type="checkbox" id="rptIncRunRate" checked onchange="updateRptPreview()"><label for="rptIncRunRate"><span class="rpt-icon">🎯</span>Run Rate</label></div>
+        <div class="rpt-opt"><input type="checkbox" id="rptIncStatus" onchange="updateRptPreview()"><label for="rptIncStatus"><span class="rpt-icon">👥</span>สถานะลูกค้า</label></div>
+      </div>
+    </div>
+
+    <!-- PREVIEW -->
+    <div class="rpt-preview" id="rptPreview" style="margin-bottom:18px;"></div>
+
+    <!-- DOWNLOAD BUTTONS -->
+    <div class="rpt-section-title" style="margin-bottom:10px;"><span class="dot" style="background:var(--pur)"></span>เลือกรูปแบบไฟล์</div>
+    <div class="rpt-btn-grid">
+      <button class="rpt-dl-btn csv" onclick="downloadReport('csv')">
+        <span class="rpt-dl-icon">📄</span>
+        <span>CSV</span>
+        <span style="font-size:10px;opacity:.7;">เปิดใน Sheets</span>
+      </button>
+      <button class="rpt-dl-btn xlsx" onclick="downloadReport('xlsx')">
+        <span class="rpt-dl-icon">📊</span>
+        <span>Excel (XLSX)</span>
+        <span style="font-size:10px;opacity:.7;">Microsoft Excel</span>
+      </button>
+      <button class="rpt-dl-btn pdf" onclick="downloadReport('pdf')">
+        <span class="rpt-dl-icon">📑</span>
+        <span>PDF</span>
+        <span style="font-size:10px;opacity:.7;">รายงานสำเร็จรูป</span>
+      </button>
+    </div>
   </div>
 </div>
 
@@ -1646,6 +1745,305 @@ async function saveGistConfig(){
   closeGistSetup();
   showToast('✅ บันทึกการตั้งค่าแล้ว — กำลัง Sync...');
   await pushToGist();
+}
+
+
+// ============================================================
+// REPORT EXPORT
+// ============================================================
+function openReportModal(){
+  updateRptScopeGrid();
+  updateRptPreview();
+  document.getElementById('rptOverlay').classList.add('show');
+}
+function closeReportModal(){document.getElementById('rptOverlay').classList.remove('show');}
+function rptOverlayClick(e){if(e.target===document.getElementById('rptOverlay'))closeReportModal();}
+
+function getRptType(){return document.querySelector('input[name="rptType"]:checked')?.value||'month';}
+function getRptScope(){
+  const els=document.querySelectorAll('input[name="rptScope"]:checked');
+  return Array.from(els).map(e=>e.value);
+}
+
+function updateRptScopeGrid(){
+  const type=getRptType();
+  const grid=document.getElementById('rptScopeGrid');
+  const sec=document.getElementById('rptScopeSection');
+  if(type==='year'){sec.style.display='none';return;}
+  sec.style.display='';
+  if(type==='month'){
+    grid.className='rpt-month-grid';
+    grid.innerHTML=Object.keys(ML).map(m=>`
+      <div class="rpt-opt">
+        <input type="checkbox" name="rptScope" id="rptS_${m}" value="${m}" ${m.startsWith('2026-04')?'checked':''} onchange="updateRptPreview()">
+        <label for="rptS_${m}"><span style="font-size:16px">${ML[m].emoji}</span>${ML[m].short}</label>
+      </div>`).join('');
+  } else {
+    grid.className='rpt-optgrid';
+    grid.innerHTML=Object.entries(QUARTERS).map(([q,d])=>`
+      <div class="rpt-opt">
+        <input type="radio" name="rptScope" id="rptS_${q}" value="${q}" ${q==='Q2'?'checked':''} onchange="updateRptPreview()">
+        <label for="rptS_${q}"><span style="font-size:18px">${d.emoji}</span>${q}</label>
+      </div>`).join('');
+  }
+}
+
+function updateRptPreview(){
+  updateRptScopeGrid();
+  const type=getRptType();
+  const scope=getRptScope();
+  const incDaily=document.getElementById('rptIncDaily').checked;
+  const incSum=document.getElementById('rptIncSummary').checked;
+  const incRR=document.getElementById('rptIncRunRate').checked;
+  const incSt=document.getElementById('rptIncStatus').checked;
+  let lines=[];
+  if(type==='year'){
+    const total=entries.length;
+    lines.push(`<strong>ช่วงเวลา:</strong> ทั้งปี 2026 (ม.ค.–ธ.ค.)`);
+    lines.push(`<strong>จำนวนวันที่มีข้อมูล:</strong> ${total} วัน`);
+  } else if(type==='month'){
+    if(!scope.length){lines.push('<span style="color:var(--red)">⚠️ กรุณาเลือกอย่างน้อย 1 เดือน</span>');document.getElementById('rptPreview').innerHTML=lines.join('<br>');return;}
+    const sortedScope=scope.sort();
+    lines.push(`<strong>ช่วงเวลา:</strong> ${sortedScope.map(m=>ML[m].label).join(', ')}`);
+    const totalDays=sortedScope.reduce((s,m)=>s+getMe(m).length,0);
+    lines.push(`<strong>วันที่มีข้อมูล:</strong> ${totalDays} วัน`);
+  } else {
+    if(!scope.length){lines.push('<span style="color:var(--red)">⚠️ กรุณาเลือกไตรมาส</span>');document.getElementById('rptPreview').innerHTML=lines.join('<br>');return;}
+    const q=scope[0];
+    lines.push(`<strong>ช่วงเวลา:</strong> ${QUARTERS[q].label}`);
+  }
+  const contents=[];
+  if(incDaily)contents.push('ตารางรายวัน');
+  if(incSum)contents.push('สรุป FL/RO/Total vs เป้า');
+  if(incRR)contents.push('Run Rate');
+  if(incSt)contents.push('สถานะลูกค้า');
+  lines.push(`<strong>เนื้อหา:</strong> ${contents.join(' · ')||'—'}`);
+  document.getElementById('rptPreview').innerHTML=lines.join('<br>');
+}
+
+// ── DATA BUILDERS ─────────────────────────────────────────────────────
+function getReportMonths(){
+  const type=getRptType();
+  if(type==='year') return Object.keys(ML);
+  if(type==='quarter'){
+    const q=getRptScope()[0]||'Q2';
+    return QUARTERS[q].months;
+  }
+  return getRptScope().sort();
+}
+
+function buildDailyRows(months){
+  const rows=[];
+  months.forEach(m=>{
+    getMe(m).forEach(e=>{
+      const fH=e.fl?.hc||0,fA=e.fl?.amt||0,rH=e.ro?.hc||0,rA=e.ro?.amt||0;
+      rows.push({
+        วันที: dl(e.date)+' ('+dayName(e.date)+')',
+        เดือน: ML[m].label,
+        'FL Headcount':fH,'FL Amount':fA,
+        'RO Headcount':rH,'RO Amount':rA,
+        'Total HC':fH+rH,'Total Amount':fA+rA,
+      });
+    });
+  });
+  return rows;
+}
+
+function buildSummaryRows(months){
+  const rows=[];
+  months.forEach(m=>{
+    const s=calcS(m),tg=TG[m];
+    rows.push({
+      เดือน: ML[m].label,
+      'FL HC จริง':s.flHC,'FL HC เป้า':tg.fl.hc,'FL HC Diff':s.flHC-tg.fl.hc,'FL HC %':+(s.flHCpct.toFixed(2)),
+      'FL Amt จริง':s.flAmt,'FL Amt เป้า':tg.fl.amt,'FL Amt Diff':s.flAmt-tg.fl.amt,'FL Amt %':+(s.flAmtpct.toFixed(2)),
+      'RO HC จริง':s.roHC,'RO HC เป้า':tg.ro.hc,'RO HC Diff':s.roHC-tg.ro.hc,'RO HC %':+(s.roHCpct.toFixed(2)),
+      'RO Amt จริง':s.roAmt,'RO Amt เป้า':tg.ro.amt,'RO Amt Diff':s.roAmt-tg.ro.amt,'RO Amt %':+(s.roAmtpct.toFixed(2)),
+      'Total HC จริง':s.totHC,'Total HC เป้า':s.tgTotHC,
+      'Total Amt จริง':s.totAmt,'Total Amt เป้า':s.tgTotAmt,
+      'วันทำการ':s.wn,'วันที่มีข้อมูล':s.n,'วันที่เหลือ':s.drem,
+      'เฉลี่ย HC/วัน':+(s.avgHC.toFixed(2)),'Run Rate HC':Math.round(s.projTotHC),
+    });
+  });
+  return rows;
+}
+
+function buildRRRows(months){
+  return months.map(m=>{
+    const s=calcS(m);
+    return {
+      เดือน:ML[m].label,'วันทำการ':s.wn,'มีข้อมูล':s.n,'เหลือ':s.drem,
+      'เฉลี่ย HC/วัน':+(s.avgHC.toFixed(2)),'เฉลี่ย Amt/วัน':Math.round(s.avgAmt),
+      'คาดสิ้นเดือน HC':Math.round(s.projTotHC),'เป้า HC':s.tgTotHC,
+      'คาดสิ้นเดือน Amt':Math.round(s.projTotAmt),'เป้า Amt':s.tgTotAmt,
+      'ต้องการ/วัน FL HC':+(s.neFlHC.toFixed(2)),
+    };
+  });
+}
+
+function buildStatusRows(months){
+  const rows=[];
+  months.forEach(m=>{
+    const d=csData[m];
+    const tot=stTotal(m);
+    d.statuses.forEach(st=>{
+      const cnt=parseInt(st.count)||0;
+      rows.push({เดือน:ML[m].label,สถานะ:st.name,จำนวน:cnt,'% รวม':tot>0?+(cnt/tot*100).toFixed(2):0});
+    });
+  });
+  return rows;
+}
+
+// ── CSV ───────────────────────────────────────────────────────────────
+function toCSV(rows){
+  if(!rows.length)return '';
+  const headers=Object.keys(rows[0]);
+  const lines=[headers.join(',')];
+  rows.forEach(r=>lines.push(headers.map(h=>{
+    const v=r[h]??'';
+    return typeof v==='string'&&(v.includes(','))||v.includes('"')?`"${v.replace(/"/g,'""')}"`:v;
+  }).join(',')));
+  return '\uFEFF'+lines.join('\r\n'); // BOM for Thai in Excel
+}
+
+function downloadCSV(content,filename){
+  const blob=new Blob([content],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=filename;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+}
+
+// ── XLSX ──────────────────────────────────────────────────────────────
+function buildXLSX(months,incDaily,incSum,incRR,incSt){
+  const wb=XLSX.utils.book_new();
+  if(incSum){
+    const ws=XLSX.utils.json_to_sheet(buildSummaryRows(months));
+    styleXLSXHeader(ws);
+    XLSX.utils.book_append_sheet(wb,ws,'สรุป');
+  }
+  if(incRR){
+    const ws=XLSX.utils.json_to_sheet(buildRRRows(months));
+    XLSX.utils.book_append_sheet(wb,ws,'Run Rate');
+  }
+  if(incDaily){
+    const ws=XLSX.utils.json_to_sheet(buildDailyRows(months));
+    XLSX.utils.book_append_sheet(wb,ws,'รายวัน');
+  }
+  if(incSt){
+    const ws=XLSX.utils.json_to_sheet(buildStatusRows(months));
+    XLSX.utils.book_append_sheet(wb,ws,'สถานะลูกค้า');
+  }
+  return wb;
+}
+function styleXLSXHeader(ws){
+  // just set column widths
+  const range=XLSX.utils.decode_range(ws['!ref']||'A1');
+  ws['!cols']=Array.from({length:range.e.c+1},()=>({wch:14}));
+}
+
+// ── PDF ───────────────────────────────────────────────────────────────
+function buildPDF(months,incDaily,incSum,incRR,incSt,title){
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+  let y=15;
+  const pageW=doc.internal.pageSize.getWidth();
+  // Title
+  doc.setFontSize(16);doc.setTextColor(0,180,220);
+  doc.text(title,pageW/2,y,{align:'center'});y+=8;
+  doc.setFontSize(9);doc.setTextColor(130,150,170);
+  doc.text('ออกรายงาน: '+new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'}),pageW/2,y,{align:'center'});y+=8;
+
+  function addTable(titleText,head,body){
+    if(doc.lastAutoTable)y=doc.lastAutoTable.finalY+8;
+    if(y>170){doc.addPage();y=15;}
+    doc.setFontSize(11);doc.setTextColor(220,220,220);
+    doc.text(titleText,14,y);y+=4;
+    doc.autoTable({
+      startY:y,head:[head],body,
+      theme:'grid',
+      headStyles:{fillColor:[26,34,53],textColor:[0,212,255],fontSize:8,fontStyle:'bold'},
+      bodyStyles:{textColor:[220,230,240],fontSize:8,fillColor:[17,24,39]},
+      alternateRowStyles:{fillColor:[22,32,48]},
+      margin:{left:14,right:14},
+    });
+    y=doc.lastAutoTable.finalY+6;
+  }
+
+  if(incSum){
+    const rows=buildSummaryRows(months);
+    addTable('สรุปรายเดือน',
+      ['เดือน','FL HC','FL HC เป้า','FL HC%','FL Amt','RO HC','RO HC เป้า','RO HC%','Total HC','Total เป้า','วันทำการ','เฉลี่ย/วัน','Run Rate'],
+      rows.map(r=>[r['เดือน'],r['FL HC จริง'],r['FL HC เป้า'],r['FL HC %']+'%',N(r['FL Amt จริง']),r['RO HC จริง'],r['RO HC เป้า'],r['RO HC %']+'%',r['Total HC จริง'],r['Total HC เป้า'],r['วันทำการ'],r['เฉลี่ย HC/วัน'],r['Run Rate HC']])
+    );
+  }
+  if(incRR){
+    const rows=buildRRRows(months);
+    addTable('Run Rate Analysis',
+      ['เดือน','วันทำการ','มีข้อมูล','เหลือ','เฉลี่ย HC/วัน','คาดสิ้นเดือน HC','เป้า HC','ต้องการ/วัน FL'],
+      rows.map(r=>[r['เดือน'],r['วันทำการ'],r['มีข้อมูล'],r['เหลือ'],r['เฉลี่ย HC/วัน'],r['คาดสิ้นเดือน HC'],r['เป้า HC'],r['ต้องการ/วัน FL HC']])
+    );
+  }
+  if(incDaily){
+    const rows=buildDailyRows(months);
+    addTable('ตารางรายวัน',
+      ['วันที่','เดือน','FL HC','FL Amount','RO HC','RO Amount','Total HC','Total Amount'],
+      rows.map(r=>[r['วันที'],r['เดือน'],r['FL Headcount'],N(r['FL Amount']),r['RO Headcount'],N(r['RO Amount']),r['Total HC'],N(r['Total Amount'])])
+    );
+  }
+  if(incSt){
+    const rows=buildStatusRows(months);
+    addTable('สถานะลูกค้า',['เดือน','สถานะ','จำนวน','%'],
+      rows.map(r=>[r['เดือน'],r['สถานะ'],r['จำนวน'],r['% รวม']+'%'])
+    );
+  }
+  return doc;
+}
+
+// ── MAIN DOWNLOAD ─────────────────────────────────────────────────────
+function downloadReport(fmt){
+  const months=getReportMonths();
+  if(!months.length){showToast('กรุณาเลือกช่วงเวลา',true);return;}
+  const incDaily=document.getElementById('rptIncDaily').checked;
+  const incSum=document.getElementById('rptIncSummary').checked;
+  const incRR=document.getElementById('rptIncRunRate').checked;
+  const incSt=document.getElementById('rptIncStatus').checked;
+  if(!incDaily&&!incSum&&!incRR&&!incSt){showToast('กรุณาเลือกเนื้อหาอย่างน้อย 1 อย่าง',true);return;}
+
+  const type=getRptType();
+  const scope=getRptScope();
+  let titleParts=type==='year'?['ทั้งปี 2026']:type==='quarter'?[QUARTERS[scope[0]]?.label||'']:months.map(m=>ML[m].short);
+  const title='Loan Performance — '+titleParts.join(', ');
+  const dateStr=new Date().toISOString().split('T')[0];
+  const fname=`loan-report-${type}-${dateStr}`;
+
+  try{
+    if(fmt==='csv'){
+      // CSV: combine all into one file separated by blank lines
+      const parts=[];
+      if(incSum)parts.push('=== สรุปรายเดือน ===\r\n'+toCSV(buildSummaryRows(months)));
+      if(incRR)parts.push('=== Run Rate ===\r\n'+toCSV(buildRRRows(months)));
+      if(incDaily)parts.push('=== รายวัน ===\r\n'+toCSV(buildDailyRows(months)));
+      if(incSt)parts.push('=== สถานะลูกค้า ===\r\n'+toCSV(buildStatusRows(months)));
+      downloadCSV(parts.join('\r\n\r\n'),fname+'.csv');
+      showToast('✅ ดาวน์โหลด CSV สำเร็จ');
+
+    } else if(fmt==='xlsx'){
+      if(!window.XLSX){showToast('กำลังโหลด library...',true);return;}
+      const wb=buildXLSX(months,incDaily,incSum,incRR,incSt);
+      XLSX.writeFile(wb,fname+'.xlsx');
+      showToast('✅ ดาวน์โหลด Excel สำเร็จ');
+
+    } else if(fmt==='pdf'){
+      if(!window.jspdf){showToast('กำลังโหลด library...',true);return;}
+      const doc=buildPDF(months,incDaily,incSum,incRR,incSt,title);
+      doc.save(fname+'.pdf');
+      showToast('✅ ดาวน์โหลด PDF สำเร็จ');
+    }
+    closeReportModal();
+  }catch(err){
+    showToast('❌ เกิดข้อผิดพลาด: '+err.message,true);
+    console.error(err);
+  }
 }
 
 // ============================================================
