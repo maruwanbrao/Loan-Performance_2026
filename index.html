@@ -301,6 +301,63 @@ td.phi{color:var(--grn);font-weight:700;}td.plo{color:var(--red);font-weight:700
 .mcmp-rank-label{font-size:9px;color:var(--tm);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;}
 .mcmp-rank-val{font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:1px;line-height:1;}
 .mcmp-rank-sub{font-size:10px;color:var(--tm);margin-top:3px;}
+
+/* ── PDCA & SWOT ────────────────────────────────────────── */
+.pdca-wrap{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;}
+.pdca-phase{border-radius:12px;overflow:hidden;}
+.pdca-phase-header{padding:12px 16px;display:flex;align-items:center;gap:10px;}
+.pdca-phase-icon{font-size:22px;line-height:1;}
+.pdca-phase-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;}
+.pdca-phase-sub{font-size:10px;letter-spacing:.5px;opacity:.7;margin-top:1px;}
+.pdca-phase-body{padding:14px 16px;background:var(--s1);}
+.pdca-data-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+.pdca-data-row:last-child{border:none;}
+.pdca-data-label{font-size:11px;color:var(--tm);}
+.pdca-data-val{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;}
+.pdca-textarea{width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-family:'Sarabun',sans-serif;font-size:12px;line-height:1.6;resize:vertical;min-height:90px;outline:none;transition:border-color .2s;}
+.pdca-textarea:focus{border-color:var(--ac);}
+.pdca-act-items{display:flex;flex-direction:column;gap:6px;margin-bottom:8px;}
+.pdca-act-item{display:flex;align-items:flex-start;gap:8px;background:var(--s2);border-radius:8px;padding:8px 10px;}
+.pdca-act-item input[type=checkbox]{width:16px;height:16px;margin-top:2px;flex-shrink:0;accent-color:var(--ac);cursor:pointer;}
+.pdca-act-item-text{flex:1;font-size:12px;line-height:1.5;color:var(--tx);word-break:break-word;}
+.pdca-act-item-text.done{text-decoration:line-through;color:var(--tm);}
+.pdca-act-item-del{background:none;border:none;color:var(--tm);cursor:pointer;font-size:14px;padding:0 2px;transition:color .15s;flex-shrink:0;}
+.pdca-act-item-del:hover{color:var(--red);}
+.pdca-add-row{display:flex;gap:6px;margin-top:4px;}
+.pdca-add-inp{flex:1;background:var(--s2);border:1px solid var(--bd);border-radius:7px;padding:7px 10px;color:var(--tx);font-family:'Sarabun',sans-serif;font-size:12px;outline:none;transition:border-color .2s;}
+.pdca-add-inp:focus{border-color:var(--ac);}
+.pdca-add-btn{padding:7px 14px;border-radius:7px;background:rgba(0,212,255,.12);border:1px solid rgba(0,212,255,.3);color:var(--ac);cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap;transition:all .15s;}
+.pdca-add-btn:hover{background:rgba(0,212,255,.22);}
+.pdca-summary-bar{background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:14px 18px;margin-bottom:14px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+.pdca-cycle-label{font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:2px;color:var(--tm);flex:1;}
+.pdca-score{text-align:center;}
+.pdca-score-val{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;}
+.pdca-score-label{font-size:9px;color:var(--tm);letter-spacing:1px;text-transform:uppercase;}
+/* SWOT */
+.swot-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;}
+.swot-card{border-radius:12px;overflow:hidden;}
+.swot-card-header{padding:12px 16px;display:flex;align-items:center;gap:10px;}
+.swot-card-icon{font-size:20px;}
+.swot-card-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;}
+.swot-card-sub{font-size:10px;opacity:.7;margin-top:1px;}
+.swot-card-body{background:var(--s1);padding:12px 14px;min-height:160px;}
+.swot-auto-tag{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;margin:2px;border:1px solid transparent;}
+.swot-auto-row{margin-bottom:8px;}
+.swot-auto-label{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--tm);margin-bottom:5px;}
+.swot-divider{border:none;border-top:1px dashed var(--bd);margin:10px 0;}
+.swot-user-label{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--tm);margin-bottom:5px;}
+.swot-items{display:flex;flex-direction:column;gap:5px;margin-bottom:7px;}
+.swot-item{display:flex;gap:6px;align-items:flex-start;}
+.swot-item-bullet{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;margin-top:1px;}
+.swot-item-text{flex:1;font-size:12px;line-height:1.5;color:var(--tx);}
+.swot-item-del{background:none;border:none;color:var(--tm);cursor:pointer;font-size:13px;padding:0;transition:color .15s;}
+.swot-item-del:hover{color:var(--red);}
+.swot-add-row{display:flex;gap:6px;margin-top:4px;}
+.swot-add-inp{flex:1;background:var(--s2);border:1px solid var(--bd);border-radius:7px;padding:7px 10px;color:var(--tx);font-family:'Sarabun',sans-serif;font-size:12px;outline:none;transition:border-color .2s;}
+.swot-add-inp:focus{border-color:var(--ac);}
+.swot-add-btn{padding:7px 12px;border-radius:7px;border:1px solid var(--bd);color:var(--tm);cursor:pointer;font-size:12px;font-weight:700;background:var(--s2);transition:all .15s;}
+.swot-add-btn:hover{color:var(--tx);}
+@media(max-width:800px){.pdca-wrap,.swot-grid{grid-template-columns:1fr;}}
 /* PANELS */
 .panel{display:none;}.panel.active{display:block;}
 /* FORM OVERLAY */
@@ -382,6 +439,7 @@ td.phi{color:var(--grn);font-weight:700;}td.plo{color:var(--red);font-weight:700
   <button class="tab" data-tab="daily" onclick="switchTab('daily',this)">📅 ตารางรายวัน</button>
   <button class="tab" data-tab="overview" onclick="switchTab('overview',this)">🎯 สรุปไตรมาส</button>
   <button class="tab" data-tab="cstatus" onclick="switchTab('cstatus',this)">👥 สถานะลูกค้า</button>
+  <button class="tab" data-tab="pdca" onclick="switchTab('pdca',this)">🔄 PDCA &amp; SWOT</button>
 </div>
 
 <!-- DASHBOARD -->
@@ -621,6 +679,93 @@ td.phi{color:var(--grn);font-weight:700;}td.plo{color:var(--red);font-weight:700
   <!-- CARDS or TABLE -->
   <div id="mcmpContent" style="margin-bottom:24px;"></div>
 </div>
+<!-- PDCA & SWOT PANEL -->
+<div id="panel-pdca" class="panel">
+  <div id="pdcaMtabs" class="mtabs"></div>
+
+  <!-- PDCA SUMMARY BAR -->
+  <div class="pdca-summary-bar" id="pdcaSummaryBar"></div>
+
+  <!-- PDCA PHASES -->
+  <div class="pdca-wrap">
+
+    <!-- PLAN -->
+    <div class="pdca-phase" style="border:1px solid rgba(0,212,255,.25);">
+      <div class="pdca-phase-header" style="background:rgba(0,212,255,.1);">
+        <span class="pdca-phase-icon">📋</span>
+        <div><div class="pdca-phase-title" style="color:var(--ac)">P — Plan</div><div class="pdca-phase-sub">วางแผน &amp; ตั้งเป้าหมาย</div></div>
+      </div>
+      <div class="pdca-phase-body" id="pdcaPlanBody"></div>
+    </div>
+
+    <!-- DO -->
+    <div class="pdca-phase" style="border:1px solid rgba(46,213,115,.25);">
+      <div class="pdca-phase-header" style="background:rgba(46,213,115,.08);">
+        <span class="pdca-phase-icon">⚡</span>
+        <div><div class="pdca-phase-title" style="color:var(--grn)">D — Do</div><div class="pdca-phase-sub">ผลการดำเนินงานจริง</div></div>
+      </div>
+      <div class="pdca-phase-body" id="pdcaDoBody"></div>
+    </div>
+
+    <!-- CHECK -->
+    <div class="pdca-phase" style="border:1px solid rgba(255,211,42,.25);">
+      <div class="pdca-phase-header" style="background:rgba(255,211,42,.07);">
+        <span class="pdca-phase-icon">🔍</span>
+        <div><div class="pdca-phase-title" style="color:var(--yel)">C — Check</div><div class="pdca-phase-sub">ตรวจสอบ &amp; วิเคราะห์</div></div>
+      </div>
+      <div class="pdca-phase-body" id="pdcaCheckBody"></div>
+    </div>
+
+    <!-- ACT -->
+    <div class="pdca-phase" style="border:1px solid rgba(255,107,53,.25);">
+      <div class="pdca-phase-header" style="background:rgba(255,107,53,.08);">
+        <span class="pdca-phase-icon">🎯</span>
+        <div><div class="pdca-phase-title" style="color:var(--ac2)">A — Act</div><div class="pdca-phase-sub">แผนปรับปรุง &amp; Action Items</div></div>
+      </div>
+      <div class="pdca-phase-body" id="pdcaActBody"></div>
+    </div>
+
+  </div><!-- /pdca-wrap -->
+
+  <!-- SWOT TITLE -->
+  <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px;color:var(--pur);margin:20px 0 14px;padding-top:18px;border-top:1px solid var(--bd);">
+    🔲 SWOT Analysis — <span id="swotQLabel"></span>
+  </div>
+  <div style="font-size:11px;color:var(--tm);margin-bottom:16px;">
+    S (จุดแข็ง) และ W (จุดอ่อน) ระบบวิเคราะห์จากข้อมูลให้อัตโนมัติ &nbsp;·&nbsp; O (โอกาส) และ T (ภัยคุกคาม) กรอกด้วยตนเอง
+  </div>
+  <div class="swot-grid">
+    <div class="swot-card" style="border:1px solid rgba(46,213,115,.25);">
+      <div class="swot-card-header" style="background:rgba(46,213,115,.08);">
+        <span class="swot-card-icon">💪</span>
+        <div><div class="swot-card-title" style="color:var(--grn)">S — Strengths</div><div class="swot-card-sub">จุดแข็ง (จากข้อมูลจริง)</div></div>
+      </div>
+      <div class="swot-card-body" id="swotS"></div>
+    </div>
+    <div class="swot-card" style="border:1px solid rgba(255,71,87,.2);">
+      <div class="swot-card-header" style="background:rgba(255,71,87,.07);">
+        <span class="swot-card-icon">⚠️</span>
+        <div><div class="swot-card-title" style="color:var(--red)">W — Weaknesses</div><div class="swot-card-sub">จุดอ่อน (จากข้อมูลจริง)</div></div>
+      </div>
+      <div class="swot-card-body" id="swotW"></div>
+    </div>
+    <div class="swot-card" style="border:1px solid rgba(0,212,255,.2);">
+      <div class="swot-card-header" style="background:rgba(0,212,255,.06);">
+        <span class="swot-card-icon">🚀</span>
+        <div><div class="swot-card-title" style="color:var(--ac)">O — Opportunities</div><div class="swot-card-sub">โอกาส (กรอกด้วยตนเอง)</div></div>
+      </div>
+      <div class="swot-card-body" id="swotO"></div>
+    </div>
+    <div class="swot-card" style="border:1px solid rgba(168,85,247,.2);">
+      <div class="swot-card-header" style="background:rgba(168,85,247,.06);">
+        <span class="swot-card-icon">🌩️</span>
+        <div><div class="swot-card-title" style="color:var(--pur)">T — Threats</div><div class="swot-card-sub">ภัยคุกคาม (กรอกด้วยตนเอง)</div></div>
+      </div>
+      <div class="swot-card-body" id="swotT"></div>
+    </div>
+  </div>
+</div>
+
 
 </div><!-- /app -->
 
@@ -854,7 +999,7 @@ const WEEK=['อา','จ','อ','พ','พฤ','ศ','ส'];
 const SCOL=['#00d4ff','#2ed573','#ffd32a','#ff4757','#a855f7','#ff6b35','#00b8a9','#f368e0','#54a0ff','#5f27cd'];
 const SK="loan-entries-v1",CSK="loan-cstatus-v1",TGK="loan-targets-v1";
 
-let entries=[],csData={},TG={},holsData={},currentQuarter="Q2",currentMonth="2026-04",currentTblMonth="2026-04",currentCsMonth="2026-04",currentHolMonth="2026-04",charts={};
+let entries=[],csData={},TG={},holsData={},pdcaData={},swotData={},currentQuarter="Q2",currentMonth="2026-04",currentTblMonth="2026-04",currentCsMonth="2026-04",currentHolMonth="2026-04",charts={};
 
 const SEED=[
   {date:"2026-04-01",fl:{hc:13,amt:149000},ro:{hc:6,amt:96500}},
@@ -876,6 +1021,8 @@ function save(){try{localStorage.setItem(SK,JSON.stringify(entries));}catch(e){}
 function saveCs(){try{localStorage.setItem(CSK,JSON.stringify(csData));}catch(e){}}
 function saveTG(){try{localStorage.setItem(TGK,JSON.stringify(TG));}catch(e){}}
 function saveHols(){try{localStorage.setItem(HOLK,JSON.stringify(holsData));}catch(e){}}
+function savePdca(){try{localStorage.setItem(PDCAK,JSON.stringify(pdcaData));}catch(e){}}
+function saveSwot(){try{localStorage.setItem(SWOTK,JSON.stringify(swotData));}catch(e){}}
 
 function load(){
   // Entries
@@ -906,7 +1053,18 @@ function load(){
   if(!holsData["2026-04"].extra.includes("2026-04-14")){
     holsData["2026-04"].extra=["2026-04-14","2026-04-15","2026-04-16","2026-04-17"];
   }
-  save();saveTG();saveCs();saveHols();
+  // PDCA
+  try{const r=localStorage.getItem(PDCAK);pdcaData=r?JSON.parse(r):{};}catch(e){pdcaData={};}
+  Object.keys(ML).forEach(m=>{
+    if(!pdcaData[m])pdcaData[m]={note:'',actions:[]};
+    if(!pdcaData[m].actions)pdcaData[m].actions=[];
+  });
+  // SWOT
+  try{const r=localStorage.getItem(SWOTK);swotData=r?JSON.parse(r):{};}catch(e){swotData={};}
+  ['Q1','Q2','Q3','Q4'].forEach(q=>{
+    if(!swotData[q])swotData[q]={O:[],T:[]};
+  });
+  save();saveTG();saveCs();saveHols();savePdca();saveSwot();
 }
 
 // ============================================================
@@ -1470,6 +1628,7 @@ function closeHolMgr(){
   document.getElementById('holidayNote').textContent=holidayInfo(currentMonth);
   renderMonthlySummary(currentMonth);renderRR(currentMonth);renderCharts(currentMonth);
   renderDailyTable(currentTblMonth);
+  if(document.getElementById('panel-pdca').classList.contains('active'))renderPdcaSwot(q);
 }
 function holOverlayClick(e){if(e.target===document.getElementById('holOverlay'))closeHolMgr();}
 function switchHolMonth(m,btn){
@@ -1732,6 +1891,224 @@ function renderMcmpTable(sData){
   el.innerHTML='<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:12px;min-width:800px;">'+thead+'<tbody>'+rows.join('')+'</tbody></table></div>';
 }
 
+
+// ============================================================
+// PDCA & SWOT
+// ============================================================
+let currentPdcaMonth='2026-04',currentSwotQ='Q2';
+
+function renderPdcaSwot(q){
+  if(!q||q==='CMP')q=currentQuarter!=='CMP'?currentQuarter:'Q2';
+  currentSwotQ=q;
+  const months=QUARTERS[q].months;
+  currentPdcaMonth=months[0];
+  // Month tabs
+  const mtEl=document.getElementById('pdcaMtabs');
+  if(mtEl)mtEl.innerHTML=months.map(m=>
+    `<button class="mbtn ${m===currentPdcaMonth?'active':''}" onclick="switchPdcaMonth('${m}',this)">${ML[m].emoji} ${ML[m].short}</button>`
+  ).join('');
+  renderPdcaPhases(currentPdcaMonth);
+  renderSwot(q);
+}
+
+function switchPdcaMonth(m,btn){
+  currentPdcaMonth=m;
+  document.querySelectorAll('#pdcaMtabs .mbtn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  renderPdcaPhases(m);
+}
+
+function renderPdcaPhases(m){
+  const s=calcS(m),tg=TG[m];
+  const pd=pdcaData[m]||{note:'',actions:[]};
+  const hcPct=s.tgTotHC>0?s.totHC/s.tgTotHC*100:0;
+  const amtPct=s.tgTotAmt>0?s.totAmt/s.tgTotAmt*100:0;
+  const q=getQofMonth(m);
+
+  // Summary bar
+  const doneAct=(pd.actions||[]).filter(a=>a.done).length;
+  const totalAct=(pd.actions||[]).length;
+  const actPct=totalAct>0?doneAct/totalAct*100:0;
+  document.getElementById('pdcaSummaryBar').innerHTML=`
+    <div class="pdca-cycle-label">🔄 PDCA Cycle — ${ML[m].label}</div>
+    <div class="pdca-score"><div class="pdca-score-val" style="color:${hcPct>=100?'var(--grn)':hcPct>=75?'var(--yel)':'var(--red)'}">${hcPct.toFixed(0)}%</div><div class="pdca-score-label">HC บรรลุเป้า</div></div>
+    <div class="pdca-score"><div class="pdca-score-val" style="color:${amtPct>=100?'var(--grn)':amtPct>=75?'var(--yel)':'var(--red)'}">${amtPct.toFixed(0)}%</div><div class="pdca-score-label">Amount บรรลุเป้า</div></div>
+    <div class="pdca-score"><div class="pdca-score-val" style="color:${actPct>=100?'var(--grn)':'var(--ac)'}">${doneAct}/${totalAct}</div><div class="pdca-score-label">Action Items</div></div>
+    <div class="pdca-score"><div class="pdca-score-val" style="color:var(--pur)">${s.n}/${s.wn}</div><div class="pdca-score-label">วันมีข้อมูล</div></div>`;
+
+  // ── PLAN ──────────────────────────────────────────────
+  document.getElementById('pdcaPlanBody').innerHTML=`
+    <div class="pdca-data-row"><span class="pdca-data-label">เป้า FL Headcount</span><span class="pdca-data-val" style="color:var(--ac)">${N(tg.fl.hc)} ราย</span></div>
+    <div class="pdca-data-row"><span class="pdca-data-label">เป้า FL Amount</span><span class="pdca-data-val" style="color:var(--ac)">${fmtAmt(tg.fl.amt)}</span></div>
+    <div class="pdca-data-row"><span class="pdca-data-label">เป้า RO Headcount</span><span class="pdca-data-val" style="color:var(--ac2)">${N(tg.ro.hc)} ราย</span></div>
+    <div class="pdca-data-row"><span class="pdca-data-label">เป้า RO Amount</span><span class="pdca-data-val" style="color:var(--ac2)">${fmtAmt(tg.ro.amt)}</span></div>
+    <div class="pdca-data-row"><span class="pdca-data-label">เป้า Total HC</span><span class="pdca-data-val" style="color:var(--grn)">${N(s.tgTotHC)} ราย</span></div>
+    <div class="pdca-data-row"><span class="pdca-data-label">วันทำการทั้งเดือน</span><span class="pdca-data-val">${s.wn} วัน</span></div>
+    <div class="pdca-data-row"><span class="pdca-data-label">เป้าเฉลี่ย/วัน</span><span class="pdca-data-val">${s.wn>0?(s.tgTotHC/s.wn).toFixed(1):'-'} ราย</span></div>
+    <div style="margin-top:10px;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--tm);margin-bottom:5px;">กลยุทธ์ / แผนงานเดือนนี้</div>
+    <textarea class="pdca-textarea" id="pdcaPlanNote_${m}" placeholder="บันทึกกลยุทธ์หรือแผนงานที่วางไว้สำหรับเดือนนี้..." onblur="savePdcaField('${m}','planNote',this.value)">${(pdcaData[m]||{}).planNote||''}</textarea>`;
+
+  // ── DO ────────────────────────────────────────────────
+  document.getElementById('pdcaDoBody').innerHTML=`
+    <div class="pdca-data-row"><span class="pdca-data-label">FL HC จริง</span><span class="pdca-data-val" style="color:var(--ac)">${N(s.flHC)} ราย</span></div>
+    <div class="pdca-data-row"><span class="pdca-data-label">FL Amount จริง</span><span class="pdca-data-val" style="color:var(--ac)">${fmtAmt(s.flAmt)}</span></div>
+    <div class="pdca-data-row"><span class="pdca-data-label">RO HC จริง</span><span class="pdca-data-val" style="color:var(--ac2)">${N(s.roHC)} ราย</span></div>
+    <div class="pdca-data-row"><span class="pdca-data-label">RO Amount จริง</span><span class="pdca-data-val" style="color:var(--ac2)">${fmtAmt(s.roAmt)}</span></div>
+    <div class="pdca-data-row"><span class="pdca-data-label">Total HC จริง</span><span class="pdca-data-val" style="color:var(--grn)">${N(s.totHC)} ราย</span></div>
+    <div class="pdca-data-row"><span class="pdca-data-label">Total Amount จริง</span><span class="pdca-data-val" style="color:var(--grn)">${fmtAmt(s.totAmt)}</span></div>
+    <div class="pdca-data-row"><span class="pdca-data-label">วันที่บันทึกข้อมูล</span><span class="pdca-data-val">${s.n} วัน</span></div>
+    <div class="pdca-data-row"><span class="pdca-data-label">ค่าเฉลี่ย HC/วัน</span><span class="pdca-data-val" style="color:var(--pur)">${s.n>0?s.avgHC.toFixed(1):'-'} ราย</span></div>
+    <div class="pdca-data-row"><span class="pdca-data-label">Run Rate (คาดสิ้นเดือน)</span><span class="pdca-data-val" style="color:${s.projTotHC>=s.tgTotHC?'var(--grn)':'var(--red)'}">${s.n>0?N(s.projTotHC):'-'}</span></div>`;
+
+  // ── CHECK ──────────────────────────────────────────────
+  const hcDiff=s.totHC-s.tgTotHC,amtDiff=s.totAmt-s.tgTotAmt;
+  const rrOk=s.n>0&&s.projTotHC>=s.tgTotHC;
+  document.getElementById('pdcaCheckBody').innerHTML=`
+    <div class="pdca-data-row"><span class="pdca-data-label">HC vs เป้า (Diff)</span><span class="pdca-data-val" style="color:${hcDiff>=0?'var(--grn)':'var(--red)'}">${hcDiff>=0?'+':''}${N(hcDiff)}</span></div>
+    <div class="pdca-data-row"><span class="pdca-data-label">HC บรรลุเป้า %</span><span class="pdca-data-val" style="color:${hcPct>=100?'var(--grn)':hcPct>=75?'var(--yel)':'var(--red)'}">${P(hcPct)}</span></div>
+    <div class="pdca-data-row"><span class="pdca-data-label">Amount vs เป้า (Diff)</span><span class="pdca-data-val" style="color:${amtDiff>=0?'var(--grn)':'var(--red)'}">${amtDiff>=0?'+':''}${fmtAmt(amtDiff)}</span></div>
+    <div class="pdca-data-row"><span class="pdca-data-label">Amount บรรลุเป้า %</span><span class="pdca-data-val" style="color:${amtPct>=100?'var(--grn)':amtPct>=75?'var(--yel)':'var(--red)'}">${P(amtPct)}</span></div>
+    <div class="pdca-data-row"><span class="pdca-data-label">FL HC %</span><span class="pdca-data-val" style="color:${s.flHCpct>=100?'var(--grn)':s.flHCpct>=75?'var(--yel)':'var(--red)'}">${P(s.flHCpct)}</span></div>
+    <div class="pdca-data-row"><span class="pdca-data-label">RO HC %</span><span class="pdca-data-val" style="color:${s.roHCpct>=100?'var(--grn)':s.roHCpct>=75?'var(--yel)':'var(--red)'}">${P(s.roHCpct)}</span></div>
+    <div class="pdca-data-row"><span class="pdca-data-label">Run Rate Status</span><span class="pdca-data-val">${s.n===0?'ยังไม่มีข้อมูล':rrOk?'✅ On Track':'⚠️ Behind'}</span></div>
+    <div style="margin-top:10px;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--tm);margin-bottom:5px;">วิเคราะห์สาเหตุ</div>
+    <textarea class="pdca-textarea" id="pdcaCheckNote_${m}" placeholder="วิเคราะห์สาเหตุที่ทำให้ผลต่างจากแผน (สาเหตุที่ดีหรือแย่กว่าเป้า)..." onblur="savePdcaField('${m}','checkNote',this.value)">${(pdcaData[m]||{}).checkNote||''}</textarea>`;
+
+  // ── ACT ────────────────────────────────────────────────
+  const actions=(pd.actions||[]);
+  const actionItems=actions.map((a,i)=>`
+    <div class="pdca-act-item">
+      <input type="checkbox" ${a.done?'checked':''} onchange="toggleAction('${m}',${i},this.checked)">
+      <div class="pdca-act-item-text ${a.done?'done':''}">${a.text}</div>
+      <button class="pdca-act-item-del" onclick="deleteAction('${m}',${i})">✕</button>
+    </div>`).join('');
+  document.getElementById('pdcaActBody').innerHTML=`
+    <div style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--tm);margin-bottom:8px;">Action Items (${actions.filter(a=>a.done).length}/${actions.length} เสร็จแล้ว)</div>
+    <div class="pdca-act-items" id="actList_${m}">${actionItems||'<div style="color:var(--tm);font-size:11px;padding:4px 0;">ยังไม่มี Action Items — เพิ่มด้านล่าง</div>'}</div>
+    <div class="pdca-add-row">
+      <input class="pdca-add-inp" id="actInput_${m}" placeholder="เพิ่ม Action Item..." onkeydown="if(event.key==='Enter')addAction('${m}')">
+      <button class="pdca-add-btn" onclick="addAction('${m}')">+ เพิ่ม</button>
+    </div>
+    <div style="margin-top:12px;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--tm);margin-bottom:5px;">แผนปรับปรุงสำหรับเดือนถัดไป</div>
+    <textarea class="pdca-textarea" id="pdcaActNote_${m}" placeholder="สิ่งที่จะปรับปรุงในเดือนถัดไป เช่น ปรับ target, เพิ่มช่องทาง, แก้ปัญหา..." onblur="savePdcaField('${m}','actNote',this.value)">${(pdcaData[m]||{}).actNote||''}</textarea>`;
+}
+
+function savePdcaField(m,field,val){
+  if(!pdcaData[m])pdcaData[m]={note:'',actions:[]};
+  pdcaData[m][field]=val;
+  savePdca();scheduleSync();
+}
+function addAction(m){
+  const inp=document.getElementById('actInput_'+m);
+  if(!inp||!inp.value.trim())return;
+  if(!pdcaData[m])pdcaData[m]={actions:[]};
+  if(!pdcaData[m].actions)pdcaData[m].actions=[];
+  pdcaData[m].actions.push({text:inp.value.trim(),done:false});
+  savePdca();scheduleSync();
+  inp.value='';
+  renderPdcaPhases(m);
+}
+function toggleAction(m,i,done){
+  if(!pdcaData[m]||!pdcaData[m].actions)return;
+  pdcaData[m].actions[i].done=done;
+  savePdca();scheduleSync();
+  // Update UI without full re-render to keep focus
+  const text=document.querySelectorAll('#actList_'+m+' .pdca-act-item-text')[i];
+  if(text)text.className='pdca-act-item-text'+(done?' done':'');
+  // Update summary bar count
+  const doneAct=pdcaData[m].actions.filter(a=>a.done).length;
+  const totalAct=pdcaData[m].actions.length;
+  const scoreEl=document.querySelectorAll('.pdca-score .pdca-score-val')[3];
+  if(scoreEl)scoreEl.textContent=doneAct+'/'+totalAct;
+}
+function deleteAction(m,i){
+  if(!pdcaData[m]||!pdcaData[m].actions)return;
+  pdcaData[m].actions.splice(i,1);
+  savePdca();scheduleSync();
+  renderPdcaPhases(m);
+}
+
+// ── SWOT ──────────────────────────────────────────────────
+function renderSwot(q){
+  if(!QUARTERS[q])return;
+  document.getElementById('swotQLabel').textContent=QUARTERS[q].label;
+  const months=QUARTERS[q].months;
+  const sd=swotData[q]||{O:[],T:[]};
+
+  // Auto S & W from data
+  const sItems=[],wItems=[];
+  months.forEach(m=>{
+    const s=calcS(m);
+    if(s.n===0)return;
+    const hcPct=s.tgTotHC>0?s.totHC/s.tgTotHC*100:0;
+    const amtPct=s.tgTotAmt>0?s.totAmt/s.tgTotAmt*100:0;
+    if(hcPct>=100)sItems.push(`${ML[m].emoji} ${ML[m].short}: HC บรรลุเป้า ${P(hcPct)} (+${N(s.totHC-s.tgTotHC)} ราย)`);
+    else if(hcPct<75)wItems.push(`${ML[m].emoji} ${ML[m].short}: HC ต่ำกว่าเป้า ${P(hcPct)} (ขาดอีก ${N(s.tgTotHC-s.totHC)} ราย)`);
+    if(amtPct>=100)sItems.push(`${ML[m].emoji} ${ML[m].short}: Amount เกินเป้า ${P(amtPct)}`);
+    else if(amtPct<75)wItems.push(`${ML[m].emoji} ${ML[m].short}: Amount ต่ำกว่าเป้า ${P(amtPct)}`);
+    if(s.avgHC>0&&s.wn>0&&s.avgHC>=(s.tgTotHC/s.wn*1.1))
+      sItems.push(`${ML[m].emoji} ${ML[m].short}: ค่าเฉลี่ย/วัน (${s.avgHC.toFixed(1)}) เกิน Daily TG`);
+    if(s.n>0&&s.drem===0&&hcPct>=100)
+      sItems.push(`${ML[m].emoji} ${ML[m].short}: ปิดเดือนได้เป้าหมายสำเร็จ`);
+    if(s.projTotHC<s.tgTotHC*0.85&&s.drem>3)
+      wItems.push(`${ML[m].emoji} ${ML[m].short}: Run Rate ต่ำ — คาดสิ้นเดือนได้แค่ ${N(s.projTotHC)} ราย`);
+    if(s.roHC===0&&s.n>0)
+      wItems.push(`${ML[m].emoji} ${ML[m].short}: ไม่มี Rollover เลย`);
+    if(s.flHC===0&&s.n>0)
+      wItems.push(`${ML[m].emoji} ${ML[m].short}: ไม่มี First Loan เลย`);
+  });
+  if(!sItems.length&&!wItems.length){
+    sItems.push('ยังไม่มีข้อมูลเพียงพอสำหรับวิเคราะห์');
+  }
+
+  function autoBlock(items,col,bg){
+    if(!items.length)return '<div style="font-size:11px;color:var(--tm);">ไม่พบรายการในไตรมาสนี้</div>';
+    return items.map(t=>`<span class="swot-auto-tag" style="background:${bg};color:${col};border-color:${col}44;">• ${t}</span><br>`).join('');
+  }
+  function userBlock(type,col,bg,placeholder){
+    const items=sd[type]||[];
+    const itemsHtml=items.map((t,i)=>`
+      <div class="swot-item">
+        <div class="swot-item-bullet" style="background:${bg};color:${col};">${i+1}</div>
+        <div class="swot-item-text">${t}</div>
+        <button class="swot-item-del" onclick="deleteSwotItem('${q}','${type}',${i})">✕</button>
+      </div>`).join('');
+    return `<div class="swot-items" id="swotList_${q}_${type}">${itemsHtml||'<div style="font-size:11px;color:var(--tm);padding:4px 0;">ยังไม่มีรายการ</div>'}</div>
+      <div class="swot-add-row">
+        <input class="swot-add-inp" id="swotInp_${q}_${type}" placeholder="${placeholder}" onkeydown="if(event.key==='Enter')addSwotItem('${q}','${type}')">
+        <button class="swot-add-btn" onclick="addSwotItem('${q}','${type}')">+</button>
+      </div>`;
+  }
+
+  document.getElementById('swotS').innerHTML=`
+    <div class="swot-auto-row"><div class="swot-auto-label">📊 วิเคราะห์จากข้อมูลอัตโนมัติ</div>${autoBlock(sItems,'var(--grn)','rgba(46,213,115,.1)')}</div>`;
+  document.getElementById('swotW').innerHTML=`
+    <div class="swot-auto-row"><div class="swot-auto-label">📊 วิเคราะห์จากข้อมูลอัตโนมัติ</div>${autoBlock(wItems,'var(--red)','rgba(255,71,87,.1)')}</div>`;
+  document.getElementById('swotO').innerHTML=`
+    <div class="swot-user-label">✏️ กรอกโอกาสด้วยตนเอง</div>
+    ${userBlock('O','var(--ac)','rgba(0,212,255,.15)','เช่น: ตลาดใหม่, นโยบายรัฐ, โปรโมชัน...')}`;
+  document.getElementById('swotT').innerHTML=`
+    <div class="swot-user-label">✏️ กรอกภัยคุกคามด้วยตนเอง</div>
+    ${userBlock('T','var(--pur)','rgba(168,85,247,.15)','เช่น: คู่แข่ง, อัตราดอกเบี้ย, เศรษฐกิจ...')}`;
+}
+
+function addSwotItem(q,type){
+  const inp=document.getElementById('swotInp_'+q+'_'+type);
+  if(!inp||!inp.value.trim())return;
+  if(!swotData[q])swotData[q]={O:[],T:[]};
+  if(!swotData[q][type])swotData[q][type]=[];
+  swotData[q][type].push(inp.value.trim());
+  inp.value='';
+  saveSwot();scheduleSync();
+  renderSwot(q);
+}
+function deleteSwotItem(q,type,i){
+  if(!swotData[q]||!swotData[q][type])return;
+  swotData[q][type].splice(i,1);
+  saveSwot();scheduleSync();
+  renderSwot(q);
+}
+
 // QUARTER + TAB SWITCHING
 // ============================================================
 function switchQuarter(q,btn){
@@ -1762,6 +2139,7 @@ function switchTab(tab,btn){
   if(tab==='daily')renderDailyTable(currentTblMonth);
   if(tab==='overview')renderOverview(currentQuarter);
   if(tab==='cstatus')renderCsMonth(currentCsMonth);
+  if(tab==='pdca')renderPdcaSwot(currentQuarter!=='CMP'?currentQuarter:'Q2');
 }
 function switchMonth(m,btn){
   currentMonth=m;
@@ -1847,6 +2225,8 @@ async function pullFromGist(){
     TG=payload.TG||TG;
     holsData=payload.holsData||holsData;
     csData=payload.csData||csData;
+    pdcaData=payload.pdcaData||pdcaData;
+    swotData=payload.swotData||swotData;
     // Ensure structure
     Object.keys(ML).forEach(m=>{
       if(!TG[m])TG[m]=JSON.parse(JSON.stringify(DEFAULT_TG[m]));
@@ -1863,7 +2243,7 @@ async function pullFromGist(){
 async function pushToGist(){
   if(!gistCfg.token||!gistCfg.gistId)return;
   setSyncStatus('loading');
-  const payload={version:2,updatedAt:new Date().toISOString(),entries,TG,holsData,csData};
+  const payload={version:2,updatedAt:new Date().toISOString(),entries,TG,holsData,csData,pdcaData,swotData};
   try{
     const res=await fetch(`https://api.github.com/gists/${gistCfg.gistId}`,{
       method:'PATCH',
@@ -2294,6 +2674,8 @@ function exportData(){
     TG,
     holsData,
     csData,
+    pdcaData,
+    swotData,
   };
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);
@@ -2324,6 +2706,8 @@ function importData(event){
       TG=payload.TG||JSON.parse(JSON.stringify(DEFAULT_TG));
       holsData=payload.holsData||{};
       csData=payload.csData||{};
+      pdcaData=payload.pdcaData||{};
+      swotData=payload.swotData||{};
       // Ensure all months have required structure
       Object.keys(ML).forEach(m=>{
         if(!TG[m])TG[m]=JSON.parse(JSON.stringify(DEFAULT_TG[m]));
