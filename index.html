@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 <style>
 :root{--bg:#0a0e1a;--s1:#111827;--s2:#1a2235;--bd:#1e2d45;--ac:#00d4ff;--ac2:#ff6b35;--tx:#e8f4f8;--tm:#6b8aaa;--red:#ff4757;--grn:#2ed573;--yel:#ffd32a;--pur:#a855f7;}
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -480,7 +481,7 @@ td.phi{color:var(--grn);font-weight:700;}td.plo{color:var(--red);font-weight:700
         <span class="cleg-i"><span style="width:16px;height:2px;border-radius:1px;background:#ffd32a;display:inline-block;"></span>TG</span>
       </span>
     </div>
-    <div style="position:relative;height:180px;"><canvas id="dailyBar"></canvas></div>
+    <div style="position:relative;height:220px;"><canvas id="dailyBar"></canvas></div>
   </div>
   <div class="ccard" style="margin-bottom:24px;">
     <div class="ctitle">
@@ -491,7 +492,7 @@ td.phi{color:var(--grn);font-weight:700;}td.plo{color:var(--red);font-weight:700
         <span class="cleg-i"><span style="width:16px;height:2px;border-radius:1px;background:#ffd32a;display:inline-block;"></span>TG</span>
       </span>
     </div>
-    <div style="position:relative;height:180px;"><canvas id="dailyAmtBar"></canvas></div>
+    <div style="position:relative;height:220px;"><canvas id="dailyAmtBar"></canvas></div>
   </div>
 </div>
 
@@ -997,6 +998,7 @@ const DEFAULT_TG={
 // Holidays now managed in holsData per month
 const WEEK=['อา','จ','อ','พ','พฤ','ศ','ส'];
 const SCOL=['#00d4ff','#2ed573','#ffd32a','#ff4757','#a855f7','#ff6b35','#00b8a9','#f368e0','#54a0ff','#5f27cd'];
+Chart.register(ChartDataLabels);
 const SK="loan-entries-v1",CSK="loan-cstatus-v1",TGK="loan-targets-v1";
 
 let entries=[],csData={},TG={},holsData={},pdcaData={},swotData={},currentQuarter="Q2",currentMonth="2026-04",currentTblMonth="2026-04",currentCsMonth="2026-04",currentHolMonth="2026-04",charts={};
@@ -1253,11 +1255,32 @@ function renderCharts(m){
     else{rH.push(null);rA.push(null);}
   });
   const lo=(yF)=>({responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
-    plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a2235',borderColor:'#1e2d45',borderWidth:1,titleColor:'#e8f4f8',bodyColor:'#6b8aaa',callbacks:{label:c=>c.raw!=null?` ${c.dataset.label}: ${yF(c.raw)}`:null}}},
+    plugins:{legend:{display:false},datalabels:{display:false},tooltip:{backgroundColor:'#1a2235',borderColor:'#1e2d45',borderWidth:1,titleColor:'#e8f4f8',bodyColor:'#6b8aaa',callbacks:{label:c=>c.raw!=null?` ${c.dataset.label}: ${yF(c.raw)}`:null}}},
     scales:{x:{ticks:{color:'#6b8aaa',font:{size:9},maxRotation:45,autoSkip:true,maxTicksLimit:14},grid:{color:'#1e2d45'}},y:{ticks:{color:'#6b8aaa',font:{size:10},callback:v=>yF(v)},grid:{color:'#1e2d45'}}}});
-  const bo=(yF)=>({responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
-    plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a2235',borderColor:'#1e2d45',borderWidth:1,titleColor:'#e8f4f8',bodyColor:'#6b8aaa',callbacks:{label:c=>c.raw!=null?` ${c.dataset.label}: ${yF(c.raw)}`:null}}},
-    scales:{x:{stacked:true,ticks:{color:'#6b8aaa',font:{size:9},maxRotation:45,autoSkip:true,maxTicksLimit:14},grid:{color:'#1e2d45'}},y:{stacked:true,ticks:{color:'#6b8aaa',font:{size:10},callback:v=>yF(v)},grid:{color:'#1e2d45'}}}});
+  // bo: stacked bar options WITH datalabels
+  const fmtK=v=>v>=1000?(v/1000).toFixed(0)+'K':String(Math.round(v));
+  const bo=(yF,isAmt=false)=>({responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+    plugins:{
+      legend:{display:false},
+      tooltip:{backgroundColor:'#1a2235',borderColor:'#1e2d45',borderWidth:1,titleColor:'#e8f4f8',bodyColor:'#6b8aaa',
+        callbacks:{label:c=>c.raw!=null?` ${c.dataset.label}: ${yF(c.raw)}`:null}},
+      datalabels:{
+        display:ctx=>{
+          if(ctx.dataset.type==='line')return false;
+          const v=ctx.dataset.data[ctx.dataIndex];
+          return v!=null&&v>0;
+        },
+        color:ctx=>ctx.datasetIndex===0?'#00d4ff':'#ffaa66',
+        textStrokeColor:'rgba(0,0,0,.8)',
+        textStrokeWidth:3,
+        font:{size:10,weight:'bold'},
+        anchor:'center',align:'center',
+        formatter:(v)=>v>0?(isAmt?fmtK(v):String(Math.round(v))):'',
+        clamp:true,clip:true,
+      }
+    },
+    scales:{x:{stacked:true,ticks:{color:'#6b8aaa',font:{size:9},maxRotation:45,autoSkip:true,maxTicksLimit:14},grid:{color:'#1e2d45'}},
+      y:{stacked:true,ticks:{color:'#6b8aaa',font:{size:10},callback:v=>yF(v)},grid:{color:'#1e2d45'}}}});
   dc('cumHC');charts['cumHC']=new Chart(document.getElementById('cumHC'),{type:'line',data:{labels,datasets:[
     {label:'ยอดจริง',data:aH,borderColor:'#00d4ff',backgroundColor:'rgba(0,212,255,.08)',fill:true,tension:.3,pointRadius:4,pointHoverRadius:6,spanGaps:false},
     {label:'เป้าเชิงเส้น',data:tH,borderColor:'#ffd32a',borderWidth:1.5,borderDash:[6,4],tension:0,pointRadius:0,fill:false,spanGaps:true},
@@ -1272,12 +1295,12 @@ function renderCharts(m){
     {label:'FL HC',data:wd.map(d=>{const e=me.find(x=>x.date===d);return e?(e.fl?.hc||0):null;}),backgroundColor:'rgba(0,212,255,.75)',borderRadius:3,stack:'s'},
     {label:'RO HC',data:wd.map(d=>{const e=me.find(x=>x.date===d);return e?(e.ro?.hc||0):null;}),backgroundColor:'rgba(255,107,53,.75)',borderRadius:3,stack:'s'},
     {type:'line',label:'Daily TG',data:wd.map(()=>parseFloat((tgH/wn).toFixed(1))),borderColor:'#ffd32a',borderWidth:1.5,borderDash:[5,3],pointRadius:0,tension:0,spanGaps:true},
-  ]},options:bo(v=>v!=null?N(v):'')});
+  ]},options:bo(v=>v!=null?N(v):'',false)});
   dc('dailyAmtBar');charts['dailyAmtBar']=new Chart(document.getElementById('dailyAmtBar'),{type:'bar',data:{labels,datasets:[
     {label:'FL Amt',data:wd.map(d=>{const e=me.find(x=>x.date===d);return e?(e.fl?.amt||0):null;}),backgroundColor:'rgba(0,212,255,.7)',borderRadius:3,stack:'s'},
     {label:'RO Amt',data:wd.map(d=>{const e=me.find(x=>x.date===d);return e?(e.ro?.amt||0):null;}),backgroundColor:'rgba(46,213,115,.7)',borderRadius:3,stack:'s'},
     {type:'line',label:'Daily TG',data:wd.map(()=>Math.round(tgA/wn)),borderColor:'#ffd32a',borderWidth:1.5,borderDash:[5,3],pointRadius:0,tension:0,spanGaps:true},
-  ]},options:bo(v=>v!=null?fmtAmt(v):'')});
+  ]},options:bo(v=>v!=null?fmtAmt(v):'',true)});
 }
 
 // ============================================================
@@ -1344,7 +1367,15 @@ function renderOverview(q){
   document.getElementById('ovBody').innerHTML=rows('hc');
   document.getElementById('ovAmtBody').innerHTML=rows('amt');
   const ml=months.map(m=>ML[m].short);
-  const qOpt={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:'#6b8aaa',font:{size:11},boxWidth:12}},tooltip:{backgroundColor:'#1a2235',borderColor:'#1e2d45',borderWidth:1,titleColor:'#e8f4f8',bodyColor:'#6b8aaa'}},scales:{x:{ticks:{color:'#6b8aaa'},grid:{color:'#1e2d45'}},y:{ticks:{color:'#6b8aaa',callback:v=>N(v)},grid:{color:'#1e2d45'}}}};
+  const qOpt={responsive:true,maintainAspectRatio:false,plugins:{
+    legend:{display:true,labels:{color:'#6b8aaa',font:{size:11},boxWidth:12}},
+    tooltip:{backgroundColor:'#1a2235',borderColor:'#1e2d45',borderWidth:1,titleColor:'#e8f4f8',bodyColor:'#6b8aaa'},
+    datalabels:{
+      display:ctx=>{const v=ctx.dataset.data[ctx.dataIndex];return v!=null&&v>0&&ctx.datasetIndex<2;},
+      color:'#fff',font:{size:9,weight:'bold'},anchor:'center',align:'center',
+      formatter:v=>v>0?N(v):'',clamp:true,clip:true,
+    }
+  },scales:{x:{ticks:{color:'#6b8aaa'},grid:{color:'#1e2d45'}},y:{ticks:{color:'#6b8aaa',callback:v=>N(v)},grid:{color:'#1e2d45'}}}};
   dc('ovHC');charts['ovHC']=new Chart(document.getElementById('ovHCChart'),{type:'bar',data:{labels:ml,datasets:[
     {label:'FL จริง',data:months.map(m=>getMe(m).reduce((s,e)=>s+(e.fl?.hc||0),0)),backgroundColor:'rgba(0,212,255,.75)',borderRadius:4},
     {label:'RO จริง',data:months.map(m=>getMe(m).reduce((s,e)=>s+(e.ro?.hc||0),0)),backgroundColor:'rgba(255,107,53,.75)',borderRadius:4},
@@ -1431,7 +1462,15 @@ function renderCompare(){
   // Charts
   const qLabels=qs.map(q=>QUARTERS[q].emoji+' '+q);
   const qColors=qs.map(q=>QUARTERS[q].color);
-  const cmpOpt={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:'#6b8aaa',font:{size:11},boxWidth:12}},tooltip:{backgroundColor:'#1a2235',borderColor:'#1e2d45',borderWidth:1,titleColor:'#e8f4f8',bodyColor:'#6b8aaa'}},scales:{x:{ticks:{color:'#6b8aaa'},grid:{color:'#1e2d45'}},y:{ticks:{color:'#6b8aaa',callback:v=>N(v)},grid:{color:'#1e2d45'}}}};
+  const cmpOpt={responsive:true,maintainAspectRatio:false,plugins:{
+    legend:{display:true,labels:{color:'#6b8aaa',font:{size:11},boxWidth:12}},
+    tooltip:{backgroundColor:'#1a2235',borderColor:'#1e2d45',borderWidth:1,titleColor:'#e8f4f8',bodyColor:'#6b8aaa'},
+    datalabels:{
+      display:ctx=>{const v=ctx.dataset.data[ctx.dataIndex];return v!=null&&v>0&&ctx.datasetIndex===0;},
+      color:'#fff',font:{size:10,weight:'bold'},anchor:'center',align:'center',
+      formatter:(v,ctx)=>ctx.chart.id?N(v):'',clamp:true,clip:true,
+    }
+  },scales:{x:{ticks:{color:'#6b8aaa'},grid:{color:'#1e2d45'}},y:{ticks:{color:'#6b8aaa',callback:v=>N(v)},grid:{color:'#1e2d45'}}}};
   dc('cmpHC');charts['cmpHC']=new Chart(document.getElementById('cmpHCChart'),{type:'bar',data:{labels:qLabels,datasets:[
     {label:'Total HC จริง',data:qs.map(q=>qData[q].totHC),backgroundColor:qColors.map(c=>c+'bb'),borderColor:qColors,borderWidth:1.5,borderRadius:6},
     {label:'Total HC เป้า',data:qs.map(q=>qData[q].totTGHC),backgroundColor:qColors.map(c=>c+'22'),borderColor:qColors.map(c=>c+'66'),borderWidth:1,borderRadius:6},
