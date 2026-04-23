@@ -1266,7 +1266,7 @@ function renderCharts(m){
   const aH=[],aA=[],tH=[],tA=[],rH=[],rA=[];
   let cH=0,cA=0;
   // Pre-accumulate ALL entries (including non-WD) up to each WD date
-  const allSorted=me.sort((a,b)=>a.date.localeCompare(b.date));
+  const allSorted=[...me].sort((a,b)=>a.date.localeCompare(b.date));
   wd.forEach((dt,i)=>{
     // Add any entries (incl. non-WD) on or before this WD date
     while(allSorted.length&&allSorted[0].date<=dt){
