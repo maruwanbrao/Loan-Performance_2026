@@ -998,7 +998,10 @@ const DEFAULT_TG={
 // Holidays now managed in holsData per month
 const WEEK=['อา','จ','อ','พ','พฤ','ศ','ส'];
 const SCOL=['#00d4ff','#2ed573','#ffd32a','#ff4757','#a855f7','#ff6b35','#00b8a9','#f368e0','#54a0ff','#5f27cd'];
-Chart.register(ChartDataLabels);
+try{
+  if(typeof ChartDataLabels!=='undefined')Chart.register(ChartDataLabels);
+  else console.warn('ChartDataLabels not loaded — bar labels disabled');
+}catch(e){console.warn('ChartDataLabels register failed:',e);}
 const SK="loan-entries-v1",CSK="loan-cstatus-v1",TGK="loan-targets-v1";
 
 let entries=[],csData={},TG={},holsData={},pdcaData={},swotData={},currentQuarter="Q2",currentMonth="2026-04",currentTblMonth="2026-04",currentCsMonth="2026-04",currentHolMonth="2026-04",charts={};
@@ -1019,12 +1022,12 @@ const SEED=[
 // ============================================================
 // STORAGE
 // ============================================================
-function save(){try{localStorage.setItem(SK,JSON.stringify(entries));}catch(e){}}
-function saveCs(){try{localStorage.setItem(CSK,JSON.stringify(csData));}catch(e){}}
-function saveTG(){try{localStorage.setItem(TGK,JSON.stringify(TG));}catch(e){}}
-function saveHols(){try{localStorage.setItem(HOLK,JSON.stringify(holsData));}catch(e){}}
-function savePdca(){try{localStorage.setItem(PDCAK,JSON.stringify(pdcaData));}catch(e){}}
-function saveSwot(){try{localStorage.setItem(SWOTK,JSON.stringify(swotData));}catch(e){}}
+function save(){try{localStorage.setItem(SK,JSON.stringify(entries));localStorage.setItem('loan-last-save',new Date().toISOString());}catch(e){console.warn('localStorage full or unavailable',e);}}
+function saveCs(){try{localStorage.setItem(CSK,JSON.stringify(csData));}catch(e){console.warn('saveCs failed',e);}}
+function saveTG(){try{localStorage.setItem(TGK,JSON.stringify(TG));}catch(e){console.warn('saveTG failed',e);}}
+function saveHols(){try{localStorage.setItem(HOLK,JSON.stringify(holsData));}catch(e){console.warn('saveHols failed',e);}}
+function savePdca(){try{localStorage.setItem(PDCAK,JSON.stringify(pdcaData));}catch(e){console.warn('savePdca failed',e);}}
+function saveSwot(){try{localStorage.setItem(SWOTK,JSON.stringify(swotData));}catch(e){console.warn('saveSwot failed',e);}}
 
 function load(){
   // Entries
@@ -1110,11 +1113,22 @@ function calcS(m){
   const me=getMe(m),tg=TG[m],wd=getWD(m);
   const flHC=me.reduce((s,e)=>s+(e.fl?.hc||0),0),flAmt=me.reduce((s,e)=>s+(e.fl?.amt||0),0);
   const roHC=me.reduce((s,e)=>s+(e.ro?.hc||0),0),roAmt=me.reduce((s,e)=>s+(e.ro?.amt||0),0);
-  const totHC=flHC+roHC,totAmt=flAmt+roAmt,n=me.length,wn=wd.length,drem=Math.max(0,wn-n);
-  const avgHC=n>0?totHC/n:0,avgAmt=n>0?totAmt/n:0,avgFlHC=n>0?flHC/n:0;
+  const totHC=flHC+roHC,totAmt=flAmt+roAmt;
+  const n=me.length; // total recorded days (including 0-days)
+  const wn=wd.length;
+  // Count recorded WD entries (entries whose date is in wd array)
+  const wdSet=new Set(wd);
+  const nWD=me.filter(e=>wdSet.has(e.date)).length;
+  // drem = remaining working days from today (or from last WD entry)
+  const drem=Math.max(0,wn-nWD);
+  // avgHC from non-zero days only (better run-rate estimation)
+  const activeDays=me.filter(e=>(e.fl?.hc||0)+(e.ro?.hc||0)>0).length;
+  const avgHC=activeDays>0?totHC/activeDays:0;
+  const avgAmt=activeDays>0?totAmt/activeDays:0;
+  const avgFlHC=activeDays>0?flHC/activeDays:0;
   const tgTotHC=tg.fl.hc+tg.ro.hc,tgTotAmt=tg.fl.amt+tg.ro.amt;
-  return{flHC,flAmt,roHC,roAmt,totHC,totAmt,n,wn,drem,avgHC,avgAmt,avgFlHC,
-    projTotHC:avgHC*wn,projTotAmt:avgAmt*wn,tgTotHC,tgTotAmt,
+  return{flHC,flAmt,roHC,roAmt,totHC,totAmt,n,nWD,wn,drem,avgHC,avgAmt,avgFlHC,
+    projTotHC:Math.round(avgHC*wn),projTotAmt:Math.round(avgAmt*wn),tgTotHC,tgTotAmt,
     neFlHC:drem>0?Math.max(0,tg.fl.hc-flHC)/drem:0,
     flHCpct:tg.fl.hc>0?flHC/tg.fl.hc*100:0,flAmtpct:tg.fl.amt>0?flAmt/tg.fl.amt*100:0,
     roHCpct:tg.ro.hc>0?roHC/tg.ro.hc*100:0,roAmtpct:tg.ro.amt>0?roAmt/tg.ro.amt*100:0};
@@ -1228,7 +1242,7 @@ function renderRR(m){
   document.getElementById('rrMonthName').textContent=ML[m].label;
   const ok=s.projTotHC>=s.tgTotHC;
   document.getElementById('rrGrid').innerHTML=`
-    <div class="rritem"><div class="rrlabel">วันที่มีข้อมูล</div><div class="rrval" style="color:var(--ac)">${s.n}</div><div class="rrunit">/ ${s.wn} วันทำการ</div></div>
+    <div class="rritem"><div class="rrlabel">วันที่บันทึก (WD)</div><div class="rrval" style="color:var(--ac)">${s.nWD||s.n}</div><div class="rrunit">/ ${s.wn} วันทำการ</div></div>
     <div class="rritem"><div class="rrlabel">วันทำการที่เหลือ</div><div class="rrval" style="color:var(--yel)">${s.drem}</div><div class="rrunit">วัน</div></div>
     <div class="rritem"><div class="rrlabel">ค่าเฉลี่ย/วัน</div><div class="rrval" style="color:var(--pur)">${s.avgHC.toFixed(1)}</div><div class="rrunit">ราย/วัน</div></div>
     <div class="rritem"><div class="rrlabel">คาดการณ์สิ้นเดือน</div><div class="rrval" style="color:${ok?'var(--grn)':'var(--red)'}">${s.n>0?N(s.projTotHC):'—'}</div><div class="rrunit">vs TG ${N(s.tgTotHC)} ${s.n>0?(ok?'✅':'⚠️'):''}</div></div>
@@ -1243,12 +1257,22 @@ function renderCharts(m){
   const me=getMe(m),tg=TG[m],wd=getWD(m),s=calcS(m);
   const tgH=tg.fl.hc+tg.ro.hc,tgA=tg.fl.amt+tg.ro.amt,wn=wd.length;
   const labels=wd.map(d=>dl(d));
-  let lastI=-1;wd.forEach((dt,i)=>{if(me.find(x=>x.date===dt))lastI=i;});
+  // lastI: last WD index with data, or last WD before the most recent entry
+  let lastI=-1;
+  if(me.length>0){
+    const lastEntryDate=me[me.length-1].date;
+    wd.forEach((dt,i)=>{if(dt<=lastEntryDate)lastI=i;});
+  }
   const aH=[],aA=[],tH=[],tA=[],rH=[],rA=[];
   let cH=0,cA=0;
+  // Pre-accumulate ALL entries (including non-WD) up to each WD date
+  const allSorted=me.sort((a,b)=>a.date.localeCompare(b.date));
   wd.forEach((dt,i)=>{
-    const e=me.find(x=>x.date===dt);
-    if(e){cH+=(e.fl?.hc||0)+(e.ro?.hc||0);cA+=(e.fl?.amt||0)+(e.ro?.amt||0);}
+    // Add any entries (incl. non-WD) on or before this WD date
+    while(allSorted.length&&allSorted[0].date<=dt){
+      const e=allSorted.shift();
+      cH+=(e.fl?.hc||0)+(e.ro?.hc||0);cA+=(e.fl?.amt||0)+(e.ro?.amt||0);
+    }
     aH.push(i<=lastI&&lastI>=0?cH:null);aA.push(i<=lastI&&lastI>=0?cA:null);
     tH.push(parseFloat((tgH/wn*(i+1)).toFixed(1)));tA.push(Math.round(tgA/wn*(i+1)));
     if(lastI>=0&&i>=lastI){const ah=i-lastI;rH.push(Math.round(s.totHC+s.avgHC*ah));rA.push(Math.round(s.totAmt+s.avgAmt*ah));}
@@ -1291,9 +1315,17 @@ function renderCharts(m){
     {label:'เป้าเชิงเส้น',data:tA,borderColor:'#ffd32a',borderWidth:1.5,borderDash:[6,4],tension:0,pointRadius:0,fill:false,spanGaps:true},
     {label:'Run Rate',data:rA,borderColor:'#2ed573',borderWidth:1.5,borderDash:[4,3],tension:.2,pointRadius:0,fill:false,spanGaps:false},
   ]},options:lo(v=>v!=null?fmtAmt(v):'')});
+  // Use wdMap for daily bars too (groups non-WD entries into nearest WD)
   dc('dailyBar');charts['dailyBar']=new Chart(document.getElementById('dailyBar'),{type:'bar',data:{labels,datasets:[
-    {label:'FL HC',data:wd.map(d=>{const e=me.find(x=>x.date===d);return e?(e.fl?.hc||0):null;}),backgroundColor:'rgba(0,212,255,.75)',borderRadius:3,stack:'s'},
-    {label:'RO HC',data:wd.map(d=>{const e=me.find(x=>x.date===d);return e?(e.ro?.hc||0):null;}),backgroundColor:'rgba(255,107,53,.75)',borderRadius:3,stack:'s'},
+    {label:'FL HC',data:wd.map(d=>{const b=wdMap[d];return b&&b.hc>0?b.hc:null;}),backgroundColor:'rgba(0,212,255,.75)',borderRadius:3,stack:'s'},
+    {label:'RO HC',data:wd.map(d=>{
+      const bucket=wdMap[d];
+      if(!bucket)return null;
+      // RO = total - FL for this bucket
+      const flBucket=me.filter(e=>{let bd=null;for(let i=0;i<wd.length;i++){if(wd[i]>=e.date){bd=wd[i];break;}}if(!bd)bd=wd[wd.length-1];return bd===d;})
+        .reduce((s,e)=>s+(e.ro?.hc||0),0);
+      return flBucket>0?flBucket:null;
+    }),backgroundColor:'rgba(255,107,53,.75)',borderRadius:3,stack:'s'},
     {type:'line',label:'Daily TG',data:wd.map(()=>parseFloat((tgH/wn).toFixed(1))),borderColor:'#ffd32a',borderWidth:1.5,borderDash:[5,3],pointRadius:0,tension:0,spanGaps:true},
   ]},options:bo(v=>v!=null?N(v):'',false)});
   dc('dailyAmtBar');charts['dailyAmtBar']=new Chart(document.getElementById('dailyAmtBar'),{type:'bar',data:{labels,datasets:[
@@ -1660,6 +1692,11 @@ function saveTgEdit(){
 // HOLIDAY MANAGER
 // ============================================================
 function openHolMgr(){
+  // Reset currentHolMonth to match current quarter's first month (if not CMP)
+  if(currentQuarter!=='CMP'&&QUARTERS[currentQuarter]){
+    const qm=QUARTERS[currentQuarter].months;
+    if(!qm.includes(currentHolMonth))currentHolMonth=qm[0];
+  }
   // Build month tabs for all 12 months
   const allM=Object.keys(ML);
   document.getElementById('holMtabs').innerHTML=allM.map(m=>
@@ -1777,6 +1814,19 @@ function checkExisting(){
   document.getElementById('existingNote').style.display=ex?'block':'none';
   if(ex){document.getElementById('fFlHC').value=ex.fl?.hc||'';document.getElementById('fFlAmt').value=ex.fl?.amt||'';
     document.getElementById('fRoHC').value=ex.ro?.hc||'';document.getElementById('fRoAmt').value=ex.ro?.amt||'';}
+  // Warn if selected date is a configured holiday
+  if(d){
+    const m=d.substring(0,7);
+    const h=holsData[m]||{monOff:true,extra:[]};
+    const dObj=new Date(d+'T00:00:00');
+    const isMon=dObj.getDay()===1;
+    const isExtra=(h.extra||[]).includes(d);
+    let holWarn=document.getElementById('holDateWarn');
+    if(!holWarn){holWarn=document.createElement('div');holWarn.id='holDateWarn';holWarn.style.cssText='display:none;background:rgba(255,71,87,.1);border:1px solid rgba(255,71,87,.3);border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:11px;color:var(--red);';document.getElementById('existingNote').after(holWarn);}
+    if(isMon&&h.monOff){holWarn.style.display='block';holWarn.textContent='⚠️ วันจันทร์ — กำหนดเป็นวันหยุด (จะไม่นับในวันทำการ)';}
+    else if(isExtra){holWarn.style.display='block';holWarn.textContent='⚠️ วันหยุดพิเศษ — กำหนดไว้ในระบบ (จะไม่นับในวันทำการ)';}
+    else{holWarn.style.display='none';}
+  }
   updatePreview();
 }
 function updatePreview(){
@@ -2191,11 +2241,24 @@ function switchTab(tab,btn){
   if(tab==='daily')renderDailyTable(currentTblMonth);
   if(tab==='overview')renderOverview(currentQuarter);
   if(tab==='cstatus')renderCsMonth(currentCsMonth);
-  if(tab==='pdca')renderPdcaSwot(currentQuarter!=='CMP'?currentQuarter:'Q2');
+  if(tab==='pdca'){const q=currentQuarter!=='CMP'?currentQuarter:'Q2';currentSwotQ=q;renderPdcaSwot(q);}
 }
 function switchMonth(m,btn){
   currentMonth=m;
-  document.querySelectorAll('#qMtabs .mbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  // Update all month tab groups to stay in sync
+  document.querySelectorAll('#qMtabs .mbtn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  // Sync daily and cstatus month if they were on this quarter
+  const qMonths=QUARTERS[currentQuarter]?.months||[];
+  if(qMonths.includes(m)){
+    currentTblMonth=m;currentCsMonth=m;
+    document.querySelectorAll('#qMtabsDaily .mbtn').forEach(b=>b.classList.remove('active'));
+    const dlBtn=document.querySelector('#qMtabsDaily .mbtn[onclick*="'+m+'"]');
+    if(dlBtn)dlBtn.classList.add('active');
+    document.querySelectorAll('#qMtabsCs .mbtn').forEach(b=>b.classList.remove('active'));
+    const csBtn=document.querySelector('#qMtabsCs .mbtn[onclick*="'+m+'"]');
+    if(csBtn)csBtn.classList.add('active');
+  }
   document.getElementById('holidayNote').textContent=holidayInfo(m);
   renderMonthlySummary(m);renderRR(m);renderCharts(m);
 }
@@ -2221,6 +2284,16 @@ function switchCsMonth(m,btn){
 const GIST_CFG_KEY='loan-gist-cfg';
 let gistCfg={token:'',gistId:''},syncStatus='off',lastSyncTime=null,syncQueue=null;
 
+function updateRelTime(){
+  if(!lastSyncTime)return;
+  const el=document.getElementById('syncRelTime');if(!el)return;
+  const sec=Math.round((Date.now()-lastSyncTime.getTime())/1000);
+  if(sec<60)el.textContent=sec+'วิที่แล้ว';
+  else if(sec<3600)el.textContent=Math.floor(sec/60)+'นาทีที่แล้ว';
+  else el.textContent=Math.floor(sec/3600)+'ชม.ที่แล้ว';
+}
+setInterval(updateRelTime,15000);
+
 function loadGistCfg(){
   try{const r=localStorage.getItem(GIST_CFG_KEY);if(r)gistCfg=JSON.parse(r);}catch(e){}
   updateSyncBar();
@@ -2244,8 +2317,10 @@ function setSyncStatus(s,msg){
   dot.className='sync-dot '+s;
   if(s==='ok'){
     const t=new Date().toLocaleTimeString('th-TH');
-    txt.textContent='✅ Sync สำเร็จ · '+t+(msg?' · '+msg:'');
-    lastSyncTime=t;btn.disabled=false;
+    lastSyncTime=new Date();
+    txt.innerHTML='✅ Sync สำเร็จ · <span id="syncRelTime">เมื่อกี้</span>'+(msg?' · '+msg:'');
+    btn.disabled=false;
+    updateRelTime();
   }else if(s==='loading'){
     txt.innerHTML='🔄 กำลัง Sync...';btn.disabled=true;
   }else if(s==='err'){
@@ -2272,7 +2347,15 @@ async function pullFromGist(){
     const fileContent=data.files['loan-data.json']?.content;
     if(!fileContent)throw new Error('ไม่พบไฟล์ loan-data.json ใน Gist');
     const payload=JSON.parse(fileContent);
-    // Merge: Gist wins (newer data)
+    // Timestamp check: if local data is newer than Gist, ask user
+    const gistTime=payload.updatedAt?new Date(payload.updatedAt):null;
+    const localTime=localStorage.getItem('loan-last-save')?new Date(localStorage.getItem('loan-last-save')):null;
+    if(gistTime&&localTime&&localTime>gistTime){
+      if(!confirm('ข้อมูลในเครื่องนี้ใหม่กว่า Cloud\n(Local: '+localTime.toLocaleString('th-TH')+')\n(Cloud: '+gistTime.toLocaleString('th-TH')+')\n\nต้องการดึงข้อมูลจาก Cloud ทับข้อมูลล่าสุดในเครื่องหรือไม่?')){
+        setSyncStatus('ok','ข้อมูล Local ใหม่กว่า — ไม่ดึงทับ');return;
+      }
+    }
+    // Merge: Gist wins
     entries=payload.entries||entries;
     TG=payload.TG||TG;
     holsData=payload.holsData||holsData;
@@ -2673,6 +2756,7 @@ ${body}
 <script>window.onload=()=>{setTimeout(()=>window.print(),400);};<\/script>
 </body></html>`);
   printWin.document.close();
+  return printWin;
 }
 
 // ── MAIN DOWNLOAD ─────────────────────────────────────────────────────
@@ -2690,7 +2774,8 @@ function downloadReport(fmt){
   let titleParts=type==='year'?['ทั้งปี 2026']:type==='quarter'?[QUARTERS[scope[0]]?.label||'']:months.map(m=>ML[m].short);
   const title='Loan Performance — '+titleParts.join(', ');
   const dateStr=new Date().toISOString().split('T')[0];
-  const fname=`loan-report-${type}-${dateStr}`;
+  const scopeStr=type==='year'?'full-year':type==='quarter'?(scope[0]||'Q?'):months.map(m=>m.replace('2026-','')).join('-');
+  const fname=`loan-report-${scopeStr}-${dateStr}`;
 
   try{
     if(fmt==='csv'){
@@ -2704,15 +2789,19 @@ function downloadReport(fmt){
       showToast('✅ ดาวน์โหลด CSV สำเร็จ');
 
     } else if(fmt==='xlsx'){
-      if(!window.XLSX){showToast('กำลังโหลด library...',true);return;}
+      if(typeof XLSX==='undefined'){showToast('❌ ไม่สามารถโหลด Excel library ได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต',true);return;}
       const wb=buildXLSX(months,incDaily,incSum,incRR,incSt);
       XLSX.writeFile(wb,fname+'.xlsx');
       showToast('✅ ดาวน์โหลด Excel สำเร็จ');
 
     } else if(fmt==='pdf'){
-      printPDF(months,incDaily,incSum,incRR,incSt,title);
-      showToast('✅ เปิดหน้า Print — กด Ctrl+P หรือ ⌘P เพื่อบันทึก PDF');
-      return; // don't close modal
+      const pw=printPDF(months,incDaily,incSum,incRR,incSt,title);
+      if(!pw||pw.closed){
+        showToast('⚠️ Browser บล็อก Popup — กรุณาอนุญาต Popup แล้วลองใหม่',true);
+      } else {
+        showToast('✅ เปิดหน้า Print — กด Ctrl+P หรือ ⌘P เพื่อบันทึก PDF');
+      }
+      return;
     }
     closeReportModal();
   }catch(err){
