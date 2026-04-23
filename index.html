@@ -1518,13 +1518,16 @@ function renderStatusGrid(m){
   document.getElementById('statusTotal').textContent=N(tot)+' ราย';
   // Attach listeners via event delegation — avoid inline onchange
   const sg=document.getElementById('statusGrid');
-  if(sg){sg.oninput=null;sg.addEventListener('input',function(e){
-    const inp=e.target.closest('input[data-type="st"]');
-    if(!inp)return;
-    updSt(inp.dataset.m,parseInt(inp.dataset.i),inp.value);
-  },{once:false});
-  // Override to avoid duplicate — use a flag
-  sg._hasDelegation=true;}
+  if(sg){
+    // Remove old listener by replacing node with clone
+    const sgNew=sg.cloneNode(true);
+    sg.parentNode.replaceChild(sgNew,sg);
+    sgNew.addEventListener('input',function(e){
+      const inp=e.target.closest('input[data-type="st"]');
+      if(!inp)return;
+      updSt(inp.dataset.m,parseInt(inp.dataset.i),inp.value);
+    });
+  }
 }
 function renderLoanGrid(m){
   const d=csData[m],lm=d.loanMax||8,tot=lnTotal(m);
@@ -1540,11 +1543,15 @@ function renderLoanGrid(m){
   }).join('');
   document.getElementById('loanTotal').textContent=N(tot)+' ราย';
   const lg=document.getElementById('loanGrid');
-  if(lg){lg.oninput=null;lg.addEventListener('input',function(e){
-    const inp=e.target.closest('input[data-type="ln"]');
-    if(!inp)return;
-    updLn(inp.dataset.m,parseInt(inp.dataset.n),inp.value);
-  },{once:false});}
+  if(lg){
+    const lgNew=lg.cloneNode(true);
+    lg.parentNode.replaceChild(lgNew,lg);
+    lgNew.addEventListener('input',function(e){
+      const inp=e.target.closest('input[data-type="ln"]');
+      if(!inp)return;
+      updLn(inp.dataset.m,parseInt(inp.dataset.n),inp.value);
+    });
+  }
 }
 function renderPieCharts(m){
   const d=csData[m],lm=d.loanMax||8;
@@ -1985,7 +1992,7 @@ function renderPdcaPhases(m){
     <div class="pdca-data-row"><span class="pdca-data-label">วันทำการทั้งเดือน</span><span class="pdca-data-val">${s.wn} วัน</span></div>
     <div class="pdca-data-row"><span class="pdca-data-label">เป้าเฉลี่ย/วัน</span><span class="pdca-data-val">${s.wn>0?(s.tgTotHC/s.wn).toFixed(1):'-'} ราย</span></div>
     <div style="margin-top:10px;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--tm);margin-bottom:5px;">กลยุทธ์ / แผนงานเดือนนี้</div>
-    <textarea class="pdca-textarea" id="pdcaPlanNote_${m}" placeholder="บันทึกกลยุทธ์หรือแผนงานที่วางไว้สำหรับเดือนนี้..." onblur="savePdcaField('${m}','planNote',this.value)">${(pdcaData[m]||{}).planNote||''}</textarea>`;
+    <textarea class="pdca-textarea" id="pdcaPlanNote_${m}" placeholder="บันทึกกลยุทธ์หรือแผนงานที่วางไว้สำหรับเดือนนี้..." oninput="pdcaAutoSave('${m}','planNote',this.value)" onblur="savePdcaField('${m}','planNote',this.value)">${(pdcaData[m]||{}).planNote||''}</textarea>`;
 
   // ── DO ────────────────────────────────────────────────
   document.getElementById('pdcaDoBody').innerHTML=`
@@ -2011,7 +2018,7 @@ function renderPdcaPhases(m){
     <div class="pdca-data-row"><span class="pdca-data-label">RO HC %</span><span class="pdca-data-val" style="color:${s.roHCpct>=100?'var(--grn)':s.roHCpct>=75?'var(--yel)':'var(--red)'}">${P(s.roHCpct)}</span></div>
     <div class="pdca-data-row"><span class="pdca-data-label">Run Rate Status</span><span class="pdca-data-val">${s.n===0?'ยังไม่มีข้อมูล':rrOk?'✅ On Track':'⚠️ Behind'}</span></div>
     <div style="margin-top:10px;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--tm);margin-bottom:5px;">วิเคราะห์สาเหตุ</div>
-    <textarea class="pdca-textarea" id="pdcaCheckNote_${m}" placeholder="วิเคราะห์สาเหตุที่ทำให้ผลต่างจากแผน (สาเหตุที่ดีหรือแย่กว่าเป้า)..." onblur="savePdcaField('${m}','checkNote',this.value)">${(pdcaData[m]||{}).checkNote||''}</textarea>`;
+    <textarea class="pdca-textarea" id="pdcaCheckNote_${m}" placeholder="วิเคราะห์สาเหตุที่ทำให้ผลต่างจากแผน (สาเหตุที่ดีหรือแย่กว่าเป้า)..." oninput="pdcaAutoSave('${m}','checkNote',this.value)" onblur="savePdcaField('${m}','checkNote',this.value)">${(pdcaData[m]||{}).checkNote||''}</textarea>`;
 
   // ── ACT ────────────────────────────────────────────────
   const actions=(pd.actions||[]);
@@ -2029,13 +2036,19 @@ function renderPdcaPhases(m){
       <button class="pdca-add-btn" onclick="addAction('${m}')">+ เพิ่ม</button>
     </div>
     <div style="margin-top:12px;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--tm);margin-bottom:5px;">แผนปรับปรุงสำหรับเดือนถัดไป</div>
-    <textarea class="pdca-textarea" id="pdcaActNote_${m}" placeholder="สิ่งที่จะปรับปรุงในเดือนถัดไป เช่น ปรับ target, เพิ่มช่องทาง, แก้ปัญหา..." onblur="savePdcaField('${m}','actNote',this.value)">${(pdcaData[m]||{}).actNote||''}</textarea>`;
+    <textarea class="pdca-textarea" id="pdcaActNote_${m}" placeholder="สิ่งที่จะปรับปรุงในเดือนถัดไป เช่น ปรับ target, เพิ่มช่องทาง, แก้ปัญหา..." oninput="pdcaAutoSave('${m}','actNote',this.value)" onblur="savePdcaField('${m}','actNote',this.value)">${(pdcaData[m]||{}).actNote||''}</textarea>`;
 }
 
 function savePdcaField(m,field,val){
   if(!pdcaData[m])pdcaData[m]={note:'',actions:[]};
   pdcaData[m][field]=val;
   savePdca();scheduleSync();
+}
+// Debounced auto-save for textareas — fires 800ms after last keystroke
+let pdcaSaveTimer=null;
+function pdcaAutoSave(m,field,val){
+  if(pdcaSaveTimer)clearTimeout(pdcaSaveTimer);
+  pdcaSaveTimer=setTimeout(()=>savePdcaField(m,field,val),800);
 }
 function addAction(m){
   const inp=document.getElementById('actInput_'+m);
@@ -2264,15 +2277,15 @@ async function pullFromGist(){
     TG=payload.TG||TG;
     holsData=payload.holsData||holsData;
     csData=payload.csData||csData;
-    pdcaData=payload.pdcaData||pdcaData;
-    swotData=payload.swotData||swotData;
+    if(payload.pdcaData)pdcaData=payload.pdcaData;
+    if(payload.swotData)swotData=payload.swotData;
     // Ensure structure
     Object.keys(ML).forEach(m=>{
       if(!TG[m])TG[m]=JSON.parse(JSON.stringify(DEFAULT_TG[m]));
       if(!holsData[m])holsData[m]={monOff:true,extra:[]};
       if(!csData[m])csData[m]={statuses:[{name:"DISBURSED",count:""},{name:"PENDING",count:""},{name:"POSTPONE",count:""},{name:"PRE-APPROVED",count:""},{name:"REJECT",count:""}],loanMax:8,loans:{}};
     });
-    save();saveTG();saveHols();saveCs();
+    save();saveTG();saveHols();saveCs();savePdca();saveSwot();
     setSyncStatus('ok','ดึงข้อมูลจาก Cloud');
     refreshCurrentView();
   }catch(err){setSyncStatus('err',err.message);}
@@ -2315,6 +2328,12 @@ function refreshCurrentView(){
   document.getElementById('holidayNote').textContent=holidayInfo(currentMonth);
   renderMonthlySummary(currentMonth);renderRR(currentMonth);renderCharts(currentMonth);
   renderDailyTable(currentTblMonth);
+  // Refresh PDCA tab if active
+  if(document.getElementById('panel-pdca').classList.contains('active'))
+    renderPdcaSwot(currentQuarter);
+  // Refresh cstatus if active
+  if(document.getElementById('panel-cstatus').classList.contains('active'))
+    renderCsMonth(currentCsMonth);
 }
 
 // ── GIST SETUP MODAL ──────────────────────────────────────
@@ -2715,6 +2734,8 @@ function exportData(){
     csData,
     pdcaData,
     swotData,
+    pdcaData,
+    swotData,
   };
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);
@@ -2747,6 +2768,15 @@ function importData(event){
       csData=payload.csData||{};
       pdcaData=payload.pdcaData||{};
       swotData=payload.swotData||{};
+      // Ensure structure integrity
+      Object.keys(ML).forEach(m=>{
+        if(!TG[m])TG[m]=JSON.parse(JSON.stringify(DEFAULT_TG[m]));
+        if(!holsData[m])holsData[m]={monOff:true,extra:[]};
+        if(!csData[m])csData[m]={statuses:[{name:"DISBURSED",count:""},{name:"PENDING",count:""},{name:"POSTPONE",count:""},{name:"PRE-APPROVED",count:""},{name:"REJECT",count:""}],loanMax:8,loans:{}};
+        if(!pdcaData[m])pdcaData[m]={planNote:'',checkNote:'',actNote:'',actions:[]};
+      });
+      ['Q1','Q2','Q3','Q4'].forEach(q=>{if(!swotData[q])swotData[q]={O:[],T:[]};});
+      save();saveTG();saveHols();saveCs();savePdca();saveSwot();
       // Ensure all months have required structure
       Object.keys(ML).forEach(m=>{
         if(!TG[m])TG[m]=JSON.parse(JSON.stringify(DEFAULT_TG[m]));
