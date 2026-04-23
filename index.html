@@ -1002,7 +1002,7 @@ try{
   if(typeof ChartDataLabels!=='undefined')Chart.register(ChartDataLabels);
   else console.warn('ChartDataLabels not loaded — bar labels disabled');
 }catch(e){console.warn('ChartDataLabels register failed:',e);}
-const SK="loan-entries-v1",CSK="loan-cstatus-v1",TGK="loan-targets-v1";
+const SK="loan-entries-v1",CSK="loan-cstatus-v1",TGK="loan-targets-v1",HOLK="loan-hols-v1",PDCAK="loan-pdca-v1",SWOTK="loan-swot-v1";
 
 let entries=[],csData={},TG={},holsData={},pdcaData={},swotData={},currentQuarter="Q2",currentMonth="2026-04",currentTblMonth="2026-04",currentCsMonth="2026-04",currentHolMonth="2026-04",charts={};
 
@@ -1315,17 +1315,9 @@ function renderCharts(m){
     {label:'เป้าเชิงเส้น',data:tA,borderColor:'#ffd32a',borderWidth:1.5,borderDash:[6,4],tension:0,pointRadius:0,fill:false,spanGaps:true},
     {label:'Run Rate',data:rA,borderColor:'#2ed573',borderWidth:1.5,borderDash:[4,3],tension:.2,pointRadius:0,fill:false,spanGaps:false},
   ]},options:lo(v=>v!=null?fmtAmt(v):'')});
-  // Use wdMap for daily bars too (groups non-WD entries into nearest WD)
   dc('dailyBar');charts['dailyBar']=new Chart(document.getElementById('dailyBar'),{type:'bar',data:{labels,datasets:[
-    {label:'FL HC',data:wd.map(d=>{const b=wdMap[d];return b&&b.hc>0?b.hc:null;}),backgroundColor:'rgba(0,212,255,.75)',borderRadius:3,stack:'s'},
-    {label:'RO HC',data:wd.map(d=>{
-      const bucket=wdMap[d];
-      if(!bucket)return null;
-      // RO = total - FL for this bucket
-      const flBucket=me.filter(e=>{let bd=null;for(let i=0;i<wd.length;i++){if(wd[i]>=e.date){bd=wd[i];break;}}if(!bd)bd=wd[wd.length-1];return bd===d;})
-        .reduce((s,e)=>s+(e.ro?.hc||0),0);
-      return flBucket>0?flBucket:null;
-    }),backgroundColor:'rgba(255,107,53,.75)',borderRadius:3,stack:'s'},
+    {label:'FL HC',data:wd.map(d=>{const e=me.find(x=>x.date===d);return e&&(e.fl?.hc||0)>0?(e.fl?.hc||0):null;}),backgroundColor:'rgba(0,212,255,.75)',borderRadius:3,stack:'s'},
+    {label:'RO HC',data:wd.map(d=>{const e=me.find(x=>x.date===d);return e&&(e.ro?.hc||0)>0?(e.ro?.hc||0):null;}),backgroundColor:'rgba(255,107,53,.75)',borderRadius:3,stack:'s'},
     {type:'line',label:'Daily TG',data:wd.map(()=>parseFloat((tgH/wn).toFixed(1))),borderColor:'#ffd32a',borderWidth:1.5,borderDash:[5,3],pointRadius:0,tension:0,spanGaps:true},
   ]},options:bo(v=>v!=null?N(v):'',false)});
   dc('dailyAmtBar');charts['dailyAmtBar']=new Chart(document.getElementById('dailyAmtBar'),{type:'bar',data:{labels,datasets:[
