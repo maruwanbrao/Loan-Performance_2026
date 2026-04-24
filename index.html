@@ -1702,11 +1702,7 @@ function openHolMgr(){
 }
 function closeHolMgr(){
   document.getElementById('holOverlay').classList.remove('show');
-  // Refresh dashboard for current month
-  document.getElementById('holidayNote').textContent=holidayInfo(currentMonth);
-  renderMonthlySummary(currentMonth);renderRR(currentMonth);renderCharts(currentMonth);
-  renderDailyTable(currentTblMonth);
-  if(document.getElementById('panel-pdca').classList.contains('active'))renderPdcaSwot(q);
+  refreshCurrentView();
 }
 function holOverlayClick(e){if(e.target===document.getElementById('holOverlay'))closeHolMgr();}
 function switchHolMonth(m,btn){
@@ -1719,6 +1715,7 @@ function toggleMonOff(){
   const m=currentHolMonth;
   holsData[m].monOff=document.getElementById('monOffToggle').checked;
   saveHols();scheduleSync();renderHolCal(m);
+  refreshAfterHolidayChange(m);
 }
 function toggleHolDay(ds){
   const m=ds.substring(0,7);
@@ -1727,11 +1724,28 @@ function toggleHolDay(ds){
   if(idx>=0)h.extra.splice(idx,1);
   else h.extra.push(ds);
   saveHols();scheduleSync();renderHolCal(m);
+  refreshAfterHolidayChange(m);
 }
 function removeHolDay(ds){
   const m=ds.substring(0,7);
   holsData[m].extra=holsData[m].extra.filter(d=>d!==ds);
   saveHols();scheduleSync();renderHolCal(m);
+  refreshAfterHolidayChange(m);
+}
+
+function refreshAfterHolidayChange(m){
+  // Update sync info text with new wd count
+  const wd=getWD(m);
+  // If dashboard is showing this month, re-render everything
+  if(m===currentMonth){
+    document.getElementById('holidayNote').textContent=holidayInfo(currentMonth);
+    renderMonthlySummary(currentMonth);
+    renderRR(currentMonth);
+    renderCharts(currentMonth);
+  }
+  // Also update any visible overview
+  if(document.getElementById('panel-overview').classList.contains('active'))
+    renderOverview(currentQuarter);
 }
 
 function renderHolCal(m){
@@ -2272,6 +2286,29 @@ function switchCsMonth(m,btn){
 // TOAST + BTT
 // ============================================================
 
+
+
+// ============================================================
+// REFRESH CURRENT VIEW (used by Firebase sync)
+// ============================================================
+function refreshCurrentView(){
+  if(currentQuarter==='CMP'||!QUARTERS[currentQuarter]){
+    if(document.getElementById('panel-compare').classList.contains('active'))renderCompare();
+    return;
+  }
+  const qMonths=QUARTERS[currentQuarter].months;
+  if(!qMonths.includes(currentMonth)){
+    currentMonth=qMonths[0];currentTblMonth=qMonths[0];currentCsMonth=qMonths[0];
+  }
+  renderMonthTabs(currentQuarter);
+  document.getElementById('holidayNote').textContent=holidayInfo(currentMonth);
+  renderMonthlySummary(currentMonth);renderRR(currentMonth);renderCharts(currentMonth);
+  renderDailyTable(currentTblMonth);
+  if(document.getElementById('panel-pdca').classList.contains('active'))
+    renderPdcaSwot(currentQuarter);
+  if(document.getElementById('panel-cstatus').classList.contains('active'))
+    renderCsMonth(currentCsMonth);
+}
 
 
 // ============================================================
