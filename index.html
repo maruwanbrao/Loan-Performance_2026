@@ -6,6 +6,8 @@
 <title>2026 · Loan Performance Tracker</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 <style>
@@ -419,9 +421,9 @@ td.phi{color:var(--grn);font-weight:700;}td.plo{color:var(--red);font-weight:700
 <!-- SYNC BAR -->
 <div class="sync-bar" id="syncBar">
   <div class="sync-dot off" id="syncDot"></div>
-  <span class="sync-txt" id="syncTxt">ยังไม่ได้เชื่อมต่อ GitHub Gist — <a href="#" onclick="openGistSetup();return false;" style="color:var(--ac);">ตั้งค่า Sync</a></span>
-  <button class="sync-btn" id="syncNowBtn" onclick="syncNow()" disabled>🔄 Sync</button>
-  <button class="sync-btn" onclick="openGistSetup()" style="border-color:rgba(168,85,247,.35);color:var(--pur);">⚙️ Cloud</button>
+  <span class="sync-txt" id="syncTxt">🔥 Real-time Sync ยังไม่เชื่อมต่อ — <a href="#" onclick="openFirebaseSetup();return false;" style="color:var(--ac2);">ตั้งค่า Firebase</a></span>
+  <button class="sync-btn" id="syncNowBtn" onclick="forcePull()" disabled>🔄 ดึงข้อมูล</button>
+  <button class="sync-btn" onclick="openFirebaseSetup()" style="border-color:rgba(255,107,53,.35);color:var(--ac2);">🔥 Firebase</button>
 </div>
 
 <!-- QUARTER TABS -->
@@ -898,61 +900,62 @@ td.phi{color:var(--grn);font-weight:700;}td.plo{color:var(--red);font-weight:700
   </div>
 </div>
 
-<!-- GIST SETUP MODAL -->
-<div class="overlay" id="gistOverlay" onclick="gistOverlayClick(event)">
-  <div class="fcard gist-card">
+<!-- FIREBASE SETUP MODAL -->
+<div class="overlay" id="fbOverlay" onclick="fbOverlayClick(event)">
+  <div class="fcard gist-card" style="width:580px;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--bd);">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:3px;color:var(--pur);">☁️ Cloud Sync — GitHub Gist</div>
-      <button class="btn-sec" onclick="closeGistSetup()">✕</button>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:3px;color:#ff6b35;">🔥 Real-time Sync — Firebase</div>
+      <button class="btn-sec" onclick="closeFirebaseSetup()">✕</button>
     </div>
     <div class="gist-step">
       <div class="gist-step-num">1</div>
       <div class="gist-step-body">
-        <div class="gist-step-title">สร้าง Personal Access Token</div>
+        <div class="gist-step-title">สร้าง Firebase Project (ฟรี)</div>
         <div class="gist-step-desc">
-          ไปที่ <a href="https://github.com/settings/tokens/new" target="_blank">github.com/settings/tokens/new</a><br>
-          ตั้งชื่อ เช่น "Loan Tracker Sync" → เลือก Scope: <strong style="color:var(--ac);">✅ gist</strong> เท่านั้น → Generate token<br>
-          <span style="color:var(--yel);">⚠️ Copy token ไว้ก่อน จะมองเห็นครั้งเดียว</span>
+          ไปที่ <a href="https://console.firebase.google.com" target="_blank" style="color:var(--ac)">console.firebase.google.com</a> กด Add Project<br>
+          ไปที่ <strong>Realtime Database</strong> → Create Database → เลือก <strong>Test mode</strong><br>
+          หรือตั้ง Rules: <code style="background:var(--s2);padding:2px 6px;border-radius:4px;font-size:10px;">{".read":true,".write":true}</code>
         </div>
-        <input type="password" class="gist-inp" id="gistToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" oninput="onGistInputChange()">
       </div>
     </div>
     <div class="gist-step">
       <div class="gist-step-num">2</div>
       <div class="gist-step-body">
-        <div class="gist-step-title">Gist ID (ว่างไว้ = สร้างใหม่อัตโนมัติ)</div>
-        <div class="gist-step-desc">
-          ถ้ามี Gist อยู่แล้ว ใส่ Gist ID (ตัวเลขหลัง gist.github.com/user/<strong>ID</strong>)<br>
-          ถ้าเพิ่งเริ่ม ว่างไว้แล้วกด "ทดสอบ" — ระบบจะสร้าง Gist ใหม่ให้
-        </div>
-        <input type="text" class="gist-inp" id="gistId" placeholder="ว่างไว้ = สร้าง Gist ใหม่อัตโนมัติ" oninput="onGistInputChange()">
+        <div class="gist-step-title">คัดลอก Database URL</div>
+        <div class="gist-step-desc">ใน Realtime Database จะเห็น URL ขึ้นต้น <code style="background:var(--s2);padding:2px 6px;border-radius:4px;font-size:10px;">https://xxx.firebasedatabase.app</code></div>
+        <input type="text" class="gist-inp" id="fbDbUrl" placeholder="https://your-project-default-rtdb.firebasedatabase.app" oninput="onFbInputChange()">
       </div>
     </div>
     <div class="gist-step">
       <div class="gist-step-num">3</div>
       <div class="gist-step-body">
-        <div class="gist-step-title">ทดสอบการเชื่อมต่อ</div>
-        <div class="gist-step-desc">กดปุ่มเพื่อทดสอบ Token และ Gist ID</div>
+        <div class="gist-step-title">ชื่อ Path — ทุก Browser ใช้ path เดียวกัน = ข้อมูลเดียวกัน</div>
+        <input type="text" class="gist-inp" id="fbPath" placeholder="loan2026" value="loan2026" oninput="onFbInputChange()">
+      </div>
+    </div>
+    <div class="gist-step">
+      <div class="gist-step-num">4</div>
+      <div class="gist-step-body">
+        <div class="gist-step-title">ทดสอบและเชื่อมต่อ</div>
         <div class="gist-test-row">
-          <button class="btn-pri" onclick="testGistConnection()" id="gistTestBtn">🔌 ทดสอบ</button>
-          <div class="gist-status" id="gistTestStatus" style="display:none;"></div>
+          <button class="btn-pri" onclick="testFirebase()" id="fbTestBtn">🔌 ทดสอบ</button>
+          <div class="gist-status" id="fbTestStatus" style="display:none;"></div>
         </div>
       </div>
     </div>
-    <div style="padding:12px 0;border-top:1px solid var(--bd);margin-top:4px;">
-      <div style="font-size:11px;color:var(--tm);margin-bottom:8px;">
-        🔒 Token เก็บใน localStorage ของ Browser นี้เท่านั้น ไม่ถูกส่งไปที่ใดนอกจาก GitHub API
-      </div>
-      <div style="display:flex;gap:8px;justify-content:space-between;">
-        <button class="btn-sec" onclick="clearGistConfig()" style="color:var(--red);">🗑️ ล้างการตั้งค่า</button>
-        <div style="display:flex;gap:8px;">
-          <button class="btn-sec" onclick="closeGistSetup()">ยกเลิก</button>
-          <button class="btn-pri" id="gistSaveBtn" onclick="saveGistConfig()" disabled>💾 บันทึกและเชื่อมต่อ</button>
-        </div>
+    <div style="background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);border-radius:8px;padding:10px 14px;margin:8px 0;font-size:11px;color:var(--tm);">
+      ✅ หลังเชื่อมต่อ — ทุก Browser ที่เปิดลิงก์นี้และใส่ Path เดียวกัน จะได้รับข้อมูล <strong style="color:var(--ac)">Real-time ทันที</strong> โดยไม่ต้องกด Sync
+    </div>
+    <div style="display:flex;gap:8px;justify-content:space-between;margin-top:14px;">
+      <button class="btn-sec" onclick="clearFirebaseConfig()" style="color:var(--red);">🗑️ ยกเลิกการเชื่อมต่อ</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-sec" onclick="closeFirebaseSetup()">ยกเลิก</button>
+        <button class="btn-pri" id="fbSaveBtn" onclick="saveFirebaseConfig()" disabled>🔥 เชื่อมต่อ Real-time</button>
       </div>
     </div>
   </div>
 </div>
+
 
 <div class="toast" id="toast"></div>
 <button class="btt" id="bttBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
@@ -2270,536 +2273,153 @@ function switchCsMonth(m,btn){
 // ============================================================
 
 
-// ============================================================
-// GITHUB GIST SYNC
-// ============================================================
-const GIST_CFG_KEY='loan-gist-cfg';
-let gistCfg={token:'',gistId:''},syncStatus='off',lastSyncTime=null,syncQueue=null;
 
-function updateRelTime(){
-  if(!lastSyncTime)return;
-  const el=document.getElementById('syncRelTime');if(!el)return;
-  const sec=Math.round((Date.now()-lastSyncTime.getTime())/1000);
-  if(sec<60)el.textContent=sec+'วิที่แล้ว';
-  else if(sec<3600)el.textContent=Math.floor(sec/60)+'นาทีที่แล้ว';
-  else el.textContent=Math.floor(sec/3600)+'ชม.ที่แล้ว';
-}
-setInterval(updateRelTime,15000);
+// ============================================================
+// FIREBASE REALTIME SYNC
+// ============================================================
+const FB_CFG_KEY='loan-firebase-cfg';
+let fbCfg={dbUrl:'',path:'loan2026'},fbRef=null,fbConnected=false,fbWriteTimer=null,fbIsLocalWrite=false;
 
-function loadGistCfg(){
-  try{const r=localStorage.getItem(GIST_CFG_KEY);if(r)gistCfg=JSON.parse(r);}catch(e){}
-  updateSyncBar();
-  if(gistCfg.token&&gistCfg.gistId) pullFromGist();
+function loadFirebaseCfg(){
+  try{const r=localStorage.getItem(FB_CFG_KEY);if(r)fbCfg=JSON.parse(r);}catch(e){}
+  if(fbCfg.dbUrl&&fbCfg.path)initFirebase(fbCfg.dbUrl,fbCfg.path);
+  else setSyncStatus('off');
 }
-function saveGistCfg(){
-  try{localStorage.setItem(GIST_CFG_KEY,JSON.stringify(gistCfg));}catch(e){}
+
+function initFirebase(dbUrl,path){
+  try{
+    if(!firebase.apps.length)firebase.initializeApp({databaseURL:dbUrl});
+    const db=firebase.database();
+    if(fbRef)fbRef.off();
+    fbRef=db.ref(path+'/data');
+    setSyncStatus('loading','กำลังเชื่อมต่อ...');
+    // Real-time listener — fires on every remote change
+    fbRef.on('value',function(snap){
+      if(fbIsLocalWrite){fbIsLocalWrite=false;return;}
+      const payload=snap.val();
+      if(!payload){pushToFirebase();return;}
+      mergeFromCloud(payload);
+      setSyncStatus('ok',new Date().toLocaleTimeString('th-TH'));
+      refreshCurrentView();
+    },function(err){setSyncStatus('err',err.message);});
+    // Connection status
+    db.ref('.info/connected').on('value',function(snap){
+      fbConnected=snap.val()===true;
+      if(!fbConnected)setSyncStatus('err','ออฟไลน์ — กำลังรอการเชื่อมต่อ...');
+    });
+  }catch(err){setSyncStatus('err',err.message);}
 }
-function clearGistConfig(){
-  if(!confirm('ล้างการตั้งค่า Cloud Sync?\n\nข้อมูลใน Browser ยังคงอยู่ แค่ยกเลิกการ sync เท่านั้น'))return;
-  gistCfg={token:'',gistId:''};saveGistCfg();
-  syncStatus='off';lastSyncTime=null;updateSyncBar();closeGistSetup();
-  showToast('ล้างการตั้งค่า Cloud Sync แล้ว');
+
+function mergeFromCloud(payload){
+  entries=payload.entries||entries;
+  TG=payload.TG||TG;
+  holsData=payload.holsData||holsData;
+  csData=payload.csData||csData;
+  if(payload.pdcaData)pdcaData=payload.pdcaData;
+  if(payload.swotData)swotData=payload.swotData;
+  Object.keys(ML).forEach(function(m){
+    if(!TG[m])TG[m]=JSON.parse(JSON.stringify(DEFAULT_TG[m]));
+    if(!holsData[m])holsData[m]={monOff:true,extra:[]};
+    if(!csData[m])csData[m]={statuses:[{name:'DISBURSED',count:''},{name:'PENDING',count:''},{name:'POSTPONE',count:''},{name:'PRE-APPROVED',count:''},{name:'REJECT',count:''}],loanMax:8,loans:{}};
+    if(!pdcaData[m])pdcaData[m]={planNote:'',checkNote:'',actNote:'',actions:[]};
+  });
+  ['Q1','Q2','Q3','Q4'].forEach(function(q){if(!swotData[q])swotData[q]={O:[],T:[]};});
+  save();saveTG();saveHols();saveCs();savePdca();saveSwot();
+}
+
+function pushToFirebase(){
+  if(!fbRef)return;
+  var payload={version:2,updatedAt:new Date().toISOString(),entries:entries,TG:TG,holsData:holsData,csData:csData,pdcaData:pdcaData,swotData:swotData};
+  fbIsLocalWrite=true;
+  fbRef.set(payload).then(function(){
+    setSyncStatus('ok',new Date().toLocaleTimeString('th-TH'));
+  }).catch(function(err){
+    fbIsLocalWrite=false;
+    setSyncStatus('err',err.message);
+  });
+}
+
+function scheduleSync(){
+  if(!fbRef)return;
+  if(fbWriteTimer)clearTimeout(fbWriteTimer);
+  fbWriteTimer=setTimeout(function(){pushToFirebase();},1500);
+}
+
+function forcePull(){
+  if(!fbRef){showToast('ยังไม่ได้เชื่อมต่อ Firebase',true);return;}
+  fbRef.once('value').then(function(snap){
+    var p=snap.val();
+    if(p){mergeFromCloud(p);refreshCurrentView();setSyncStatus('ok','ดึงข้อมูลแล้ว · '+new Date().toLocaleTimeString('th-TH'));}
+    else setSyncStatus('ok','ยังไม่มีข้อมูลใน Firebase');
+  }).catch(function(err){setSyncStatus('err',err.message);});
 }
 
 function setSyncStatus(s,msg){
-  syncStatus=s;
-  const dot=document.getElementById('syncDot');
-  const txt=document.getElementById('syncTxt');
-  const btn=document.getElementById('syncNowBtn');
+  var dot=document.getElementById('syncDot');
+  var txt=document.getElementById('syncTxt');
+  var btn=document.getElementById('syncNowBtn');
+  if(!dot||!txt)return;
   dot.className='sync-dot '+s;
   if(s==='ok'){
-    const t=new Date().toLocaleTimeString('th-TH');
-    lastSyncTime=new Date();
-    txt.innerHTML='✅ Sync สำเร็จ · <span id="syncRelTime">เมื่อกี้</span>'+(msg?' · '+msg:'');
-    btn.disabled=false;
-    updateRelTime();
+    txt.textContent='🔥 Real-time Sync เชื่อมต่อแล้ว · '+(msg||'');
+    if(btn)btn.disabled=false;
   }else if(s==='loading'){
-    txt.innerHTML='🔄 กำลัง Sync...';btn.disabled=true;
+    txt.textContent='⏳ '+(msg||'กำลังเชื่อมต่อ...');
+    if(btn)btn.disabled=true;
   }else if(s==='err'){
-    txt.textContent='❌ Sync ล้มเหลว: '+(msg||'ไม่ทราบสาเหตุ');btn.disabled=false;
+    txt.textContent='❌ '+(msg||'เกิดข้อผิดพลาด');
+    if(btn)btn.disabled=false;
   }else{
-    txt.innerHTML='ยังไม่ได้เชื่อมต่อ GitHub Gist — <a href="#" onclick="openGistSetup();return false;" style="color:var(--ac);">ตั้งค่า Sync</a>';
-    btn.disabled=true;
+    txt.innerHTML='🔥 Real-time Sync ยังไม่เชื่อมต่อ — <a href="#" onclick="openFirebaseSetup();return false;" style="color:var(--ac2);">ตั้งค่า Firebase</a>';
+    if(btn)btn.disabled=true;
   }
 }
-function updateSyncBar(){
-  if(!gistCfg.token||!gistCfg.gistId){setSyncStatus('off');}
-}
 
-// Pull latest data from Gist
-async function pullFromGist(){
-  if(!gistCfg.token||!gistCfg.gistId)return;
-  setSyncStatus('loading');
-  try{
-    const res=await fetch(`https://api.github.com/gists/${gistCfg.gistId}`,{
-      headers:{Authorization:'token '+gistCfg.token,'Accept':'application/vnd.github+json'}
-    });
-    if(!res.ok)throw new Error('HTTP '+res.status);
-    const data=await res.json();
-    const fileContent=data.files['loan-data.json']?.content;
-    if(!fileContent)throw new Error('ไม่พบไฟล์ loan-data.json ใน Gist');
-    const payload=JSON.parse(fileContent);
-    // Timestamp check: if local data is newer than Gist, ask user
-    const gistTime=payload.updatedAt?new Date(payload.updatedAt):null;
-    const localTime=localStorage.getItem('loan-last-save')?new Date(localStorage.getItem('loan-last-save')):null;
-    if(gistTime&&localTime&&localTime>gistTime){
-      if(!confirm('ข้อมูลในเครื่องนี้ใหม่กว่า Cloud\n(Local: '+localTime.toLocaleString('th-TH')+')\n(Cloud: '+gistTime.toLocaleString('th-TH')+')\n\nต้องการดึงข้อมูลจาก Cloud ทับข้อมูลล่าสุดในเครื่องหรือไม่?')){
-        setSyncStatus('ok','ข้อมูล Local ใหม่กว่า — ไม่ดึงทับ');return;
-      }
-    }
-    // Merge: Gist wins
-    entries=payload.entries||entries;
-    TG=payload.TG||TG;
-    holsData=payload.holsData||holsData;
-    csData=payload.csData||csData;
-    if(payload.pdcaData)pdcaData=payload.pdcaData;
-    if(payload.swotData)swotData=payload.swotData;
-    // Ensure structure
-    Object.keys(ML).forEach(m=>{
-      if(!TG[m])TG[m]=JSON.parse(JSON.stringify(DEFAULT_TG[m]));
-      if(!holsData[m])holsData[m]={monOff:true,extra:[]};
-      if(!csData[m])csData[m]={statuses:[{name:"DISBURSED",count:""},{name:"PENDING",count:""},{name:"POSTPONE",count:""},{name:"PRE-APPROVED",count:""},{name:"REJECT",count:""}],loanMax:8,loans:{}};
-    });
-    save();saveTG();saveHols();saveCs();savePdca();saveSwot();
-    setSyncStatus('ok','ดึงข้อมูลจาก Cloud');
-    refreshCurrentView();
-  }catch(err){setSyncStatus('err',err.message);}
+function openFirebaseSetup(){
+  document.getElementById('fbDbUrl').value=fbCfg.dbUrl||'';
+  document.getElementById('fbPath').value=fbCfg.path||'loan2026';
+  document.getElementById('fbTestStatus').style.display='none';
+  document.getElementById('fbSaveBtn').disabled=!fbCfg.dbUrl;
+  document.getElementById('fbOverlay').classList.add('show');
 }
+function closeFirebaseSetup(){document.getElementById('fbOverlay').classList.remove('show');}
+function fbOverlayClick(e){if(e.target===document.getElementById('fbOverlay'))closeFirebaseSetup();}
+function onFbInputChange(){document.getElementById('fbSaveBtn').disabled=true;document.getElementById('fbTestStatus').style.display='none';}
 
-// Push local data to Gist
-async function pushToGist(){
-  if(!gistCfg.token||!gistCfg.gistId)return;
-  setSyncStatus('loading');
-  const payload={version:2,updatedAt:new Date().toISOString(),entries,TG,holsData,csData,pdcaData,swotData};
-  try{
-    const res=await fetch(`https://api.github.com/gists/${gistCfg.gistId}`,{
-      method:'PATCH',
-      headers:{Authorization:'token '+gistCfg.token,'Accept':'application/vnd.github+json','Content-Type':'application/json'},
-      body:JSON.stringify({files:{'loan-data.json':{content:JSON.stringify(payload,null,2)}}})
-    });
-    if(!res.ok)throw new Error('HTTP '+res.status);
-    setSyncStatus('ok','บันทึกขึ้น Cloud');
-  }catch(err){setSyncStatus('err',err.message);}
-}
-
-// Debounce push — wait 1.5s after last change
-function scheduleSync(){
-  if(!gistCfg.token||!gistCfg.gistId)return;
-  if(syncQueue)clearTimeout(syncQueue);
-  syncQueue=setTimeout(()=>pushToGist(),1500);
-}
-function syncNow(){pullFromGist();}
-
-function refreshCurrentView(){
-  if(currentQuarter==='CMP'||!QUARTERS[currentQuarter]){
-    if(document.getElementById('panel-compare').classList.contains('active'))renderCompare();
-    return;
-  }
-  const qMonths=QUARTERS[currentQuarter].months;
-  if(!qMonths.includes(currentMonth)){
-    currentMonth=qMonths[0];currentTblMonth=qMonths[0];currentCsMonth=qMonths[0];
-  }
-  renderMonthTabs(currentQuarter);
-  document.getElementById('holidayNote').textContent=holidayInfo(currentMonth);
-  renderMonthlySummary(currentMonth);renderRR(currentMonth);renderCharts(currentMonth);
-  renderDailyTable(currentTblMonth);
-  // Refresh PDCA tab if active
-  if(document.getElementById('panel-pdca').classList.contains('active'))
-    renderPdcaSwot(currentQuarter);
-  // Refresh cstatus if active
-  if(document.getElementById('panel-cstatus').classList.contains('active'))
-    renderCsMonth(currentCsMonth);
-}
-
-// ── GIST SETUP MODAL ──────────────────────────────────────
-function openGistSetup(){
-  document.getElementById('gistToken').value=gistCfg.token||'';
-  document.getElementById('gistId').value=gistCfg.gistId||'';
-  document.getElementById('gistTestStatus').style.display='none';
-  document.getElementById('gistSaveBtn').disabled=!gistCfg.token;
-  document.getElementById('gistOverlay').classList.add('show');
-}
-function closeGistSetup(){document.getElementById('gistOverlay').classList.remove('show');}
-function gistOverlayClick(e){if(e.target===document.getElementById('gistOverlay'))closeGistSetup();}
-function onGistInputChange(){
-  document.getElementById('gistSaveBtn').disabled=!document.getElementById('gistToken').value.trim();
-  document.getElementById('gistTestStatus').style.display='none';
-}
-
-async function testGistConnection(){
-  const token=document.getElementById('gistToken').value.trim();
-  const gistId=document.getElementById('gistId').value.trim();
-  if(!token){showToast('กรุณาใส่ Token',true);return;}
-  const statusEl=document.getElementById('gistTestStatus');
+function testFirebase(){
+  var url=document.getElementById('fbDbUrl').value.trim();
+  if(!url){showToast('กรุณาใส่ Database URL',true);return;}
+  var statusEl=document.getElementById('fbTestStatus');
   statusEl.className='gist-status loading';statusEl.textContent='กำลังทดสอบ...';statusEl.style.display='';
-  document.getElementById('gistTestBtn').disabled=true;
-  try{
-    if(gistId){
-      // Test existing gist
-      const res=await fetch(`https://api.github.com/gists/${gistId}`,{
-        headers:{Authorization:'token '+token,'Accept':'application/vnd.github+json'}
-      });
-      if(res.status===404)throw new Error('ไม่พบ Gist ID นี้');
-      if(res.status===401)throw new Error('Token ไม่ถูกต้องหรือหมดอายุ');
-      if(!res.ok)throw new Error('HTTP '+res.status);
-      statusEl.className='gist-status ok';statusEl.textContent='✅ เชื่อมต่อสำเร็จ!';
-    }else{
-      // Create new gist
-      const res=await fetch('https://api.github.com/gists',{
-        method:'POST',
-        headers:{Authorization:'token '+token,'Accept':'application/vnd.github+json','Content-Type':'application/json'},
-        body:JSON.stringify({description:'Loan Performance Tracker Data 2026',public:false,files:{'loan-data.json':{content:JSON.stringify({version:2,entries:[],TG:{},holsData:{},csData:{}})}}})
-      });
-      if(res.status===401)throw new Error('Token ไม่ถูกต้อง หรือไม่มี scope "gist"');
-      if(!res.ok)throw new Error('HTTP '+res.status);
-      const data=await res.json();
-      document.getElementById('gistId').value=data.id;
-      statusEl.className='gist-status ok';statusEl.textContent='✅ สร้าง Gist ใหม่สำเร็จ ID: '+data.id;
-    }
-    document.getElementById('gistSaveBtn').disabled=false;
-  }catch(err){
+  document.getElementById('fbTestBtn').disabled=true;
+  fetch(url+'/.json?shallow=true').then(function(res){
+    if(res.status===401||res.status===403)throw new Error('ไม่มีสิทธิ์ — ตรวจสอบ Database Rules');
+    statusEl.className='gist-status ok';statusEl.textContent='✅ เชื่อมต่อสำเร็จ!';
+    document.getElementById('fbSaveBtn').disabled=false;
+  }).catch(function(err){
     statusEl.className='gist-status err';statusEl.textContent='❌ '+err.message;
-  }
-  document.getElementById('gistTestBtn').disabled=false;
+  }).finally(function(){document.getElementById('fbTestBtn').disabled=false;});
 }
 
-async function saveGistConfig(){
-  const token=document.getElementById('gistToken').value.trim();
-  const gistId=document.getElementById('gistId').value.trim();
-  if(!token){showToast('กรุณาใส่ Token',true);return;}
-  if(!gistId){showToast('กรุณากด "ทดสอบ" ก่อนเพื่อสร้าง Gist ID',true);return;}
-  gistCfg={token,gistId};saveGistCfg();
-  closeGistSetup();
-  showToast('✅ บันทึกการตั้งค่าแล้ว — กำลัง Sync...');
-  await pushToGist();
+function saveFirebaseConfig(){
+  var url=document.getElementById('fbDbUrl').value.trim();
+  var path=document.getElementById('fbPath').value.trim()||'loan2026';
+  if(!url){showToast('กรุณาใส่ Database URL',true);return;}
+  fbCfg={dbUrl:url,path:path};
+  try{localStorage.setItem(FB_CFG_KEY,JSON.stringify(fbCfg));}catch(e){}
+  closeFirebaseSetup();
+  showToast('🔥 กำลังเชื่อมต่อ Firebase...');
+  if(fbRef)fbRef.off();
+  initFirebase(url,path);
 }
 
-
-// ============================================================
-// REPORT EXPORT
-// ============================================================
-function openReportModal(){
-  updateRptScopeGrid();
-  updateRptPreview();
-  document.getElementById('rptOverlay').classList.add('show');
-}
-function closeReportModal(){document.getElementById('rptOverlay').classList.remove('show');}
-function rptOverlayClick(e){if(e.target===document.getElementById('rptOverlay'))closeReportModal();}
-
-function getRptType(){return document.querySelector('input[name="rptType"]:checked')?.value||'month';}
-function getRptScope(){
-  const els=document.querySelectorAll('input[name="rptScope"]:checked');
-  return Array.from(els).map(e=>e.value);
-}
-
-function updateRptScopeGrid(){
-  const type=getRptType();
-  const grid=document.getElementById('rptScopeGrid');
-  const sec=document.getElementById('rptScopeSection');
-  if(type==='year'){sec.style.display='none';return;}
-  sec.style.display='';
-  if(type==='month'){
-    grid.className='rpt-month-grid';
-    grid.innerHTML=Object.keys(ML).map(m=>`
-      <div class="rpt-opt">
-        <input type="checkbox" name="rptScope" id="rptS_${m}" value="${m}" ${m.startsWith('2026-04')?'checked':''} onchange="updateRptPreview()">
-        <label for="rptS_${m}"><span style="font-size:16px">${ML[m].emoji}</span>${ML[m].short}</label>
-      </div>`).join('');
-  } else {
-    grid.className='rpt-optgrid';
-    grid.innerHTML=Object.entries(QUARTERS).map(([q,d])=>`
-      <div class="rpt-opt">
-        <input type="radio" name="rptScope" id="rptS_${q}" value="${q}" ${q==='Q2'?'checked':''} onchange="updateRptPreview()">
-        <label for="rptS_${q}"><span style="font-size:18px">${d.emoji}</span>${q}</label>
-      </div>`).join('');
-  }
-}
-
-function switchRptType(){
-  updateRptScopeGrid();
-  updateRptPreview();
-}
-function updateRptPreview(){
-  const type=getRptType();
-  const scope=getRptScope();
-  const incDaily=document.getElementById('rptIncDaily').checked;
-  const incSum=document.getElementById('rptIncSummary').checked;
-  const incRR=document.getElementById('rptIncRunRate').checked;
-  const incSt=document.getElementById('rptIncStatus').checked;
-  let lines=[];
-  if(type==='year'){
-    const total=entries.length;
-    lines.push(`<strong>ช่วงเวลา:</strong> ทั้งปี 2026 (ม.ค.–ธ.ค.)`);
-    lines.push(`<strong>จำนวนวันที่มีข้อมูล:</strong> ${total} วัน`);
-  } else if(type==='month'){
-    if(!scope.length){lines.push('<span style="color:var(--red)">⚠️ กรุณาเลือกอย่างน้อย 1 เดือน</span>');document.getElementById('rptPreview').innerHTML=lines.join('<br>');return;}
-    const sortedScope=scope.sort();
-    lines.push(`<strong>ช่วงเวลา:</strong> ${sortedScope.map(m=>ML[m].label).join(', ')}`);
-    const totalDays=sortedScope.reduce((s,m)=>s+getMe(m).length,0);
-    lines.push(`<strong>วันที่มีข้อมูล:</strong> ${totalDays} วัน`);
-  } else {
-    if(!scope.length){lines.push('<span style="color:var(--red)">⚠️ กรุณาเลือกไตรมาส</span>');document.getElementById('rptPreview').innerHTML=lines.join('<br>');return;}
-    const q=scope[0];
-    lines.push(`<strong>ช่วงเวลา:</strong> ${QUARTERS[q].label}`);
-  }
-  const contents=[];
-  if(incDaily)contents.push('ตารางรายวัน');
-  if(incSum)contents.push('สรุป FL/RO/Total vs เป้า');
-  if(incRR)contents.push('Run Rate');
-  if(incSt)contents.push('สถานะลูกค้า');
-  lines.push(`<strong>เนื้อหา:</strong> ${contents.join(' · ')||'—'}`);
-  document.getElementById('rptPreview').innerHTML=lines.join('<br>');
-}
-
-// ── DATA BUILDERS ─────────────────────────────────────────────────────
-function getReportMonths(){
-  const type=getRptType();
-  if(type==='year') return Object.keys(ML);
-  if(type==='quarter'){
-    const q=getRptScope()[0]||'Q2';
-    return QUARTERS[q].months;
-  }
-  return getRptScope().sort();
-}
-
-function buildDailyRows(months){
-  const rows=[];
-  months.forEach(m=>{
-    getMe(m).forEach(e=>{
-      const fH=e.fl?.hc||0,fA=e.fl?.amt||0,rH=e.ro?.hc||0,rA=e.ro?.amt||0;
-      rows.push({
-        วันที: dl(e.date)+' ('+dayName(e.date)+')',
-        เดือน: ML[m].label,
-        'FL Headcount':fH,'FL Amount':fA,
-        'RO Headcount':rH,'RO Amount':rA,
-        'Total HC':fH+rH,'Total Amount':fA+rA,
-      });
-    });
-  });
-  return rows;
-}
-
-function buildSummaryRows(months){
-  const rows=[];
-  months.forEach(m=>{
-    const s=calcS(m),tg=TG[m];
-    rows.push({
-      เดือน: ML[m].label,
-      'FL HC จริง':s.flHC,'FL HC เป้า':tg.fl.hc,'FL HC Diff':s.flHC-tg.fl.hc,'FL HC %':+(s.flHCpct.toFixed(2)),
-      'FL Amt จริง':s.flAmt,'FL Amt เป้า':tg.fl.amt,'FL Amt Diff':s.flAmt-tg.fl.amt,'FL Amt %':+(s.flAmtpct.toFixed(2)),
-      'RO HC จริง':s.roHC,'RO HC เป้า':tg.ro.hc,'RO HC Diff':s.roHC-tg.ro.hc,'RO HC %':+(s.roHCpct.toFixed(2)),
-      'RO Amt จริง':s.roAmt,'RO Amt เป้า':tg.ro.amt,'RO Amt Diff':s.roAmt-tg.ro.amt,'RO Amt %':+(s.roAmtpct.toFixed(2)),
-      'Total HC จริง':s.totHC,'Total HC เป้า':s.tgTotHC,
-      'Total Amt จริง':s.totAmt,'Total Amt เป้า':s.tgTotAmt,
-      'วันทำการ':s.wn,'วันที่มีข้อมูล':s.n,'วันที่เหลือ':s.drem,
-      'เฉลี่ย HC/วัน':+(s.avgHC.toFixed(2)),'Run Rate HC':Math.round(s.projTotHC),
-    });
-  });
-  return rows;
-}
-
-function buildRRRows(months){
-  return months.map(m=>{
-    const s=calcS(m);
-    return {
-      เดือน:ML[m].label,'วันทำการ':s.wn,'มีข้อมูล':s.n,'เหลือ':s.drem,
-      'เฉลี่ย HC/วัน':+(s.avgHC.toFixed(2)),'เฉลี่ย Amt/วัน':Math.round(s.avgAmt),
-      'คาดสิ้นเดือน HC':Math.round(s.projTotHC),'เป้า HC':s.tgTotHC,
-      'คาดสิ้นเดือน Amt':Math.round(s.projTotAmt),'เป้า Amt':s.tgTotAmt,
-      'ต้องการ/วัน FL HC':+(s.neFlHC.toFixed(2)),
-    };
-  });
-}
-
-function buildStatusRows(months){
-  const rows=[];
-  months.forEach(m=>{
-    const d=csData[m];
-    const tot=stTotal(m);
-    d.statuses.forEach(st=>{
-      const cnt=parseInt(st.count)||0;
-      rows.push({เดือน:ML[m].label,สถานะ:st.name,จำนวน:cnt,'% รวม':tot>0?+(cnt/tot*100).toFixed(2):0});
-    });
-  });
-  return rows;
-}
-
-// ── CSV ───────────────────────────────────────────────────────────────
-function toCSV(rows){
-  if(!rows.length)return '';
-  const headers=Object.keys(rows[0]);
-  const lines=[headers.join(',')];
-  rows.forEach(r=>lines.push(headers.map(h=>{
-    const v=r[h]??'';
-    return typeof v==='string'&&(v.includes(','))||v.includes('"')?`"${v.replace(/"/g,'""')}"`:v;
-  }).join(',')));
-  return '\uFEFF'+lines.join('\r\n'); // BOM for Thai in Excel
-}
-
-function downloadCSV(content,filename){
-  const blob=new Blob([content],{type:'text/csv;charset=utf-8;'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=url;a.download=filename;
-  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
-}
-
-// ── XLSX ──────────────────────────────────────────────────────────────
-function buildXLSX(months,incDaily,incSum,incRR,incSt){
-  const wb=XLSX.utils.book_new();
-  if(incSum){
-    const ws=XLSX.utils.json_to_sheet(buildSummaryRows(months));
-    styleXLSXHeader(ws);
-    XLSX.utils.book_append_sheet(wb,ws,'สรุป');
-  }
-  if(incRR){
-    const ws=XLSX.utils.json_to_sheet(buildRRRows(months));
-    XLSX.utils.book_append_sheet(wb,ws,'Run Rate');
-  }
-  if(incDaily){
-    const ws=XLSX.utils.json_to_sheet(buildDailyRows(months));
-    XLSX.utils.book_append_sheet(wb,ws,'รายวัน');
-  }
-  if(incSt){
-    const ws=XLSX.utils.json_to_sheet(buildStatusRows(months));
-    XLSX.utils.book_append_sheet(wb,ws,'สถานะลูกค้า');
-  }
-  return wb;
-}
-function styleXLSXHeader(ws){
-  // just set column widths
-  const range=XLSX.utils.decode_range(ws['!ref']||'A1');
-  ws['!cols']=Array.from({length:range.e.c+1},()=>({wch:14}));
-}
-
-// ── PDF via Browser Print ─────────────────────────────────────────────
-function printPDF(months,incDaily,incSum,incRR,incSt,title){
-  const dateStr=new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
-
-  function tbl(headers,rows,caption){
-    let h=headers.map(h=>`<th>${h}</th>`).join('');
-    let b=rows.map(r=>`<tr>${r.map(c=>`<td>${c??''}</td>`).join('')}</tr>`).join('');
-    return `<div class="pt-section"><div class="pt-caption">${caption}</div><table><thead><tr>${h}</tr></thead><tbody>${b}</tbody></table></div>`;
-  }
-
-  let body='';
-  if(incSum){
-    const rows=buildSummaryRows(months);
-    body+=tbl(
-      ['เดือน','FL HC','FL เป้า','FL%','FL Amt','RO HC','RO เป้า','RO%','Total HC','Total เป้า','วันทำการ','เฉลี่ย/วัน','Run Rate'],
-      rows.map(r=>[r['เดือน'],r['FL HC จริง'],r['FL HC เป้า'],r['FL HC %']+'%',N(r['FL Amt จริง']),r['RO HC จริง'],r['RO HC เป้า'],r['RO HC %']+'%',r['Total HC จริง'],r['Total HC เป้า'],r['วันทำการ'],r['เฉลี่ย HC/วัน'],r['Run Rate HC']]),
-      'สรุปรายเดือน — First Loan & Rollover vs เป้าหมาย'
-    );
-  }
-  if(incRR){
-    const rows=buildRRRows(months);
-    body+=tbl(
-      ['เดือน','วันทำการ','มีข้อมูล','เหลือ','เฉลี่ย HC/วัน','เฉลี่ย Amt/วัน','คาดสิ้นเดือน HC','เป้า HC','ต้องการ/วัน FL'],
-      rows.map(r=>[r['เดือน'],r['วันทำการ'],r['มีข้อมูล'],r['เหลือ'],r['เฉลี่ย HC/วัน'],N(r['เฉลี่ย Amt/วัน']),r['คาดสิ้นเดือน HC'],r['เป้า HC'],r['ต้องการ/วัน FL HC']]),
-      'Run Rate Analysis'
-    );
-  }
-  if(incDaily){
-    const rows=buildDailyRows(months);
-    body+=tbl(
-      ['วันที่','เดือน','FL HC','FL Amount (฿)','RO HC','RO Amount (฿)','Total HC','Total Amount (฿)'],
-      rows.map(r=>[r['วันที'],r['เดือน'],r['FL Headcount'],N(r['FL Amount']),r['RO Headcount'],N(r['RO Amount']),r['Total HC'],N(r['Total Amount'])]),
-      'ตารางรายวัน'
-    );
-  }
-  if(incSt){
-    const rows=buildStatusRows(months);
-    body+=tbl(['เดือน','สถานะ','จำนวน (ราย)','% รวม'],
-      rows.map(r=>[r['เดือน'],r['สถานะ'],r['จำนวน'],r['% รวม']+'%']),
-      'สถานะลูกค้า'
-    );
-  }
-
-  const printWin=window.open('','_blank','width=1100,height=800');
-  printWin.document.write(`<!DOCTYPE html><html lang="th"><head>
-<meta charset="UTF-8">
-<title>${title}</title>
-<style>
-  @page{size:A4 landscape;margin:12mm 10mm;}
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:'Sarabun',sans-serif;background:#fff;color:#111;font-size:9pt;}
-  .pt-header{text-align:center;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid #0066cc;}
-  .pt-header h1{font-size:16pt;color:#0055aa;margin-bottom:4px;}
-  .pt-header p{font-size:8pt;color:#666;}
-  .pt-section{margin-bottom:16px;}
-  .pt-caption{font-size:10pt;font-weight:700;color:#003888;margin-bottom:5px;padding:4px 8px;background:#e8f0fe;border-left:4px solid #0055aa;border-radius:2px;}
-  table{width:100%;border-collapse:collapse;font-size:8pt;}
-  thead tr{background:#0055aa;color:#fff;}
-  thead th{padding:5px 6px;text-align:center;font-weight:700;white-space:nowrap;}
-  tbody tr:nth-child(even){background:#f0f4ff;}
-  tbody tr:nth-child(odd){background:#fff;}
-  td{padding:4px 6px;text-align:center;border-bottom:1px solid #dde;}
-  td:first-child{text-align:left;}
-  .pt-footer{text-align:center;font-size:7.5pt;color:#888;margin-top:10px;border-top:1px solid #ccc;padding-top:6px;}
-  @media print{button{display:none;}}
-</style>
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
-</head><body>
-<div class="pt-header">
-  <h1>${title}</h1>
-  <p>ออกรายงานวันที่: ${dateStr} &nbsp;|&nbsp; ระบบ Loan Performance Tracker 2026</p>
-</div>
-${body}
-<div class="pt-footer">Loan Performance Tracker 2026 &nbsp;|&nbsp; ออกรายงาน: ${dateStr}</div>
-<script>window.onload=()=>{setTimeout(()=>window.print(),400);};<\/script>
-</body></html>`);
-  printWin.document.close();
-  return printWin;
-}
-
-// ── MAIN DOWNLOAD ─────────────────────────────────────────────────────
-function downloadReport(fmt){
-  const months=getReportMonths();
-  if(!months.length){showToast('กรุณาเลือกช่วงเวลา',true);return;}
-  const incDaily=document.getElementById('rptIncDaily').checked;
-  const incSum=document.getElementById('rptIncSummary').checked;
-  const incRR=document.getElementById('rptIncRunRate').checked;
-  const incSt=document.getElementById('rptIncStatus').checked;
-  if(!incDaily&&!incSum&&!incRR&&!incSt){showToast('กรุณาเลือกเนื้อหาอย่างน้อย 1 อย่าง',true);return;}
-
-  const type=getRptType();
-  const scope=getRptScope();
-  let titleParts=type==='year'?['ทั้งปี 2026']:type==='quarter'?[QUARTERS[scope[0]]?.label||'']:months.map(m=>ML[m].short);
-  const title='Loan Performance — '+titleParts.join(', ');
-  const dateStr=new Date().toISOString().split('T')[0];
-  const scopeStr=type==='year'?'full-year':type==='quarter'?(scope[0]||'Q?'):months.map(m=>m.replace('2026-','')).join('-');
-  const fname=`loan-report-${scopeStr}-${dateStr}`;
-
-  try{
-    if(fmt==='csv'){
-      // CSV: combine all into one file separated by blank lines
-      const parts=[];
-      if(incSum)parts.push('=== สรุปรายเดือน ===\r\n'+toCSV(buildSummaryRows(months)));
-      if(incRR)parts.push('=== Run Rate ===\r\n'+toCSV(buildRRRows(months)));
-      if(incDaily)parts.push('=== รายวัน ===\r\n'+toCSV(buildDailyRows(months)));
-      if(incSt)parts.push('=== สถานะลูกค้า ===\r\n'+toCSV(buildStatusRows(months)));
-      downloadCSV(parts.join('\r\n\r\n'),fname+'.csv');
-      showToast('✅ ดาวน์โหลด CSV สำเร็จ');
-
-    } else if(fmt==='xlsx'){
-      if(typeof XLSX==='undefined'){showToast('❌ ไม่สามารถโหลด Excel library ได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต',true);return;}
-      const wb=buildXLSX(months,incDaily,incSum,incRR,incSt);
-      XLSX.writeFile(wb,fname+'.xlsx');
-      showToast('✅ ดาวน์โหลด Excel สำเร็จ');
-
-    } else if(fmt==='pdf'){
-      const pw=printPDF(months,incDaily,incSum,incRR,incSt,title);
-      if(!pw||pw.closed){
-        showToast('⚠️ Browser บล็อก Popup — กรุณาอนุญาต Popup แล้วลองใหม่',true);
-      } else {
-        showToast('✅ เปิดหน้า Print — กด Ctrl+P หรือ ⌘P เพื่อบันทึก PDF');
-      }
-      return;
-    }
-    closeReportModal();
-  }catch(err){
-    showToast('❌ เกิดข้อผิดพลาด: '+err.message,true);
-    console.error(err);
-  }
+function clearFirebaseConfig(){
+  if(!confirm('ยกเลิกการเชื่อมต่อ Firebase?'))return;
+  if(fbRef)fbRef.off();
+  fbRef=null;fbCfg={dbUrl:'',path:'loan2026'};
+  try{localStorage.removeItem(FB_CFG_KEY);}catch(e){}
+  setSyncStatus('off');closeFirebaseSetup();
+  showToast('ยกเลิกการเชื่อมต่อแล้ว');
 }
 
 // ============================================================
@@ -2900,7 +2520,7 @@ renderMonthlySummary('2026-04');
 renderRR('2026-04');
 renderCharts('2026-04');
 renderDailyTable('2026-04');
-loadGistCfg();
+loadFirebaseCfg();
 </script>
 </body>
 </html>
