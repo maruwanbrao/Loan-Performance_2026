@@ -944,13 +944,14 @@ td.phi{color:var(--grn);font-weight:700;}td.plo{color:var(--red);font-weight:700
       </div>
     </div>
     <div style="background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);border-radius:8px;padding:10px 14px;margin:8px 0;font-size:11px;color:var(--tm);">
-      ✅ หลังเชื่อมต่อ — ทุก Browser ที่เปิดลิงก์นี้และใส่ Path เดียวกัน จะได้รับข้อมูล <strong style="color:var(--ac)">Real-time ทันที</strong> โดยไม่ต้องกด Sync
+      ✅ หลังเชื่อมต่อ — กด <strong style="color:var(--grn)">🔗 Copy ลิงก์แชร์</strong> แล้วส่งให้คนอื่น เปิดลิงก์นั้นจากเครื่องไหนก็ได้ — เชื่อมต่อ Firebase อัตโนมัติทันที ไม่ต้องกรอกอีก
     </div>
     <div style="display:flex;gap:8px;justify-content:space-between;margin-top:14px;">
       <button class="btn-sec" onclick="clearFirebaseConfig()" style="color:var(--red);">🗑️ ยกเลิกการเชื่อมต่อ</button>
-      <div style="display:flex;gap:8px;">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <button class="btn-sec" onclick="closeFirebaseSetup()">ยกเลิก</button>
         <button class="btn-pri" id="fbSaveBtn" onclick="saveFirebaseConfig()" disabled>🔥 เชื่อมต่อ Real-time</button>
+        <button class="btn-pri" id="fbShareBtn" onclick="copyShareLink()" style="background:linear-gradient(135deg,var(--grn),#00a86b);display:none;">🔗 Copy ลิงก์แชร์</button>
       </div>
     </div>
   </div>
@@ -1969,11 +1970,11 @@ function renderMcmpCharts(sData){
   if(!hcEl||!pctEl||!amtEl||!momEl)return;
   var labels=sData.map(function(d){return ML[d.m].emoji+' '+ML[d.m].short;});
   var qColors=sData.map(function(d){return QUARTERS[getQofMonth(d.m)].color;});
-  var cOpt=function(yF){return{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:true,labels:{color:'#6b8aaa',font:{size:10},boxWidth:10,padding:6}},tooltip:{backgroundColor:'#1a2235',borderColor:'#1e2d45',borderWidth:1,titleColor:'#e8f4f8',bodyColor:'#6b8aaa',callbacks:{label:function(c){return c.raw!=null?' '+c.dataset.label+': '+yF(c.raw):null;}}}},scales:{x:{ticks:{color:'#6b8aaa',font:{size:9}},grid:{color:'#1e2d45'}},y:{ticks:{color:'#6b8aaa',font:{size:9},callback:function(v){return yF(v);}},grid:{color:'#1e2d45'}}}};};
-  dc('mcmpHC');charts['mcmpHC']=new Chart(hcEl,{type:'bar',data:{labels:labels,datasets:[{label:'Total HC จริง',data:sData.map(function(d){return d.s.totHC>0?d.s.totHC:null;}),backgroundColor:qColors.map(function(c){return c+'bb';}),borderColor:qColors,borderWidth:1.5,borderRadius:4},{label:'เป้า HC',data:sData.map(function(d){return d.s.tgTotHC;}),backgroundColor:'rgba(255,255,255,.05)',borderColor:'rgba(255,255,255,.25)',borderWidth:1,borderRadius:4}]},options:cOpt(function(v){return N(v);})});
-  dc('mcmpPct');var pctData=sData.map(function(d){return d.s.tgTotHC>0?parseFloat((d.s.totHC/d.s.tgTotHC*100).toFixed(1)):null;});charts['mcmpPct']=new Chart(pctEl,{type:'bar',data:{labels:labels,datasets:[{label:'% บรรลุเป้า HC',data:pctData,backgroundColor:pctData.map(function(v){return v==null?'transparent':v>=100?'rgba(46,213,115,.75)':v>=75?'rgba(255,211,42,.75)':v>=50?'rgba(255,107,53,.75)':'rgba(255,71,87,.75)';}),borderRadius:4},{type:'line',label:'เป้า 100%',data:sData.map(function(){return 100;}),borderColor:'rgba(255,255,255,.2)',borderWidth:1.5,borderDash:[4,3],pointRadius:0,spanGaps:true}]},options:cOpt(function(v){return v!=null?v.toFixed(1)+'%':'';})});
-  dc('mcmpAmt');charts['mcmpAmt']=new Chart(amtEl,{type:'bar',data:{labels:labels,datasets:[{label:'Total Amount จริง',data:sData.map(function(d){return d.s.totAmt>0?d.s.totAmt:null;}),backgroundColor:qColors.map(function(c){return c+'99';}),borderColor:qColors,borderWidth:1.5,borderRadius:4},{label:'เป้า Amount',data:sData.map(function(d){return d.s.tgTotAmt;}),backgroundColor:'rgba(255,255,255,.05)',borderColor:'rgba(255,255,255,.25)',borderWidth:1,borderRadius:4}]},options:cOpt(function(v){return fmtAmt(v);})});
-  dc('mcmpMoM');var momData=sData.map(function(d,i){if(i===0||!sData[i-1].s.totHC)return null;return parseFloat(((d.s.totHC-sData[i-1].s.totHC)/sData[i-1].s.totHC*100).toFixed(1));});charts['mcmpMoM']=new Chart(momEl,{type:'bar',data:{labels:labels,datasets:[{label:'MoM HC %',data:momData,backgroundColor:momData.map(function(v){return v==null?'transparent':v>=0?'rgba(46,213,115,.75)':'rgba(255,71,87,.75)';}),borderRadius:4}]},options:cOpt(function(v){return v!=null?v.toFixed(1)+'%':'';})});
+  var cOpt=function(yF,isAmt){return{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:true,labels:{color:'#6b8aaa',font:{size:10},boxWidth:10,padding:6}},tooltip:{backgroundColor:'#1a2235',borderColor:'#1e2d45',borderWidth:1,titleColor:'#e8f4f8',bodyColor:'#6b8aaa',callbacks:{label:function(c){return c.raw!=null?' '+c.dataset.label+': '+yF(c.raw):null;}}},datalabels:{display:function(ctx){if(ctx.dataset.type==='line')return false;var v=ctx.dataset.data[ctx.dataIndex];return v!=null&&v>0&&ctx.datasetIndex<2;},color:function(ctx){return ctx.datasetIndex===0?'#00d4ff':'#ffaa66';},textStrokeColor:'rgba(0,0,0,.8)',textStrokeWidth:3,font:{size:10,weight:'bold'},anchor:'center',align:'center',formatter:function(v){return v>0?(isAmt?fmtK(v):String(Math.round(v))):'';},clamp:true,clip:true}},scales:{x:{ticks:{color:'#6b8aaa',font:{size:9}},grid:{color:'#1e2d45'}},y:{ticks:{color:'#6b8aaa',font:{size:9},callback:function(v){return yF(v);}},grid:{color:'#1e2d45'}}}};};
+  dc('mcmpHC');charts['mcmpHC']=new Chart(hcEl,{type:'bar',data:{labels:labels,datasets:[{label:'Total HC จริง',data:sData.map(function(d){return d.s.totHC>0?d.s.totHC:null;}),backgroundColor:qColors.map(function(c){return c+'bb';}),borderColor:qColors,borderWidth:1.5,borderRadius:4},{label:'เป้า HC',data:sData.map(function(d){return d.s.tgTotHC;}),backgroundColor:'rgba(255,255,255,.05)',borderColor:'rgba(255,255,255,.25)',borderWidth:1,borderRadius:4}]},options:cOpt(function(v){return N(v);},false)});
+  dc('mcmpPct');var pctData=sData.map(function(d){return d.s.tgTotHC>0?parseFloat((d.s.totHC/d.s.tgTotHC*100).toFixed(1)):null;});charts['mcmpPct']=new Chart(pctEl,{type:'bar',data:{labels:labels,datasets:[{label:'% บรรลุเป้า HC',data:pctData,backgroundColor:pctData.map(function(v){return v==null?'transparent':v>=100?'rgba(46,213,115,.75)':v>=75?'rgba(255,211,42,.75)':v>=50?'rgba(255,107,53,.75)':'rgba(255,71,87,.75)';}),borderRadius:4},{type:'line',label:'เป้า 100%',data:sData.map(function(){return 100;}),borderColor:'rgba(255,255,255,.2)',borderWidth:1.5,borderDash:[4,3],pointRadius:0,spanGaps:true}]},options:(function(){var o=cOpt(function(v){return v!=null?v.toFixed(1)+'%':'';},false);o.plugins.datalabels={display:false};return o;}())});
+  dc('mcmpAmt');charts['mcmpAmt']=new Chart(amtEl,{type:'bar',data:{labels:labels,datasets:[{label:'Total Amount จริง',data:sData.map(function(d){return d.s.totAmt>0?d.s.totAmt:null;}),backgroundColor:qColors.map(function(c){return c+'99';}),borderColor:qColors,borderWidth:1.5,borderRadius:4},{label:'เป้า Amount',data:sData.map(function(d){return d.s.tgTotAmt;}),backgroundColor:'rgba(255,255,255,.05)',borderColor:'rgba(255,255,255,.25)',borderWidth:1,borderRadius:4}]},options:cOpt(function(v){return fmtAmt(v);},true)});
+  dc('mcmpMoM');var momData=sData.map(function(d,i){if(i===0||!sData[i-1].s.totHC)return null;return parseFloat(((d.s.totHC-sData[i-1].s.totHC)/sData[i-1].s.totHC*100).toFixed(1));});charts['mcmpMoM']=new Chart(momEl,{type:'bar',data:{labels:labels,datasets:[{label:'MoM HC %',data:momData,backgroundColor:momData.map(function(v){return v==null?'transparent':v>=0?'rgba(46,213,115,.75)':'rgba(255,71,87,.75)';}),borderRadius:4}]},options:(function(){var o=cOpt(function(v){return v!=null?v.toFixed(1)+'%':'';},false);o.plugins.datalabels={display:false};return o;}())});
 }
 function renderMcmpCards(sData){
   var el=document.getElementById('mcmpContent');if(!el)return;
@@ -2369,9 +2370,43 @@ const FB_CFG_KEY='loan-firebase-cfg';
 let fbCfg={dbUrl:'',path:'loan2026'},fbRef=null,fbConnected=false,fbWriteTimer=null,fbIsLocalWrite=false;
 
 function loadFirebaseCfg(){
-  try{const r=localStorage.getItem(FB_CFG_KEY);if(r)fbCfg=JSON.parse(r);}catch(e){}
+  // 1. Try URL hash first (e.g. #fb=https://xxx.firebasedatabase.app|loan2026)
+  const hash=window.location.hash;
+  if(hash.startsWith('#fb=')){
+    try{
+      const encoded=hash.slice(4);
+      const decoded=atob(encoded);
+      const [dbUrl,path]=decoded.split('|');
+      if(dbUrl&&path){
+        fbCfg={dbUrl,path};
+        try{localStorage.setItem(FB_CFG_KEY,JSON.stringify(fbCfg));}catch(e){}
+        // Remove hash from URL so it doesn't linger
+        history.replaceState(null,'',window.location.pathname+window.location.search);
+      }
+    }catch(e){}
+  }
+  // 2. Fall back to localStorage
+  if(!fbCfg.dbUrl){
+    try{const r=localStorage.getItem(FB_CFG_KEY);if(r)fbCfg=JSON.parse(r);}catch(e){}
+  }
   if(fbCfg.dbUrl&&fbCfg.path)initFirebase(fbCfg.dbUrl,fbCfg.path);
   else setSyncStatus('off');
+}
+
+function copyShareLink(){
+  if(!fbCfg.dbUrl){showToast('กรุณาเชื่อมต่อ Firebase ก่อน',true);return;}
+  const encoded=btoa(fbCfg.dbUrl+'|'+fbCfg.path);
+  const url=window.location.origin+window.location.pathname+'#fb='+encoded;
+  navigator.clipboard.writeText(url).then(()=>{
+    showToast('✅ Copy ลิงก์แล้ว! ส่งให้คนอื่นเปิดได้เลย — เชื่อมต่ออัตโนมัติ');
+  }).catch(()=>{
+    // Fallback for browsers without clipboard API
+    const ta=document.createElement('textarea');
+    ta.value=url;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();
+    document.execCommand('copy');document.body.removeChild(ta);
+    showToast('✅ Copy ลิงก์แล้ว!');
+  });
 }
 
 function initFirebase(dbUrl,path){
@@ -2451,6 +2486,9 @@ function setSyncStatus(s,msg){
   if(s==='ok'){
     txt.textContent='🔥 Real-time Sync เชื่อมต่อแล้ว · '+(msg||'');
     if(btn)btn.disabled=false;
+    // Show share button in modal if open
+    var shareBtn=document.getElementById('fbShareBtn');
+    if(shareBtn)shareBtn.style.display='';
   }else if(s==='loading'){
     txt.textContent='⏳ '+(msg||'กำลังเชื่อมต่อ...');
     if(btn)btn.disabled=true;
@@ -2468,6 +2506,9 @@ function openFirebaseSetup(){
   document.getElementById('fbPath').value=fbCfg.path||'loan2026';
   document.getElementById('fbTestStatus').style.display='none';
   document.getElementById('fbSaveBtn').disabled=!fbCfg.dbUrl;
+  // Show share button if already connected
+  var shareBtn=document.getElementById('fbShareBtn');
+  if(shareBtn)shareBtn.style.display=fbCfg.dbUrl?'':'none';
   document.getElementById('fbOverlay').classList.add('show');
 }
 function closeFirebaseSetup(){document.getElementById('fbOverlay').classList.remove('show');}
