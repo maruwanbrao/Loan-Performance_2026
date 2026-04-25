@@ -1083,6 +1083,7 @@ function P(n){return n.toFixed(2)+'%';}
 function dl(d){const x=new Date(d+'T00:00:00');return String(x.getDate()).padStart(2,'0')+'/'+String(x.getMonth()+1).padStart(2,'0');}
 function dayName(d){return WEEK[new Date(d+'T00:00:00').getDay()];}
 function fmtAmt(v){if(v>=1000000)return(v/1000000).toFixed(2)+'M';if(v>=1000)return(v/1000).toFixed(1)+'K';return N(v);}
+function fmtK(v){return v>=1000?(v/1000).toFixed(0)+'K':String(Math.round(v));}
 function pClass(p){return p>=100?'phi':p>=50?'pmid':'plo';}
 function ld(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function ord(n){const s=['st','nd','rd'],v=n%100;return n+(s[(v-20)%10]||s[v-1]||'th');}
@@ -1285,7 +1286,6 @@ function renderCharts(m){
     plugins:{legend:{display:false},datalabels:{display:false},tooltip:{backgroundColor:'#1a2235',borderColor:'#1e2d45',borderWidth:1,titleColor:'#e8f4f8',bodyColor:'#6b8aaa',callbacks:{label:c=>c.raw!=null?` ${c.dataset.label}: ${yF(c.raw)}`:null}}},
     scales:{x:{ticks:{color:'#6b8aaa',font:{size:9},maxRotation:45,autoSkip:true,maxTicksLimit:14},grid:{color:'#1e2d45'}},y:{ticks:{color:'#6b8aaa',font:{size:10},callback:v=>yF(v)},grid:{color:'#1e2d45'}}}});
   // bo: stacked bar options WITH datalabels
-  const fmtK=v=>v>=1000?(v/1000).toFixed(0)+'K':String(Math.round(v));
   const bo=(yF,isAmt=false)=>({responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
     plugins:{
       legend:{display:false},
@@ -1398,9 +1398,18 @@ function renderOverview(q){
     legend:{display:true,labels:{color:'#6b8aaa',font:{size:11},boxWidth:12}},
     tooltip:{backgroundColor:'#1a2235',borderColor:'#1e2d45',borderWidth:1,titleColor:'#e8f4f8',bodyColor:'#6b8aaa'},
     datalabels:{
-      display:ctx=>{const v=ctx.dataset.data[ctx.dataIndex];return v!=null&&v>0&&ctx.datasetIndex<2;},
-      color:'#fff',font:{size:9,weight:'bold'},anchor:'center',align:'center',
-      formatter:v=>v>0?N(v):'',clamp:true,clip:true,
+      display:ctx=>{
+        if(ctx.dataset.type==='line')return false;
+        const v=ctx.dataset.data[ctx.dataIndex];
+        return v!=null&&v>0&&ctx.datasetIndex<2;
+      },
+      color:ctx=>ctx.datasetIndex===0?'#00d4ff':'#ffaa66',
+      textStrokeColor:'rgba(0,0,0,.8)',
+      textStrokeWidth:3,
+      font:{size:10,weight:'bold'},
+      anchor:'center',align:'center',
+      formatter:(v,ctx)=>v>0?(ctx.datasetIndex===0||ctx.chart.data.datasets[0]?N(v):''):'',
+      clamp:true,clip:true,
     }
   },scales:{x:{ticks:{color:'#6b8aaa'},grid:{color:'#1e2d45'}},y:{ticks:{color:'#6b8aaa',callback:v=>N(v)},grid:{color:'#1e2d45'}}}};
   dc('ovHC');charts['ovHC']=new Chart(document.getElementById('ovHCChart'),{type:'bar',data:{labels:ml,datasets:[
@@ -1414,7 +1423,13 @@ function renderOverview(q){
     {label:'RO จริง',data:months.map(m=>getMe(m).reduce((s,e)=>s+(e.ro?.amt||0),0)),backgroundColor:'rgba(255,107,53,.75)',borderRadius:4},
     {label:'FL เป้า',data:months.map(m=>TG[m].fl.amt),backgroundColor:'rgba(0,212,255,.12)',borderColor:'rgba(0,212,255,.5)',borderWidth:1,borderRadius:4},
     {label:'RO เป้า',data:months.map(m=>TG[m].ro.amt),backgroundColor:'rgba(255,107,53,.12)',borderColor:'rgba(255,107,53,.5)',borderWidth:1,borderRadius:4},
-  ]},options:{...qOpt,scales:{...qOpt.scales,y:{...qOpt.scales.y,ticks:{color:'#6b8aaa',callback:v=>fmtAmt(v)}}}}});
+  ]},options:{...qOpt,plugins:{...qOpt.plugins,datalabels:{
+      display:ctx=>{if(ctx.dataset.type==='line')return false;const v=ctx.dataset.data[ctx.dataIndex];return v!=null&&v>0&&ctx.datasetIndex<2;},
+      color:ctx=>ctx.datasetIndex===0?'#00d4ff':'#ffaa66',
+      textStrokeColor:'rgba(0,0,0,.8)',textStrokeWidth:3,
+      font:{size:9,weight:'bold'},anchor:'center',align:'center',
+      formatter:v=>v>0?fmtK(v):'',clamp:true,clip:true,
+    }},scales:{...qOpt.scales,y:{...qOpt.scales.y,ticks:{color:'#6b8aaa',callback:v=>fmtAmt(v)}}}}});
 }
 
 // ============================================================
@@ -1493,9 +1508,18 @@ function renderCompare(){
     legend:{display:true,labels:{color:'#6b8aaa',font:{size:11},boxWidth:12}},
     tooltip:{backgroundColor:'#1a2235',borderColor:'#1e2d45',borderWidth:1,titleColor:'#e8f4f8',bodyColor:'#6b8aaa'},
     datalabels:{
-      display:ctx=>{const v=ctx.dataset.data[ctx.dataIndex];return v!=null&&v>0&&ctx.datasetIndex===0;},
-      color:'#fff',font:{size:10,weight:'bold'},anchor:'center',align:'center',
-      formatter:(v,ctx)=>ctx.chart.id?N(v):'',clamp:true,clip:true,
+      display:ctx=>{
+        if(ctx.dataset.type==='line')return false;
+        const v=ctx.dataset.data[ctx.dataIndex];
+        return v!=null&&v>0&&ctx.datasetIndex<2;
+      },
+      color:ctx=>ctx.datasetIndex===0?'#00d4ff':'#ffaa66',
+      textStrokeColor:'rgba(0,0,0,.8)',
+      textStrokeWidth:3,
+      font:{size:10,weight:'bold'},
+      anchor:'center',align:'center',
+      formatter:(v,ctx)=>v>0?(ctx.datasetIndex===0||ctx.chart.data.datasets[0]?N(v):''):'',
+      clamp:true,clip:true,
     }
   },scales:{x:{ticks:{color:'#6b8aaa'},grid:{color:'#1e2d45'}},y:{ticks:{color:'#6b8aaa',callback:v=>N(v)},grid:{color:'#1e2d45'}}}};
   dc('cmpHC');charts['cmpHC']=new Chart(document.getElementById('cmpHCChart'),{type:'bar',data:{labels:qLabels,datasets:[
@@ -1505,7 +1529,13 @@ function renderCompare(){
   dc('cmpAmt');charts['cmpAmt']=new Chart(document.getElementById('cmpAmtChart'),{type:'bar',data:{labels:qLabels,datasets:[
     {label:'Total Amount จริง',data:qs.map(q=>qData[q].totAmt),backgroundColor:qColors.map(c=>c+'bb'),borderColor:qColors,borderWidth:1.5,borderRadius:6},
     {label:'Total Amount เป้า',data:qs.map(q=>qData[q].totTGAmt),backgroundColor:qColors.map(c=>c+'22'),borderColor:qColors.map(c=>c+'66'),borderWidth:1,borderRadius:6},
-  ]},options:{...cmpOpt,scales:{...cmpOpt.scales,y:{...cmpOpt.scales.y,ticks:{color:'#6b8aaa',callback:v=>fmtAmt(v)}}}}});
+  ]},options:{...cmpOpt,plugins:{...cmpOpt.plugins,datalabels:{
+      display:ctx=>{if(ctx.dataset.type==='line')return false;const v=ctx.dataset.data[ctx.dataIndex];return v!=null&&v>0&&ctx.datasetIndex<2;},
+      color:ctx=>ctx.datasetIndex===0?'#00d4ff':'#ffaa66',
+      textStrokeColor:'rgba(0,0,0,.8)',textStrokeWidth:3,
+      font:{size:9,weight:'bold'},anchor:'center',align:'center',
+      formatter:v=>v>0?fmtK(v):'',clamp:true,clip:true,
+    }},scales:{...cmpOpt.scales,y:{...cmpOpt.scales.y,ticks:{color:'#6b8aaa',callback:v=>fmtAmt(v)}}}}});
   // Trend line - monthly
   const allMonths=["2026-01","2026-02","2026-03","2026-04","2026-05","2026-06","2026-07","2026-08","2026-09","2026-10","2026-11","2026-12"];
   const trendLabels=allMonths.map(m=>ML[m].short);
@@ -1687,10 +1717,11 @@ function saveTgEdit(){
 // HOLIDAY MANAGER
 // ============================================================
 function openHolMgr(){
-  // Reset currentHolMonth to match current quarter's first month (if not CMP)
+  // Always reset to current quarter's active month, or first month of quarter
   if(currentQuarter!=='CMP'&&QUARTERS[currentQuarter]){
     const qm=QUARTERS[currentQuarter].months;
-    if(!qm.includes(currentHolMonth))currentHolMonth=qm[0];
+    // Set to currentMonth if it's in this quarter, otherwise first month
+    currentHolMonth=qm.includes(currentMonth)?currentMonth:qm[0];
   }
   // Build month tabs for all 12 months
   const allM=Object.keys(ML);
@@ -1708,48 +1739,68 @@ function holOverlayClick(e){if(e.target===document.getElementById('holOverlay'))
 function switchHolMonth(m,btn){
   currentHolMonth=m;
   document.querySelectorAll('.hol-mtab').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
+  if(btn)btn.classList.add('active');
+  // Ensure structure exists for this month
+  if(!holsData[m])holsData[m]={monOff:true,extra:[]};
+  if(holsData[m].monOff===undefined)holsData[m].monOff=true;
+  if(!holsData[m].extra)holsData[m].extra=[];
   renderHolCal(m);
 }
 function toggleMonOff(){
   const m=currentHolMonth;
+  if(!holsData[m])holsData[m]={monOff:true,extra:[]};
   holsData[m].monOff=document.getElementById('monOffToggle').checked;
   saveHols();scheduleSync();renderHolCal(m);
   refreshAfterHolidayChange(m);
 }
 function toggleHolDay(ds){
   const m=ds.substring(0,7);
-  const h=holsData[m];
-  const idx=h.extra.indexOf(ds);
-  if(idx>=0)h.extra.splice(idx,1);
-  else h.extra.push(ds);
+  if(!holsData[m])holsData[m]={monOff:true,extra:[]};
+  if(!holsData[m].extra)holsData[m].extra=[];
+  const idx=holsData[m].extra.indexOf(ds);
+  if(idx>=0)holsData[m].extra.splice(idx,1);
+  else holsData[m].extra.push(ds);
   saveHols();scheduleSync();renderHolCal(m);
   refreshAfterHolidayChange(m);
 }
 function removeHolDay(ds){
   const m=ds.substring(0,7);
+  if(!holsData[m])holsData[m]={monOff:true,extra:[]};
+  if(!holsData[m].extra)holsData[m].extra=[];
   holsData[m].extra=holsData[m].extra.filter(d=>d!==ds);
   saveHols();scheduleSync();renderHolCal(m);
   refreshAfterHolidayChange(m);
 }
 
 function refreshAfterHolidayChange(m){
-  // Update sync info text with new wd count
-  const wd=getWD(m);
-  // If dashboard is showing this month, re-render everything
-  if(m===currentMonth){
+  const qMonths=QUARTERS[currentQuarter]?.months||[];
+  // Refresh dashboard if changed month is in current quarter
+  if(qMonths.includes(m)){
+    // Always update the holiday note
     document.getElementById('holidayNote').textContent=holidayInfo(currentMonth);
-    renderMonthlySummary(currentMonth);
-    renderRR(currentMonth);
-    renderCharts(currentMonth);
+    // If it's the exact displayed month, re-render charts
+    if(m===currentMonth){
+      renderMonthlySummary(currentMonth);
+      renderRR(currentMonth);
+      renderCharts(currentMonth);
+    }
+    // Also refresh run rate / summary for the changed month
+    // (so MonthlySummary card shows correct wd count)
+    if(m!==currentMonth){
+      // Switch view to reflect change — update summary card
+      renderMonthlySummary(m);
+    }
   }
-  // Also update any visible overview
+  // Always update overview if visible
   if(document.getElementById('panel-overview').classList.contains('active'))
     renderOverview(currentQuarter);
 }
 
 function renderHolCal(m){
-  const h=holsData[m]||{monOff:true,extra:[]};
+  if(!holsData[m])holsData[m]={monOff:true,extra:[]};
+  if(holsData[m].monOff===undefined)holsData[m].monOff=true;
+  if(!holsData[m].extra)holsData[m].extra=[];
+  const h=holsData[m];
   const extraSet=new Set(h.extra);
   const daysWithData=new Set(entries.filter(e=>e.date.startsWith(m)).map(e=>e.date));
   const[y,mo]=m.split('-').map(Number);
