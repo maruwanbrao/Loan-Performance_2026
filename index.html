@@ -421,7 +421,7 @@ td.phi{color:var(--grn);font-weight:700;}td.plo{color:var(--red);font-weight:700
 <!-- SYNC BAR -->
 <div class="sync-bar" id="syncBar">
   <div class="sync-dot off" id="syncDot"></div>
-  <span class="sync-txt" id="syncTxt">🔥 Real-time Sync ยังไม่เชื่อมต่อ — <a href="#" onclick="openFirebaseSetup();return false;" style="color:var(--ac2);">ตั้งค่า Firebase</a></span>
+  <span class="sync-txt" id="syncTxt">🔥 กำลังเชื่อมต่อ Firebase...</span>
   <button class="sync-btn" id="syncNowBtn" onclick="forcePull()" disabled>🔄 ดึงข้อมูล</button>
   <button class="sync-btn" onclick="openFirebaseSetup()" style="border-color:rgba(255,107,53,.35);color:var(--ac2);">🔥 Firebase</button>
 </div>
@@ -923,7 +923,7 @@ td.phi{color:var(--grn);font-weight:700;}td.plo{color:var(--red);font-weight:700
       <div class="gist-step-body">
         <div class="gist-step-title">คัดลอก Database URL</div>
         <div class="gist-step-desc">ใน Realtime Database จะเห็น URL ขึ้นต้น <code style="background:var(--s2);padding:2px 6px;border-radius:4px;font-size:10px;">https://xxx.firebasedatabase.app</code></div>
-        <input type="text" class="gist-inp" id="fbDbUrl" placeholder="https://your-project-default-rtdb.firebasedatabase.app" oninput="onFbInputChange()">
+        <input type="text" class="gist-inp" id="fbDbUrl" placeholder="https://loan-performance-2026-default-rtdb.asia-southeast1.firebasedatabase.app" oninput="onFbInputChange()">
       </div>
     </div>
     <div class="gist-step">
@@ -2367,30 +2367,35 @@ function refreshCurrentView(){
 // FIREBASE REALTIME SYNC
 // ============================================================
 const FB_CFG_KEY='loan-firebase-cfg';
-let fbCfg={dbUrl:'',path:'loan2026'},fbRef=null,fbConnected=false,fbWriteTimer=null,fbIsLocalWrite=false;
+let fbCfg={dbUrl:'https://loan-performance-2026-default-rtdb.asia-southeast1.firebasedatabase.app',path:'loan2026'},fbRef=null,fbConnected=false,fbWriteTimer=null,fbIsLocalWrite=false;
+
+const DEFAULT_FB={dbUrl:'https://loan-performance-2026-default-rtdb.asia-southeast1.firebasedatabase.app',path:'loan2026'};
 
 function loadFirebaseCfg(){
-  // 1. Try URL hash first (e.g. #fb=https://xxx.firebasedatabase.app|loan2026)
+  // 1. URL hash override (#fb=base64) — for sharing custom configs
   const hash=window.location.hash;
   if(hash.startsWith('#fb=')){
     try{
-      const encoded=hash.slice(4);
-      const decoded=atob(encoded);
+      const decoded=atob(hash.slice(4));
       const [dbUrl,path]=decoded.split('|');
       if(dbUrl&&path){
         fbCfg={dbUrl,path};
         try{localStorage.setItem(FB_CFG_KEY,JSON.stringify(fbCfg));}catch(e){}
-        // Remove hash from URL so it doesn't linger
         history.replaceState(null,'',window.location.pathname+window.location.search);
       }
     }catch(e){}
   }
-  // 2. Fall back to localStorage
-  if(!fbCfg.dbUrl){
-    try{const r=localStorage.getItem(FB_CFG_KEY);if(r)fbCfg=JSON.parse(r);}catch(e){}
+  // 2. localStorage (user may have changed config)
+  else {
+    try{
+      const r=localStorage.getItem(FB_CFG_KEY);
+      if(r){const saved=JSON.parse(r);if(saved.dbUrl)fbCfg=saved;}
+    }catch(e){}
   }
-  if(fbCfg.dbUrl&&fbCfg.path)initFirebase(fbCfg.dbUrl,fbCfg.path);
-  else setSyncStatus('off');
+  // 3. Always fall back to embedded default if still no URL
+  if(!fbCfg.dbUrl)fbCfg=Object.assign({},DEFAULT_FB);
+  // Auto-connect
+  initFirebase(fbCfg.dbUrl,fbCfg.path);
 }
 
 function copyShareLink(){
@@ -2496,7 +2501,7 @@ function setSyncStatus(s,msg){
     txt.textContent='❌ '+(msg||'เกิดข้อผิดพลาด');
     if(btn)btn.disabled=false;
   }else{
-    txt.innerHTML='🔥 Real-time Sync ยังไม่เชื่อมต่อ — <a href="#" onclick="openFirebaseSetup();return false;" style="color:var(--ac2);">ตั้งค่า Firebase</a>';
+    txt.innerHTML='🔥 Firebase: <a href="#" onclick="openFirebaseSetup();return false;" style="color:var(--ac2);">เปลี่ยนการตั้งค่า</a>';
     if(btn)btn.disabled=true;
   }
 }
@@ -2545,7 +2550,7 @@ function saveFirebaseConfig(){
 function clearFirebaseConfig(){
   if(!confirm('ยกเลิกการเชื่อมต่อ Firebase?'))return;
   if(fbRef)fbRef.off();
-  fbRef=null;fbCfg={dbUrl:'',path:'loan2026'};
+  fbRef=null;fbCfg=Object.assign({},DEFAULT_FB);
   try{localStorage.removeItem(FB_CFG_KEY);}catch(e){}
   setSyncStatus('off');closeFirebaseSetup();
   showToast('ยกเลิกการเชื่อมต่อแล้ว');
