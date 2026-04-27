@@ -361,6 +361,42 @@ td.phi{color:var(--grn);font-weight:700;}td.plo{color:var(--red);font-weight:700
 .swot-add-btn{padding:7px 12px;border-radius:7px;border:1px solid var(--bd);color:var(--tm);cursor:pointer;font-size:12px;font-weight:700;background:var(--s2);transition:all .15s;}
 .swot-add-btn:hover{color:var(--tx);}
 @media(max-width:800px){.pdca-wrap,.swot-grid{grid-template-columns:1fr;}}
+
+/* STATS PANEL */
+.stats-wrap{display:flex;flex-direction:column;gap:16px;}
+.stats-filter{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:12px 16px;background:var(--s2);border-radius:10px;margin-bottom:4px;}
+.stats-filter label{font-size:11px;color:var(--tm);white-space:nowrap;}
+.stats-sel{background:var(--bg);border:1px solid var(--bd);border-radius:7px;padding:6px 10px;color:var(--tx);font-family:'Sarabun',sans-serif;font-size:12px;outline:none;cursor:pointer;}
+.stats-sel:focus{border-color:var(--ac);}
+.stats-krow{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.stats-kcard{background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:14px 16px;text-align:center;}
+.stats-kcard-label{font-size:10px;color:var(--tm);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
+.stats-kcard-val{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;line-height:1;}
+.stats-kcard-sub{font-size:11px;color:var(--tm);margin-top:4px;}
+.stats-insight{background:var(--s1);border:1px solid rgba(0,212,255,.2);border-radius:12px;padding:16px 20px;}
+.stats-insight-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--ac);margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.stats-insight-list{display:flex;flex-direction:column;gap:8px;}
+.stats-insight-item{display:flex;align-items:flex-start;gap:10px;padding:8px 12px;background:var(--s2);border-radius:8px;}
+.stats-insight-icon{font-size:18px;flex-shrink:0;}
+.stats-insight-text{font-size:12px;color:var(--tx);line-height:1.6;}
+.stats-insight-text strong{color:var(--ac);}
+.stats-period-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.stats-period-card{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:12px 14px;text-align:center;}
+.stats-period-label{font-size:10px;color:var(--tm);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;}
+.stats-period-val{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1.5px;}
+.stats-period-pct{font-size:12px;font-weight:700;margin-top:3px;}
+.stats-period-bar{height:6px;background:var(--bd);border-radius:3px;overflow:hidden;margin-top:6px;}
+.stats-period-fill{height:100%;border-radius:3px;}
+.stats-heatmap{background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:16px;}
+.stats-heatmap-title{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--tm);margin-bottom:14px;}
+.stats-hm-row{display:flex;gap:4px;align-items:center;margin-bottom:4px;}
+.stats-hm-label{font-size:10px;color:var(--tm);width:40px;text-align:right;flex-shrink:0;}
+.stats-hm-cell{flex:1;height:28px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;transition:all .2s;cursor:default;position:relative;}
+.stats-hm-cell:hover .stats-hm-tooltip{display:block;}
+.stats-hm-tooltip{display:none;position:absolute;bottom:110%;left:50%;transform:translateX(-50%);background:var(--s1);border:1px solid var(--bd);border-radius:6px;padding:4px 8px;font-size:10px;color:var(--tx);white-space:nowrap;z-index:10;}
+.stats-week-header{display:flex;gap:4px;margin-bottom:4px;padding-left:44px;}
+.stats-week-label{flex:1;text-align:center;font-size:9px;color:var(--tm);letter-spacing:.5px;}
+@media(max-width:800px){.stats-krow{grid-template-columns:repeat(2,1fr);}.stats-period-grid{grid-template-columns:1fr;}}
 /* PANELS */
 .panel{display:none;}.panel.active{display:block;}
 /* FORM OVERLAY */
@@ -443,6 +479,7 @@ td.phi{color:var(--grn);font-weight:700;}td.plo{color:var(--red);font-weight:700
   <button class="tab" data-tab="overview" onclick="switchTab('overview',this)">🎯 สรุปไตรมาส</button>
   <button class="tab" data-tab="cstatus" onclick="switchTab('cstatus',this)">👥 สถานะลูกค้า</button>
   <button class="tab" data-tab="pdca" onclick="switchTab('pdca',this)">🔄 PDCA &amp; SWOT</button>
+  <button class="tab" data-tab="stats" onclick="switchTab('stats',this)">📈 วิเคราะห์พฤติกรรม</button>
 </div>
 
 <!-- DASHBOARD -->
@@ -766,6 +803,70 @@ td.phi{color:var(--grn);font-weight:700;}td.plo{color:var(--red);font-weight:700
       </div>
       <div class="swot-card-body" id="swotT"></div>
     </div>
+  </div>
+</div>
+
+<!-- STATS PANEL -->
+<div id="panel-stats" class="panel">
+  <div class="stats-filter">
+    <label>ไตรมาส:</label>
+    <select class="stats-sel" id="statsQ" onchange="renderStats()">
+      <option value="Q1">❄️ Q1</option>
+      <option value="Q2" selected>🌸 Q2</option>
+      <option value="Q3">☀️ Q3</option>
+      <option value="Q4">🍂 Q4</option>
+      <option value="all">📅 ทั้งปี</option>
+    </select>
+    <label>เดือน:</label>
+    <select class="stats-sel" id="statsM" onchange="renderStats()">
+      <option value="all">— ทุกเดือนใน Q</option>
+    </select>
+    <label>ดูข้อมูล:</label>
+    <select class="stats-sel" id="statsType" onchange="renderStats()">
+      <option value="total">Total HC</option>
+      <option value="fl">First Loan HC</option>
+      <option value="ro">Rollover HC</option>
+    </select>
+    <label style="margin-left:auto;font-size:11px;color:var(--tm);" id="statsEntryCount"></label>
+  </div>
+
+  <!-- KPI -->
+  <div class="stats-krow" id="statsKRow" style="margin-bottom:16px;"></div>
+
+  <!-- PERIOD BREAKDOWN -->
+  <div class="ccard" style="margin-bottom:14px;">
+    <div class="ctitle"><span class="dot" style="background:var(--ac)"></span>การกระจายตามช่วงเดือน</div>
+    <div class="stats-period-grid" id="statsPeriodGrid"></div>
+  </div>
+
+  <!-- CHARTS ROW -->
+  <div class="cgrid" style="margin-bottom:14px;">
+    <div class="ccard">
+      <div class="ctitle"><span class="dot" style="background:var(--yel)"></span>แนวโน้มรายวันในเดือน (Day of Month)</div>
+      <div style="position:relative;height:220px;"><canvas id="statsDomChart"></canvas></div>
+    </div>
+    <div class="ccard">
+      <div class="ctitle"><span class="dot" style="background:var(--pur)"></span>การกระจายตามวันในสัปดาห์</div>
+      <div style="position:relative;height:220px;"><canvas id="statsDowChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- WEEK OF MONTH -->
+  <div class="ccard" style="margin-bottom:14px;">
+    <div class="ctitle"><span class="dot" style="background:var(--ac2)"></span>ค่าเฉลี่ย HC ตามสัปดาห์ที่ของเดือน</div>
+    <div style="position:relative;height:200px;"><canvas id="statsWomChart"></canvas></div>
+  </div>
+
+  <!-- HEATMAP -->
+  <div class="stats-heatmap" style="margin-bottom:14px;">
+    <div class="stats-heatmap-title">🗓️ Heatmap — ค่าเฉลี่ย HC ตามวัน × สัปดาห์ที่ของเดือน</div>
+    <div id="statsHeatmap"></div>
+  </div>
+
+  <!-- INSIGHTS -->
+  <div class="stats-insight" style="margin-bottom:24px;">
+    <div class="stats-insight-title"><span class="dot" style="background:var(--ac)"></span>สรุปข้อค้นพบ</div>
+    <div class="stats-insight-list" id="statsInsights"></div>
   </div>
 </div>
 
@@ -2292,6 +2393,207 @@ function deleteSwotItem(q,type,i){
   renderSwot(q);
 }
 
+
+// ============================================================
+// BEHAVIOUR STATISTICS
+// ============================================================
+function getStatsEntries(){
+  const q=document.getElementById('statsQ')?.value||'Q2';
+  const m=document.getElementById('statsM')?.value||'all';
+  const type=document.getElementById('statsType')?.value||'total';
+
+  let months;
+  if(q==='all') months=Object.keys(ML);
+  else months=QUARTERS[q]?.months||QUARTERS['Q2'].months;
+
+  // Update month dropdown
+  const mSel=document.getElementById('statsM');
+  if(mSel){
+    const cur=mSel.value;
+    mSel.innerHTML='<option value="all">— ทุกเดือนใน '+( q==='all'?'ปี':q)+'</option>'+months.map(mo=>`<option value="${mo}" ${mo===cur?'selected':''}>${ML[mo].label}</option>`).join('');
+    if(m!=='all'&&months.includes(m))mSel.value=m;
+  }
+
+  const selectedMonths=m==='all'?months:(months.includes(m)?[m]:months);
+  let allEntries=[];
+  selectedMonths.forEach(mo=>{
+    getMe(mo).forEach(e=>{
+      const v=type==='fl'?(e.fl?.hc||0):type==='ro'?(e.ro?.hc||0):((e.fl?.hc||0)+(e.ro?.hc||0));
+      allEntries.push({date:e.date,v,month:mo});
+    });
+  });
+  return {entries:allEntries,months:selectedMonths,type};
+}
+
+function renderStats(){
+  const {entries,months,type}=getStatsEntries();
+  const typeLabel=type==='fl'?'First Loan HC':type==='ro'?'Rollover HC':'Total HC';
+  document.getElementById('statsEntryCount').textContent=`${entries.length} วันที่มีข้อมูล`;
+
+  if(!entries.length){
+    document.getElementById('statsKRow').innerHTML='<div style="grid-column:span 4;text-align:center;color:var(--tm);padding:20px;">ยังไม่มีข้อมูลในช่วงที่เลือก</div>';
+    document.getElementById('statsInsights').innerHTML='<div class="stats-insight-item"><span class="stats-insight-icon">💡</span><div class="stats-insight-text">กรอกข้อมูลรายวันก่อนเพื่อดูการวิเคราะห์</div></div>';
+    return;
+  }
+
+  const vals=entries.map(e=>e.v);
+  const total=vals.reduce((a,b)=>a+b,0);
+  const avg=total/entries.length;
+  const maxV=Math.max(...vals),minV=Math.min(...vals.filter(v=>v>0));
+  const maxEntry=entries.find(e=>e.v===maxV);
+  const minEntry=entries.find(e=>e.v===minV);
+
+  // ── KPI ────────────────────────────────────────────────────
+  document.getElementById('statsKRow').innerHTML=`
+    <div class="stats-kcard"><div class="stats-kcard-label">ค่าเฉลี่ย/วัน</div><div class="stats-kcard-val" style="color:var(--ac)">${avg.toFixed(1)}</div><div class="stats-kcard-sub">ราย/วันทำงาน</div></div>
+    <div class="stats-kcard"><div class="stats-kcard-label">วันที่ดีที่สุด</div><div class="stats-kcard-val" style="color:var(--grn)">${maxV}</div><div class="stats-kcard-sub">${maxEntry?dl(maxEntry.date)+' ('+dayName(maxEntry.date)+')':'—'}</div></div>
+    <div class="stats-kcard"><div class="stats-kcard-label">วันที่ต่ำสุด</div><div class="stats-kcard-val" style="color:var(--red)">${minV||0}</div><div class="stats-kcard-sub">${minEntry?dl(minEntry.date)+' ('+dayName(minEntry.date)+')':'—'}</div></div>
+    <div class="stats-kcard"><div class="stats-kcard-label">Consistency</div><div class="stats-kcard-val" style="color:var(--yel)">${avg>0?Math.round((1-stdDev(vals)/avg)*100):0}%</div><div class="stats-kcard-sub">ความสม่ำเสมอ</div></div>`;
+
+  // ── PERIOD BREAKDOWN (ต้น/กลาง/ปลาย) ─────────────────────
+  const periods=[
+    {label:'ต้นเดือน',sub:'วันที่ 1–10',filter:e=>parseInt(e.date.split('-')[2])<=10,col:'#00d4ff'},
+    {label:'กลางเดือน',sub:'วันที่ 11–20',filter:e=>{const d=parseInt(e.date.split('-')[2]);return d>=11&&d<=20;},col:'#ffd32a'},
+    {label:'ปลายเดือน',sub:'วันที่ 21 เป็นต้นไป',filter:e=>parseInt(e.date.split('-')[2])>=21,col:'#ff6b35'},
+  ];
+  const pTotals=periods.map(p=>entries.filter(p.filter).reduce((s,e)=>s+e.v,0));
+  const pCounts=periods.map(p=>entries.filter(p.filter).length);
+  const pAvgs=periods.map((p,i)=>pCounts[i]>0?pTotals[i]/pCounts[i]:0);
+  const maxPAvg=Math.max(...pAvgs);
+  document.getElementById('statsPeriodGrid').innerHTML=periods.map((p,i)=>`
+    <div class="stats-period-card">
+      <div class="stats-period-label">${p.label}</div>
+      <div class="stats-period-sub" style="font-size:10px;color:var(--tm);margin-bottom:6px;">${p.sub}</div>
+      <div class="stats-period-val" style="color:${p.col}">${pAvgs[i].toFixed(1)}</div>
+      <div class="stats-period-pct" style="color:${p.col}">เฉลี่ย ${pAvgs[i].toFixed(1)} ราย/วัน</div>
+      <div style="font-size:10px;color:var(--tm);margin-top:2px;">${pCounts[i]} วัน · รวม ${N(pTotals[i])} ราย</div>
+      <div class="stats-period-bar"><div class="stats-period-fill" style="width:${maxPAvg>0?pAvgs[i]/maxPAvg*100:0}%;background:${p.col}"></div></div>
+      ${pAvgs[i]===maxPAvg&&maxPAvg>0?'<div style="font-size:10px;color:var(--grn);margin-top:4px;font-weight:700;">🏆 ช่วงที่ดีที่สุด</div>':''}
+    </div>`).join('');
+
+  // ── DAY OF MONTH chart ─────────────────────────────────────
+  // Group by day-of-month (1-31), compute average
+  const domMap={};
+  entries.forEach(e=>{
+    const d=parseInt(e.date.split('-')[2]);
+    if(!domMap[d])domMap[d]={sum:0,cnt:0};
+    domMap[d].sum+=e.v;domMap[d].cnt++;
+  });
+  const domLabels=[],domData=[],domColors=[];
+  for(let d=1;d<=31;d++){
+    if(domMap[d]){
+      domLabels.push(d+'');
+      const avg2=domMap[d].sum/domMap[d].cnt;
+      domData.push(parseFloat(avg2.toFixed(1)));
+      domColors.push(d<=10?'rgba(0,212,255,.8)':d<=20?'rgba(255,211,42,.8)':'rgba(255,107,53,.8)');
+    }
+  }
+  dc('statsDom');charts['statsDom']=new Chart(document.getElementById('statsDomChart'),{type:'bar',data:{labels:domLabels,datasets:[
+    {label:typeLabel+' (เฉลี่ย)',data:domData,backgroundColor:domColors,borderRadius:3},
+    {type:'line',label:'Overall avg',data:domLabels.map(()=>parseFloat(avg.toFixed(1))),borderColor:'rgba(255,255,255,.25)',borderWidth:1.5,borderDash:[4,3],pointRadius:0,spanGaps:true},
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{
+    legend:{display:false},datalabels:{display:false},
+    tooltip:{backgroundColor:'#1a2235',borderColor:'#1e2d45',borderWidth:1,titleColor:'#e8f4f8',bodyColor:'#6b8aaa',callbacks:{title:c=>'วันที่ '+c[0].label,label:c=>` เฉลี่ย: ${c.raw} ราย`}},
+  },scales:{x:{ticks:{color:'#6b8aaa',font:{size:9}},grid:{color:'#1e2d45'},title:{display:true,text:'วันที่ในเดือน',color:'#6b8aaa',font:{size:10}}},y:{ticks:{color:'#6b8aaa',font:{size:9},callback:v=>N(v)},grid:{color:'#1e2d45'}}}}});
+
+  // ── DAY OF WEEK chart ──────────────────────────────────────
+  const DAYS=['อา','จ','อ','พ','พฤ','ศ','ส'];
+  const dowMap={0:{sum:0,cnt:0},1:{sum:0,cnt:0},2:{sum:0,cnt:0},3:{sum:0,cnt:0},4:{sum:0,cnt:0},5:{sum:0,cnt:0},6:{sum:0,cnt:0}};
+  entries.forEach(e=>{const dw=new Date(e.date+'T00:00:00').getDay();dowMap[dw].sum+=e.v;dowMap[dw].cnt++;});
+  const dowLabels=[],dowData=[],dowCols=[];
+  [0,2,3,4,5,6].forEach(dw=>{// skip Mon(1) — it's off
+    dowLabels.push(DAYS[dw]);
+    const a=dowMap[dw].cnt>0?dowMap[dw].sum/dowMap[dw].cnt:0;
+    dowData.push(parseFloat(a.toFixed(1)));
+    const maxD=Math.max(...[0,2,3,4,5,6].map(d=>dowMap[d].cnt>0?dowMap[d].sum/dowMap[d].cnt:0));
+    dowCols.push(a===maxD&&a>0?'rgba(46,213,115,.85)':'rgba(168,85,247,.7)');
+  });
+  dc('statsDow');charts['statsDow']=new Chart(document.getElementById('statsDowChart'),{type:'bar',data:{labels:dowLabels,datasets:[{label:typeLabel,data:dowData,backgroundColor:dowCols,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{
+    display:ctx=>ctx.dataset.data[ctx.dataIndex]>0,
+    color:ctx=>dowCols[ctx.dataIndex]==='rgba(46,213,115,.85)'?'#2ed573':'#e8f4f8',
+    textStrokeColor:'rgba(0,0,0,.8)',textStrokeWidth:3,font:{size:11,weight:'bold'},anchor:'center',align:'center',
+    formatter:v=>v>0?v.toFixed(1):'',
+  },tooltip:{backgroundColor:'#1a2235',borderColor:'#1e2d45',borderWidth:1,titleColor:'#e8f4f8',bodyColor:'#6b8aaa',callbacks:{label:c=>` เฉลี่ย: ${c.raw} ราย`}}},scales:{x:{ticks:{color:'#e8f4f8',font:{size:11,weight:'600'}},grid:{color:'#1e2d45'}},y:{ticks:{color:'#6b8aaa',font:{size:9},callback:v=>N(v)},grid:{color:'#1e2d45'}}}}});
+
+  // ── WEEK OF MONTH chart ────────────────────────────────────
+  const womMap={1:{sum:0,cnt:0},2:{sum:0,cnt:0},3:{sum:0,cnt:0},4:{sum:0,cnt:0},5:{sum:0,cnt:0}};
+  entries.forEach(e=>{const d=parseInt(e.date.split('-')[2]);const w=Math.ceil(d/7);if(w<=5){womMap[w].sum+=e.v;womMap[w].cnt++;}});
+  const womData=[1,2,3,4,5].map(w=>womMap[w].cnt>0?parseFloat((womMap[w].sum/womMap[w].cnt).toFixed(1)):null);
+  const womCols=womData.map(v=>v===null?'transparent':v===Math.max(...womData.filter(x=>x!==null))?'rgba(46,213,115,.8)':'rgba(0,212,255,.65)');
+  dc('statsWom');charts['statsWom']=new Chart(document.getElementById('statsWomChart'),{type:'bar',data:{labels:['สัปดาห์ที่ 1\n(วันที่ 1–7)','สัปดาห์ที่ 2\n(วันที่ 8–14)','สัปดาห์ที่ 3\n(วันที่ 15–21)','สัปดาห์ที่ 4\n(วันที่ 22–28)','สัปดาห์ที่ 5\n(29+)'],datasets:[{label:'เฉลี่ย HC/วัน',data:womData,backgroundColor:womCols,borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{
+    display:ctx=>ctx.dataset.data[ctx.dataIndex]>0,
+    color:'#fff',textStrokeColor:'rgba(0,0,0,.8)',textStrokeWidth:3,font:{size:12,weight:'bold'},anchor:'center',align:'center',
+    formatter:v=>v>0?v.toFixed(1):'',
+  },tooltip:{backgroundColor:'#1a2235',borderColor:'#1e2d45',borderWidth:1,titleColor:'#e8f4f8',bodyColor:'#6b8aaa'}},scales:{x:{ticks:{color:'#e8f4f8',font:{size:10}},grid:{color:'#1e2d45'}},y:{ticks:{color:'#6b8aaa',font:{size:9},callback:v=>N(v)},grid:{color:'#1e2d45'}}}}});
+
+  // ── HEATMAP ────────────────────────────────────────────────
+  const DAYS_SHOW=['อา','อ','พ','พฤ','ศ','ส']; // Skip Mon
+  const DAYS_IDX=[0,2,3,4,5,6];
+  const womDowMap={};
+  DAYS_IDX.forEach(dw=>{womDowMap[dw]={};for(let w=1;w<=5;w++)womDowMap[dw][w]={sum:0,cnt:0};});
+  entries.forEach(e=>{
+    const d=parseInt(e.date.split('-')[2]),w=Math.min(Math.ceil(d/7),5);
+    const dw=new Date(e.date+'T00:00:00').getDay();
+    if(womDowMap[dw]&&womDowMap[dw][w]){womDowMap[dw][w].sum+=e.v;womDowMap[dw][w].cnt++;}
+  });
+  // Find max for color scale
+  let hmMax=0;
+  DAYS_IDX.forEach(dw=>{ for(let w=1;w<=5;w++){const r=womDowMap[dw][w];if(r.cnt>0)hmMax=Math.max(hmMax,r.sum/r.cnt);}});
+
+  let hmHtml=`<div class="stats-week-header">${['ส.ที่ 1','ส.ที่ 2','ส.ที่ 3','ส.ที่ 4','ส.ที่ 5'].map(l=>`<div class="stats-week-label">${l}</div>`).join('')}</div>`;
+  DAYS_IDX.forEach((dw,di)=>{
+    hmHtml+=`<div class="stats-hm-row"><div class="stats-hm-label">${DAYS_SHOW[di]}</div>`;
+    for(let w=1;w<=5;w++){
+      const r=womDowMap[dw][w],a=r.cnt>0?r.sum/r.cnt:null;
+      const intensity=a!==null&&hmMax>0?a/hmMax:0;
+      const bg=a===null?'var(--s2)':`rgba(0,212,255,${(intensity*0.8+0.1).toFixed(2)})`;
+      const textCol=intensity>0.5?'#000':'#e8f4f8';
+      hmHtml+=`<div class="stats-hm-cell" style="background:${bg};color:${textCol};">${a!==null?a.toFixed(1):''}
+        <div class="stats-hm-tooltip">${DAYS_SHOW[di]} ส.ที่${w}: ${a!==null?a.toFixed(1)+' ราย/วัน ('+r.cnt+' วัน)':'ไม่มีข้อมูล'}</div>
+      </div>`;
+    }
+    hmHtml+='</div>';
+  });
+  document.getElementById('statsHeatmap').innerHTML=hmHtml;
+
+  // ── INSIGHTS ───────────────────────────────────────────────
+  const insights=[];
+  // Best period
+  const bestPeriodIdx=pAvgs.indexOf(Math.max(...pAvgs));
+  if(pAvgs[bestPeriodIdx]>0){
+    insights.push({icon:'📅',text:`ลูกค้าเข้ามามากที่สุดใน<strong>${periods[bestPeriodIdx].label} (${periods[bestPeriodIdx].sub})</strong> เฉลี่ย <strong>${pAvgs[bestPeriodIdx].toFixed(1)} ราย/วัน</strong>`});
+  }
+  // Best DOW
+  const bestDowIdx=dowData.indexOf(Math.max(...dowData));
+  if(dowData[bestDowIdx]>0){
+    insights.push({icon:'📆',text:`วันที่มีลูกค้ามากที่สุดคือ<strong>วัน${dowLabels[bestDowIdx]}</strong> เฉลี่ย <strong>${dowData[bestDowIdx].toFixed(1)} ราย/วัน</strong>`});
+  }
+  // Best week
+  const bestWom=womData.indexOf(Math.max(...womData.filter(v=>v!==null)));
+  if(bestWom>=0&&womData[bestWom]>0){
+    insights.push({icon:'📊',text:`<strong>สัปดาห์ที่ ${bestWom+1}</strong> ของเดือนมีลูกค้ามากที่สุด เฉลี่ย <strong>${womData[bestWom].toFixed(1)} ราย/วัน</strong>`});
+  }
+  // Consistency
+  const consistency=avg>0?Math.round((1-stdDev(vals)/avg)*100):0;
+  if(consistency>=75) insights.push({icon:'✅',text:`ความสม่ำเสมอสูง <strong>${consistency}%</strong> — ลูกค้าเข้ามาสม่ำเสมอทุกวัน`});
+  else if(consistency<50) insights.push({icon:'⚠️',text:`ความสม่ำเสมอต่ำ <strong>${consistency}%</strong> — ยอดลูกค้าผันผวนมาก ควรวางแผนกำลังคนให้ยืดหยุ่น`});
+  // Weekend vs weekday
+  const wdAvg=([0,2,3,4,5].map(d=>dowMap[d]).filter(d=>d.cnt>0).reduce((s,d)=>s+d.sum/d.cnt,0)/Math.max(1,[0,2,3,4,5].filter(d=>dowMap[d].cnt>0).length));
+  const weAvg=([6].map(d=>dowMap[d]).filter(d=>d.cnt>0).reduce((s,d)=>s+d.sum/d.cnt,0)/Math.max(1,[6].filter(d=>dowMap[d].cnt>0).length));
+  if(weAvg>wdAvg*1.2) insights.push({icon:'🎉',text:`ลูกค้าเข้ามาในวันเสาร์ (<strong>${weAvg.toFixed(1)} ราย</strong>) มากกว่าวันธรรมดา (<strong>${wdAvg.toFixed(1)} ราย</strong>) — ควรเพิ่มกำลังพลวันเสาร์`});
+  else if(weAvg<wdAvg*0.8&&weAvg>0) insights.push({icon:'📌',text:`วันเสาร์มีลูกค้าน้อยกว่าวันธรรมดา (<strong>${weAvg.toFixed(1)}</strong> vs <strong>${wdAvg.toFixed(1)} ราย/วัน</strong>)`});
+
+  document.getElementById('statsInsights').innerHTML=insights.length?
+    insights.map(i=>`<div class="stats-insight-item"><span class="stats-insight-icon">${i.icon}</span><div class="stats-insight-text">${i.text}</div></div>`).join(''):
+    '<div class="stats-insight-item"><span class="stats-insight-icon">💡</span><div class="stats-insight-text">ยังไม่มีข้อมูลเพียงพอสำหรับการวิเคราะห์</div></div>';
+}
+
+function stdDev(arr){
+  if(!arr.length)return 0;
+  const avg=arr.reduce((a,b)=>a+b,0)/arr.length;
+  return Math.sqrt(arr.reduce((s,v)=>s+(v-avg)**2,0)/arr.length);
+}
+
 // QUARTER + TAB SWITCHING
 // ============================================================
 function switchQuarter(q,btn){
@@ -2323,6 +2625,7 @@ function switchTab(tab,btn){
   if(tab==='overview')renderOverview(currentQuarter);
   if(tab==='cstatus')renderCsMonth(currentCsMonth);
   if(tab==='pdca'){const q=currentQuarter!=='CMP'?currentQuarter:'Q2';currentSwotQ=q;renderPdcaSwot(q);}
+  if(tab==='stats')renderStats();
 }
 function switchMonth(m,btn){
   currentMonth=m;
