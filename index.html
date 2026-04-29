@@ -46,7 +46,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 /* RUN RATE */
 .rrcard{background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:16px 20px;margin-bottom:16px;}
 .rrtitle{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--tm);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
-.rrgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
+.rrgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;}
 .rritem{background:var(--s2);border-radius:8px;padding:12px;text-align:center;}
 .rrlabel{font-size:10px;color:var(--tm);margin-bottom:5px;}
 .rrval{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;line-height:1;}
@@ -131,7 +131,7 @@ td.phi{color:var(--grn);font-weight:700;}td.plo{color:var(--red);font-weight:700
 .ms-prog-label{display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px;}
 .ms-prog-bar{height:5px;background:var(--bd);border-radius:3px;overflow:hidden;}
 .ms-prog-fill{height:100%;border-radius:3px;transition:width .6s ease;}
-.ms-stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px;}
+.ms-stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;}
 .ms-stat{background:var(--s2);border-radius:8px;padding:10px;text-align:center;}
 .ms-stat-label{font-size:9px;color:var(--tm);letter-spacing:.5px;margin-bottom:4px;}
 .ms-stat-val{font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:1px;line-height:1;}
@@ -1236,6 +1236,10 @@ function calcS(m){
   const tgTotHC=tg.fl.hc+tg.ro.hc,tgTotAmt=tg.fl.amt+tg.ro.amt;
   return{flHC,flAmt,roHC,roAmt,totHC,totAmt,n,nWD,wn,drem,avgHC,avgAmt,avgFlHC,
     projTotHC:Math.round(avgHC*wn),projTotAmt:Math.round(avgAmt*wn),tgTotHC,tgTotAmt,
+    projFlHC:Math.round(activeDays>0?flHC/activeDays*wn:0),
+    projRoHC:Math.round(activeDays>0?roHC/activeDays*wn:0),
+    projFlAmt:Math.round(activeDays>0?flAmt/activeDays*wn:0),
+    projRoAmt:Math.round(activeDays>0?roAmt/activeDays*wn:0),
     neFlHC:drem>0?Math.max(0,tg.fl.hc-flHC)/drem:0,
     flHCpct:tg.fl.hc>0?flHC/tg.fl.hc*100:0,flAmtpct:tg.fl.amt>0?flAmt/tg.fl.amt*100:0,
     roHCpct:tg.ro.hc>0?roHC/tg.ro.hc*100:0,roAmtpct:tg.ro.amt>0?roAmt/tg.ro.amt*100:0};
@@ -1306,6 +1310,13 @@ function renderMonthlySummary(m){
           <div class="ms-prog-row"><div class="ms-prog-label"><span style="color:var(--tm)">HC</span><span style="color:${s.flHCpct>=100?'var(--grn)':s.flHCpct>=50?'var(--yel)':'var(--red)'};font-weight:700">${P(s.flHCpct)}</span></div><div class="ms-prog-bar"><div class="ms-prog-fill" style="width:${Math.min(s.flHCpct,100)}%;background:var(--ac)"></div></div></div>
           <div class="ms-prog-row"><div class="ms-prog-label"><span style="color:var(--tm)">Amount</span><span style="color:${s.flAmtpct>=100?'var(--grn)':s.flAmtpct>=50?'var(--yel)':'var(--red)'};font-weight:700">${P(s.flAmtpct)}</span></div><div class="ms-prog-bar"><div class="ms-prog-fill" style="width:${Math.min(s.flAmtpct,100)}%;background:rgba(0,212,255,.5)"></div></div></div>
           <div class="ms-diff-row"><div class="ms-diff-box ${flHCd>=0?'pos':'neg'}"><span class="ms-diff-lbl">HC Diff</span><span class="ms-diff-val">${flHCd>=0?'+':''}${N(flHCd)}</span></div><div class="ms-diff-box ${flAmtd>=0?'pos':'neg'}"><span class="ms-diff-lbl">Amt Diff</span><span class="ms-diff-val">${flAmtd>=0?'+':''}${fmtAmt(flAmtd)}</span></div></div>
+          <div style="margin-top:10px;padding:8px 10px;background:var(--bg);border-radius:7px;display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:10px;color:var(--tm);">🎯 Run Rate สิ้นเดือน</span>
+            <div style="text-align:right;">
+              <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:${s.projFlHC>=tg.fl.hc?'var(--grn)':'var(--red)'}">${s.n>0?N(s.projFlHC):'—'} <span style="font-size:11px;font-family:'Sarabun',sans-serif;color:var(--tm);">/ ${N(tg.fl.hc)}</span></div>
+              <div style="font-size:10px;color:${s.projFlHC>=tg.fl.hc?'var(--grn)':'var(--red)'};font-weight:700;">${s.n>0?(s.projFlHC>=tg.fl.hc?'✅ On Track':'⚠️ Behind'):''}</div>
+            </div>
+          </div>
         </div>
         <div class="ms-sect">
           <div class="ms-sect-title"><span class="dot" style="background:var(--ac2)"></span>Rollover</div>
@@ -1316,6 +1327,13 @@ function renderMonthlySummary(m){
           <div class="ms-prog-row"><div class="ms-prog-label"><span style="color:var(--tm)">HC</span><span style="color:${s.roHCpct>=100?'var(--grn)':s.roHCpct>=50?'var(--yel)':'var(--red)'};font-weight:700">${P(s.roHCpct)}</span></div><div class="ms-prog-bar"><div class="ms-prog-fill" style="width:${Math.min(s.roHCpct,100)}%;background:var(--ac2)"></div></div></div>
           <div class="ms-prog-row"><div class="ms-prog-label"><span style="color:var(--tm)">Amount</span><span style="color:${s.roAmtpct>=100?'var(--grn)':s.roAmtpct>=50?'var(--yel)':'var(--red)'};font-weight:700">${P(s.roAmtpct)}</span></div><div class="ms-prog-bar"><div class="ms-prog-fill" style="width:${Math.min(s.roAmtpct,100)}%;background:rgba(255,107,53,.5)"></div></div></div>
           <div class="ms-diff-row"><div class="ms-diff-box ${roHCd>=0?'pos':'neg'}"><span class="ms-diff-lbl">HC Diff</span><span class="ms-diff-val">${roHCd>=0?'+':''}${N(roHCd)}</span></div><div class="ms-diff-box ${roAmtd>=0?'pos':'neg'}"><span class="ms-diff-lbl">Amt Diff</span><span class="ms-diff-val">${roAmtd>=0?'+':''}${fmtAmt(roAmtd)}</span></div></div>
+          <div style="margin-top:10px;padding:8px 10px;background:var(--bg);border-radius:7px;display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:10px;color:var(--tm);">🎯 Run Rate สิ้นเดือน</span>
+            <div style="text-align:right;">
+              <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:${s.projRoHC>=tg.ro.hc?'var(--grn)':'var(--red)'}">${s.n>0?N(s.projRoHC):'—'} <span style="font-size:11px;font-family:'Sarabun',sans-serif;color:var(--tm);">/ ${N(tg.ro.hc)}</span></div>
+              <div style="font-size:10px;color:${s.projRoHC>=tg.ro.hc?'var(--grn)':'var(--red)'};font-weight:700;">${s.n>0?(s.projRoHC>=tg.ro.hc?'✅ On Track':'⚠️ Behind'):''}</div>
+            </div>
+          </div>
         </div>
       </div>
       <div class="ms-sect" style="background:rgba(0,212,255,.04);border:1px solid rgba(0,212,255,.12);margin-bottom:12px;">
@@ -1332,8 +1350,10 @@ function renderMonthlySummary(m){
         </div>
       </div>
       <div class="ms-stats-row">
-        <div class="ms-stat"><div class="ms-stat-label">เฉลี่ย HC/วัน</div><div class="ms-stat-val" style="color:var(--pur)">${s.avgHC.toFixed(1)}</div></div>
-        <div class="ms-stat"><div class="ms-stat-label">Run Rate (สิ้นเดือน)</div><div class="ms-stat-val" style="color:${s.projTotHC>=tgTotHC?'var(--grn)':'var(--red)'}">${s.n>0?N(s.projTotHC):'—'}</div></div>
+        <div class="ms-stat"><div class="ms-stat-label">เฉลี่ย HC/วัน</div><div class="ms-stat-val" style="color:var(--pur)">${s.avgHC.toFixed(1)}</div><div style="font-size:9px;color:var(--tm);margin-top:2px;">FL ${(s.n>0?s.flHC/s.activeDays||s.avgFlHC:0).toFixed(1)} · RO ${s.n>0&&s.avgHC>0?(s.avgHC-s.avgFlHC).toFixed(1):'0.0'}</div></div>
+        <div class="ms-stat"><div class="ms-stat-label">Run Rate FL (สิ้นเดือน)</div><div class="ms-stat-val" style="color:${s.projFlHC>=tg.fl.hc?'var(--grn)':'var(--red)'}">${s.n>0?N(s.projFlHC):'—'}</div><div style="font-size:9px;color:var(--tm);margin-top:2px;">เป้า ${N(tg.fl.hc)}</div></div>
+        <div class="ms-stat"><div class="ms-stat-label">Run Rate RO (สิ้นเดือน)</div><div class="ms-stat-val" style="color:${s.projRoHC>=tg.ro.hc?'var(--grn)':'var(--red)'}">${s.n>0?N(s.projRoHC):'—'}</div><div style="font-size:9px;color:var(--tm);margin-top:2px;">เป้า ${N(tg.ro.hc)}</div></div>
+        <div class="ms-stat"><div class="ms-stat-label">Run Rate Total (สิ้นเดือน)</div><div class="ms-stat-val" style="color:${s.projTotHC>=tgTotHC?'var(--grn)':'var(--red)'}">${s.n>0?N(s.projTotHC):'—'}</div><div style="font-size:9px;color:var(--tm);margin-top:2px;">เป้า ${N(tgTotHC)}</div></div>
         <div class="ms-stat"><div class="ms-stat-label">HC สูงสุด/วัน</div><div class="ms-stat-val" style="color:var(--yel)">${getMe(m).length>0?N(bestVal):'—'}</div></div>
         <div class="ms-stat"><div class="ms-stat-label">เฉลี่ย ฿/ราย</div><div class="ms-stat-val" style="color:var(--ac)">${s.totHC>0?fmtAmt(avgAmt):'—'}</div></div>
       </div>
@@ -2878,6 +2898,156 @@ function clearFirebaseConfig(){
   try{localStorage.removeItem(FB_CFG_KEY);}catch(e){}
   setSyncStatus('off');closeFirebaseSetup();
   showToast('ยกเลิกการเชื่อมต่อแล้ว');
+}
+
+
+// ============================================================
+// REPORT DATA BUILDERS
+// ============================================================
+function getRptType(){return document.querySelector('input[name="rptType"]:checked')?.value||'month';}
+function getRptScope(){return Array.from(document.querySelectorAll('input[name="rptScope"]:checked')).map(e=>e.value);}
+
+function getReportMonths(){
+  const type=getRptType();
+  if(type==='year')return Object.keys(ML);
+  if(type==='quarter'){const q=getRptScope()[0]||'Q2';return QUARTERS[q]?.months||QUARTERS['Q2'].months;}
+  return getRptScope().sort();
+}
+
+function buildDailyRows(months){
+  const rows=[];
+  months.forEach(m=>{
+    getMe(m).forEach(e=>{
+      const fH=e.fl?.hc||0,fA=e.fl?.amt||0,rH=e.ro?.hc||0,rA=e.ro?.amt||0;
+      rows.push({'วันที่':dl(e.date)+' ('+dayName(e.date)+')','เดือน':ML[m].label,'FL Headcount':fH,'FL Amount':fA,'RO Headcount':rH,'RO Amount':rA,'Total HC':fH+rH,'Total Amount':fA+rA});
+    });
+  });
+  return rows;
+}
+
+function buildSummaryRows(months){
+  return months.map(m=>{
+    const s=calcS(m),tg=TG[m];
+    return {'เดือน':ML[m].label,
+      'FL HC จริง':s.flHC,'FL HC เป้า':tg.fl.hc,'FL HC Diff':s.flHC-tg.fl.hc,'FL HC %':+s.flHCpct.toFixed(2),
+      'FL Amt จริง':s.flAmt,'FL Amt เป้า':tg.fl.amt,'FL Amt Diff':s.flAmt-tg.fl.amt,'FL Amt %':+s.flAmtpct.toFixed(2),
+      'RO HC จริง':s.roHC,'RO HC เป้า':tg.ro.hc,'RO HC Diff':s.roHC-tg.ro.hc,'RO HC %':+s.roHCpct.toFixed(2),
+      'RO Amt จริง':s.roAmt,'RO Amt เป้า':tg.ro.amt,'RO Amt Diff':s.roAmt-tg.ro.amt,'RO Amt %':+s.roAmtpct.toFixed(2),
+      'Total HC จริง':s.totHC,'Total HC เป้า':s.tgTotHC,'Total Amt จริง':s.totAmt,'Total Amt เป้า':s.tgTotAmt,
+      'วันทำการ':s.wn,'วันที่มีข้อมูล':s.n,'เฉลี่ย HC/วัน':+s.avgHC.toFixed(2),'Run Rate HC':Math.round(s.projTotHC)};
+  });
+}
+
+function buildRRRows(months){
+  return months.map(m=>{
+    const s=calcS(m);
+    return {'เดือน':ML[m].label,'วันทำการ':s.wn,'มีข้อมูล':s.n,'เหลือ':s.drem,
+      'เฉลี่ย HC/วัน':+s.avgHC.toFixed(2),'เฉลี่ย Amt/วัน':Math.round(s.avgAmt),
+      'คาดสิ้นเดือน HC':Math.round(s.projTotHC),'เป้า HC':s.tgTotHC,
+      'คาดสิ้นเดือน Amt':Math.round(s.projTotAmt),'เป้า Amt':s.tgTotAmt,
+      'ต้องการ/วัน FL HC':+s.neFlHC.toFixed(2)};
+  });
+}
+
+function buildStatusRows(months){
+  const rows=[];
+  months.forEach(m=>{
+    const d=csData[m],tot=stTotal(m);
+    (d?.statuses||[]).forEach(st=>{
+      const cnt=parseInt(st.count)||0;
+      rows.push({'เดือน':ML[m].label,'สถานะ':st.name,'จำนวน':cnt,'% รวม':tot>0?+(cnt/tot*100).toFixed(2):0});
+    });
+  });
+  return rows;
+}
+
+function toCSV(rows){
+  if(!rows.length)return '';
+  const headers=Object.keys(rows[0]);
+  const lines=[headers.join(',')];
+  rows.forEach(r=>lines.push(headers.map(h=>{const v=r[h]??'';const s=String(v);return s.includes(',')||s.includes('"')?`"${s.replace(/"/g,'""')}"`:s;}).join(',')));
+  return '\uFEFF'+lines.join('\r\n');
+}
+
+function downloadCSV(content,filename){
+  const blob=new Blob([content],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=filename;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+}
+
+function buildXLSX(months,incDaily,incSum,incRR,incSt){
+  const wb=XLSX.utils.book_new();
+  if(incSum){const ws=XLSX.utils.json_to_sheet(buildSummaryRows(months));ws['!cols']=Array.from({length:25},()=>({wch:14}));XLSX.utils.book_append_sheet(wb,ws,'สรุป');}
+  if(incRR){XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(buildRRRows(months)),'Run Rate');}
+  if(incDaily){XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(buildDailyRows(months)),'รายวัน');}
+  if(incSt){XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(buildStatusRows(months)),'สถานะลูกค้า');}
+  return wb;
+}
+
+function printPDF(months,incDaily,incSum,incRR,incSt,title){
+  const dateStr=new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
+  function tbl(headers,rows,caption){
+    return `<div class="pt-section"><div class="pt-caption">${caption}</div><table><thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${c??''}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  }
+  let body='';
+  if(incSum) body+=tbl(['เดือน','FL HC','FL เป้า','FL%','FL Amt','RO HC','RO เป้า','RO%','Total HC','Total เป้า','วันทำการ','เฉลี่ย/วัน','Run Rate'],
+    buildSummaryRows(months).map(r=>[r['เดือน'],r['FL HC จริง'],r['FL HC เป้า'],r['FL HC %']+'%',N(r['FL Amt จริง']),r['RO HC จริง'],r['RO HC เป้า'],r['RO HC %']+'%',r['Total HC จริง'],r['Total HC เป้า'],r['วันทำการ'],r['เฉลี่ย HC/วัน'],r['Run Rate HC']]),
+    'สรุปรายเดือน — First Loan & Rollover vs เป้าหมาย');
+  if(incRR) body+=tbl(['เดือน','วันทำการ','มีข้อมูล','เหลือ','เฉลี่ย HC/วัน','คาดสิ้นเดือน HC','เป้า HC','ต้องการ/วัน FL'],
+    buildRRRows(months).map(r=>[r['เดือน'],r['วันทำการ'],r['มีข้อมูล'],r['เหลือ'],r['เฉลี่ย HC/วัน'],r['คาดสิ้นเดือน HC'],r['เป้า HC'],r['ต้องการ/วัน FL HC']]),
+    'Run Rate Analysis');
+  if(incDaily) body+=tbl(['วันที่','เดือน','FL HC','FL Amount (฿)','RO HC','RO Amount (฿)','Total HC','Total Amount (฿)'],
+    buildDailyRows(months).map(r=>[r['วันที่'],r['เดือน'],r['FL Headcount'],N(r['FL Amount']),r['RO Headcount'],N(r['RO Amount']),r['Total HC'],N(r['Total Amount'])]),
+    'ตารางรายวัน');
+  if(incSt) body+=tbl(['เดือน','สถานะ','จำนวน (ราย)','% รวม'],
+    buildStatusRows(months).map(r=>[r['เดือน'],r['สถานะ'],r['จำนวน'],r['% รวม']+'%']),
+    'สถานะลูกค้า');
+  const printWin=window.open('','_blank','width=1100,height=800');
+  if(!printWin){showToast('Popup ถูกบล็อก — กรุณาอนุญาต popup สำหรับเว็บนี้',true);return;}
+  printWin.document.write(`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>${title}</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<style>@page{size:A4 landscape;margin:12mm 10mm;}*{box-sizing:border-box;margin:0;padding:0;}body{font-family:'Sarabun',sans-serif;background:#fff;color:#111;font-size:9pt;}.pt-header{text-align:center;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid #0066cc;}.pt-header h1{font-size:16pt;color:#0055aa;margin-bottom:4px;}.pt-header p{font-size:8pt;color:#666;}.pt-section{margin-bottom:16px;}.pt-caption{font-size:10pt;font-weight:700;color:#003888;margin-bottom:5px;padding:4px 8px;background:#e8f0fe;border-left:4px solid #0055aa;border-radius:2px;}table{width:100%;border-collapse:collapse;font-size:8pt;}thead tr{background:#0055aa;color:#fff;}thead th{padding:5px 6px;text-align:center;font-weight:700;white-space:nowrap;}tbody tr:nth-child(even){background:#f0f4ff;}td{padding:4px 6px;text-align:center;border-bottom:1px solid #dde;}td:first-child{text-align:left;}</style></head>
+<body><div class="pt-header"><h1>${title}</h1><p>ออกรายงานวันที่: ${dateStr}</p></div>${body}
+<script>window.onload=()=>setTimeout(()=>window.print(),500);<\/script></body></html>`);
+  printWin.document.close();
+}
+
+function downloadReport(fmt){
+  const months=getReportMonths();
+  if(!months.length){showToast('กรุณาเลือกช่วงเวลา',true);return;}
+  const incDaily=document.getElementById('rptIncDaily').checked;
+  const incSum=document.getElementById('rptIncSummary').checked;
+  const incRR=document.getElementById('rptIncRunRate').checked;
+  const incSt=document.getElementById('rptIncStatus').checked;
+  if(!incDaily&&!incSum&&!incRR&&!incSt){showToast('กรุณาเลือกเนื้อหาอย่างน้อย 1 อย่าง',true);return;}
+  const type=getRptType(),scope=getRptScope();
+  const titleParts=type==='year'?['ทั้งปี 2026']:type==='quarter'?[QUARTERS[scope[0]]?.label||'']:months.map(m=>ML[m].short);
+  const title='Loan Performance — '+titleParts.join(', ');
+  const dateStr=new Date().toISOString().split('T')[0];
+  const scopeStr=type==='year'?'full-year':type==='quarter'?(scope[0]||'Q?'):months.map(m=>m.replace('2026-','')).join('-');
+  const fname=`loan-report-${scopeStr}-${dateStr}`;
+  try{
+    if(fmt==='csv'){
+      const parts=[];
+      if(incSum)parts.push('=== สรุปรายเดือน ===\r\n'+toCSV(buildSummaryRows(months)));
+      if(incRR)parts.push('=== Run Rate ===\r\n'+toCSV(buildRRRows(months)));
+      if(incDaily)parts.push('=== รายวัน ===\r\n'+toCSV(buildDailyRows(months)));
+      if(incSt)parts.push('=== สถานะลูกค้า ===\r\n'+toCSV(buildStatusRows(months)));
+      downloadCSV(parts.join('\r\n\r\n'),fname+'.csv');
+      showToast('✅ ดาวน์โหลด CSV สำเร็จ');
+    }else if(fmt==='xlsx'){
+      if(!window.XLSX){showToast('กำลังโหลด Excel library...',true);return;}
+      const wb=buildXLSX(months,incDaily,incSum,incRR,incSt);
+      XLSX.writeFile(wb,fname+'.xlsx');
+      showToast('✅ ดาวน์โหลด Excel สำเร็จ');
+    }else if(fmt==='pdf'){
+      printPDF(months,incDaily,incSum,incRR,incSt,title);
+      showToast('✅ เปิดหน้า Print — กด Ctrl+P เพื่อบันทึก PDF');
+      return;
+    }
+    closeReportModal();
+  }catch(err){showToast('❌ เกิดข้อผิดพลาด: '+err.message,true);console.error(err);}
 }
 
 // ============================================================
