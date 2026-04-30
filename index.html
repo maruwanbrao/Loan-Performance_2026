@@ -1349,14 +1349,7 @@ function renderMonthlySummary(m){
           <div class="ms-prog-row" style="margin:0;"><div class="ms-prog-label"><span style="color:var(--tm)">Total Amount</span><span style="color:${totAmtpct>=100?'var(--grn)':totAmtpct>=50?'var(--yel)':'var(--red)'};font-weight:700">${P(totAmtpct)}</span></div><div class="ms-prog-bar" style="height:7px;"><div class="ms-prog-fill" style="width:${Math.min(totAmtpct,100)}%;background:rgba(46,213,115,.5)"></div></div></div>
         </div>
       </div>
-      <div class="ms-stats-row">
-        <div class="ms-stat"><div class="ms-stat-label">เฉลี่ย HC/วัน</div><div class="ms-stat-val" style="color:var(--pur)">${s.avgHC.toFixed(1)}</div><div style="font-size:9px;color:var(--tm);margin-top:2px;">FL ${(s.n>0?s.flHC/s.activeDays||s.avgFlHC:0).toFixed(1)} · RO ${s.n>0&&s.avgHC>0?(s.avgHC-s.avgFlHC).toFixed(1):'0.0'}</div></div>
-        <div class="ms-stat"><div class="ms-stat-label">Run Rate FL (สิ้นเดือน)</div><div class="ms-stat-val" style="color:${s.projFlHC>=tg.fl.hc?'var(--grn)':'var(--red)'}">${s.n>0?N(s.projFlHC):'—'}</div><div style="font-size:9px;color:var(--tm);margin-top:2px;">เป้า ${N(tg.fl.hc)}</div></div>
-        <div class="ms-stat"><div class="ms-stat-label">Run Rate RO (สิ้นเดือน)</div><div class="ms-stat-val" style="color:${s.projRoHC>=tg.ro.hc?'var(--grn)':'var(--red)'}">${s.n>0?N(s.projRoHC):'—'}</div><div style="font-size:9px;color:var(--tm);margin-top:2px;">เป้า ${N(tg.ro.hc)}</div></div>
-        <div class="ms-stat"><div class="ms-stat-label">Run Rate Total (สิ้นเดือน)</div><div class="ms-stat-val" style="color:${s.projTotHC>=tgTotHC?'var(--grn)':'var(--red)'}">${s.n>0?N(s.projTotHC):'—'}</div><div style="font-size:9px;color:var(--tm);margin-top:2px;">เป้า ${N(tgTotHC)}</div></div>
-        <div class="ms-stat"><div class="ms-stat-label">HC สูงสุด/วัน</div><div class="ms-stat-val" style="color:var(--yel)">${getMe(m).length>0?N(bestVal):'—'}</div></div>
-        <div class="ms-stat"><div class="ms-stat-label">เฉลี่ย ฿/ราย</div><div class="ms-stat-val" style="color:var(--ac)">${s.totHC>0?fmtAmt(avgAmt):'—'}</div></div>
-      </div>
+
     </div>
   </div>`;
 }
