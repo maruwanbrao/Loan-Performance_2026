@@ -2187,7 +2187,7 @@ function renderMcmpTable(sData){
 // ============================================================
 // PDCA & SWOT
 // ============================================================
-let currentPdcaMonth='2026-04',currentSwotQ='Q2';
+let currentPdcaMonth='2026-04',currentSwotQ='Q2'; // will be overridden by auto-detect
 
 function renderPdcaSwot(q){
   if(!q||q==='CMP')q=currentQuarter!=='CMP'?currentQuarter:'Q2';
@@ -3135,12 +3135,49 @@ const now=new Date();
 document.getElementById('todayBadge').textContent=`📅 ${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}`;
 load();
 // Start on Q2
-renderMonthTabs('Q2');
-document.getElementById('holidayNote').textContent=holidayInfo('2026-04');
-renderMonthlySummary('2026-04');
-renderRR('2026-04');
-renderCharts('2026-04');
-renderDailyTable('2026-04');
+// ── Auto-detect current month & quarter ──────────────────────────────
+(function(){
+  const now=new Date();
+  const y=now.getFullYear();
+  const mo=String(now.getMonth()+1).padStart(2,'0');
+  const todayKey=y+'-'+mo;
+
+  // Find which quarter this month belongs to
+  let detectedQ='Q2';
+  let detectedM='2026-04';
+  for(const [q,d] of Object.entries(QUARTERS)){
+    if(d.months.includes(todayKey)){
+      detectedQ=q;
+      detectedM=todayKey;
+      break;
+    }
+  }
+  // Fallback: if current month not in any quarter (outside 2026), use last available
+  if(detectedM===todayKey&&!Object.keys(ML).includes(todayKey)){
+    // Use last quarter's last month
+    detectedQ='Q4';
+    detectedM=QUARTERS['Q4'].months[2];
+  }
+
+  currentQuarter=detectedQ;
+  currentMonth=detectedM;
+  currentTblMonth=detectedM;
+  currentCsMonth=detectedM;
+  currentPdcaMonth=detectedM;
+  currentSwotQ=detectedQ;
+
+  // Activate the correct quarter tab
+  document.querySelectorAll('.qtab').forEach(b=>b.classList.remove('active'));
+  const qBtn=document.getElementById('qt'+detectedQ);
+  if(qBtn)qBtn.classList.add('active');
+
+  renderMonthTabs(detectedQ);
+  document.getElementById('holidayNote').textContent=holidayInfo(detectedM);
+  renderMonthlySummary(detectedM);
+  renderRR(detectedM);
+  renderCharts(detectedM);
+  renderDailyTable(detectedM);
+})();
 loadFirebaseCfg();
 </script>
 </body>
