@@ -62,7 +62,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 /* TABLE */
 .tcard{background:var(--s1);border:1px solid var(--bd);border-radius:12px;overflow:hidden;margin-bottom:16px;}
 .thead-bar{padding:12px 18px;border-bottom:1px solid var(--bd);font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--tm);display:flex;align-items:center;justify-content:space-between;}
-.tscroll{max-height:420px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--bd) transparent;}
+.tscroll{overflow-y:visible;}
 table{width:100%;border-collapse:collapse;font-size:12px;}
 thead tr{background:var(--s2);}
 thead th{padding:8px 10px;text-align:center;font-size:9px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--tm);border-bottom:1px solid var(--bd);}
@@ -1361,12 +1361,15 @@ function renderRR(m){
   const s=calcS(m),tg=TG[m];
   document.getElementById('rrMonthName').textContent=ML[m].label;
   const ok=s.projTotHC>=s.tgTotHC;
+  const neRoHC=s.drem>0?Math.max(0,tg.ro.hc-s.roHC)/s.drem:0;
+  const avgRoHC=s.n>0?(s.roHC/s.n):0;
   document.getElementById('rrGrid').innerHTML=`
-    <div class="rritem"><div class="rrlabel">วันที่บันทึก (WD)</div><div class="rrval" style="color:var(--ac)">${s.nWD||s.n}</div><div class="rrunit">/ ${s.wn} วันทำการ</div></div>
-    <div class="rritem"><div class="rrlabel">วันทำการที่เหลือ</div><div class="rrval" style="color:var(--yel)">${s.drem}</div><div class="rrunit">วัน</div></div>
-    <div class="rritem"><div class="rrlabel">ค่าเฉลี่ย/วัน</div><div class="rrval" style="color:var(--pur)">${s.avgHC.toFixed(1)}</div><div class="rrunit">ราย/วัน</div></div>
-    <div class="rritem"><div class="rrlabel">คาดการณ์สิ้นเดือน</div><div class="rrval" style="color:${ok?'var(--grn)':'var(--red)'}">${s.n>0?N(s.projTotHC):'—'}</div><div class="rrunit">vs TG ${N(s.tgTotHC)} ${s.n>0?(ok?'✅':'⚠️'):''}</div></div>
-    <div class="rritem"><div class="rrlabel">ต้องการ/วัน (FL)</div><div class="rrval" style="color:${s.neFlHC<=s.avgFlHC?'var(--grn)':'var(--red)'}">${s.drem>0?s.neFlHC.toFixed(1):'—'}</div><div class="rrunit">${s.n>0?'vs avg '+s.avgFlHC.toFixed(1):''}</div></div>`;
+    <div class="rritem"><div class="rrlabel">วันที่บันทึก</div><div class="rrval" style="color:var(--ac)">${s.n}</div><div class="rrunit">/ ${s.wn} วัน · เหลือ ${s.drem}</div></div>
+    <div class="rritem"><div class="rrlabel">เฉลี่ย/วัน (รวม)</div><div class="rrval" style="color:var(--pur)">${s.n>0?s.avgHC.toFixed(1):'—'}</div><div class="rrunit">FL ${s.n>0?s.avgFlHC.toFixed(1):'—'} · RO ${s.n>0?avgRoHC.toFixed(1):'—'}</div></div>
+    <div class="rritem" style="border-top:2px solid var(--ac)"><div class="rrlabel" style="color:var(--ac)">Run Rate FL</div><div class="rrval" style="color:${s.n>0?(s.projFlHC>=tg.fl.hc?'var(--grn)':'var(--red)'):'var(--tm)'}">${s.n>0?N(s.projFlHC):'—'}</div><div class="rrunit">เป้า ${N(tg.fl.hc)} ${s.n>0?(s.projFlHC>=tg.fl.hc?'✅':'⚠️'):''}</div></div>
+    <div class="rritem" style="border-top:2px solid var(--ac2)"><div class="rrlabel" style="color:var(--ac2)">Run Rate RO</div><div class="rrval" style="color:${s.n>0?(s.projRoHC>=tg.ro.hc?'var(--grn)':'var(--red)'):'var(--tm)'}">${s.n>0?N(s.projRoHC):'—'}</div><div class="rrunit">เป้า ${N(tg.ro.hc)} ${s.n>0?(s.projRoHC>=tg.ro.hc?'✅':'⚠️'):''}</div></div>
+    <div class="rritem" style="border-top:2px solid var(--grn)"><div class="rrlabel" style="color:var(--grn)">Run Rate Total</div><div class="rrval" style="color:${s.n>0?(ok?'var(--grn)':'var(--red)'):'var(--tm)'}">${s.n>0?N(s.projTotHC):'—'}</div><div class="rrunit">เป้า ${N(s.tgTotHC)} ${s.n>0?(ok?'✅':'⚠️'):''}</div></div>
+    <div class="rritem"><div class="rrlabel">ต้องการ/วัน FL · RO</div><div class="rrval" style="color:var(--yel);font-size:17px;">${s.drem>0?s.neFlHC.toFixed(1):'—'} · ${s.drem>0?neRoHC.toFixed(1):'—'}</div><div class="rrunit">ราย/วัน ที่เหลือ</div></div>`;
 }
 
 // ============================================================
