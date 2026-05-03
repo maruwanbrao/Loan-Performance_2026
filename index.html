@@ -1694,6 +1694,11 @@ function renderCompare(){
 function stTotal(m){return csData[m].statuses.reduce((s,x)=>s+(parseInt(x.count)||0),0);}
 function lnTotal(m){const d=csData[m],lm=d.loanMax||8;let t=0;for(let i=1;i<=lm;i++)t+=parseInt(d.loans[i]||0)||0;return t;}
 function renderCsMonth(m){
+  if(!csData[m])csData[m]={};
+  if(!csData[m].statuses)csData[m].statuses=[{name:'DISBURSED',count:''},{name:'PENDING',count:''},{name:'POSTPONE',count:''},{name:'PRE-APPROVED',count:''},{name:'REJECT',count:''}];
+  if(!csData[m].loanMax)csData[m].loanMax=8;
+  if(!csData[m].loans)csData[m].loans={};
+  currentCsMonth=m;
   document.getElementById('csMonthName').textContent=ML[m].label;
   document.getElementById('lcMonthName').textContent=ML[m].label;
   document.getElementById('loanMaxInput').value=csData[m].loanMax||8;
@@ -1712,18 +1717,6 @@ function renderStatusGrid(m){
     </div>`;
   }).join('');
   document.getElementById('statusTotal').textContent=N(tot)+' ราย';
-  // Attach listeners via event delegation — avoid inline onchange
-  const sg=document.getElementById('statusGrid');
-  if(sg){
-    // Remove old listener by replacing node with clone
-    const sgNew=sg.cloneNode(true);
-    sg.parentNode.replaceChild(sgNew,sg);
-    sgNew.addEventListener('input',function(e){
-      const inp=e.target.closest('input[data-type="st"]');
-      if(!inp)return;
-      updSt(inp.dataset.m,parseInt(inp.dataset.i),inp.value);
-    });
-  }
 }
 function renderLoanGrid(m){
   const d=csData[m],lm=d.loanMax||8,tot=lnTotal(m);
@@ -1738,16 +1731,6 @@ function renderLoanGrid(m){
     </div>`;
   }).join('');
   document.getElementById('loanTotal').textContent=N(tot)+' ราย';
-  const lg=document.getElementById('loanGrid');
-  if(lg){
-    const lgNew=lg.cloneNode(true);
-    lg.parentNode.replaceChild(lgNew,lg);
-    lgNew.addEventListener('input',function(e){
-      const inp=e.target.closest('input[data-type="ln"]');
-      if(!inp)return;
-      updLn(inp.dataset.m,parseInt(inp.dataset.n),inp.value);
-    });
-  }
 }
 function renderPieCharts(m){
   const d=csData[m],lm=d.loanMax||8;
@@ -1764,6 +1747,7 @@ function renderPieCharts(m){
 }
 function drawEmpty(id,msg){const cv=document.getElementById(id);if(!cv)return;const ctx=cv.getContext('2d');ctx.clearRect(0,0,cv.width,cv.height);ctx.fillStyle='#6b8aaa';ctx.font='13px Sarabun';ctx.textAlign='center';ctx.fillText(msg,cv.width/2,cv.height/2);}
 function updSt(m,i,v){
+  if(!csData[m]||!csData[m].statuses||!csData[m].statuses[i])return;
   csData[m].statuses[i].count=v;
   saveCs();scheduleSync();
   // Update only bar + pct — no full re-render so input keeps focus
@@ -1782,6 +1766,8 @@ function updSt(m,i,v){
   renderPieCharts(m);
 }
 function updLn(m,n,v){
+  if(!csData[m])csData[m]={loans:{}};
+  if(!csData[m].loans)csData[m].loans={};
   csData[m].loans[n]=v;
   saveCs();scheduleSync();
   // Update only bar + pct — no full re-render so input keeps focus
@@ -2611,6 +2597,27 @@ function stdDev(arr){
   return Math.sqrt(arr.reduce((s,v)=>s+(v-avg)**2,0)/arr.length);
 }
 
+
+// ── Setup CS panel event delegation (runs once at init) ──────────────
+function setupCsDelegation(){
+  const panel=document.getElementById('panel-cstatus');
+  if(!panel||panel._csDelegated)return;
+  panel._csDelegated=true;
+  panel.addEventListener('input',function(e){
+    const inp=e.target;
+    if(!inp||inp.tagName!=='INPUT')return;
+    const type=inp.dataset.type;
+    const m=currentCsMonth; // Always use current month — never stale
+    if(type==='st'){
+      const i=parseInt(inp.dataset.i);
+      if(!isNaN(i))updSt(m,i,inp.value);
+    }else if(type==='ln'){
+      const n=parseInt(inp.dataset.n);
+      if(!isNaN(n))updLn(m,n,inp.value);
+    }
+  });
+}
+
 // QUARTER + TAB SWITCHING
 // ============================================================
 function switchQuarter(q,btn){
@@ -2640,7 +2647,7 @@ function switchTab(tab,btn){
   document.getElementById('panel-'+tab).classList.add('active');
   if(tab==='daily')renderDailyTable(currentTblMonth);
   if(tab==='overview')renderOverview(currentQuarter);
-  if(tab==='cstatus')renderCsMonth(currentCsMonth);
+  if(tab==='cstatus'){setupCsDelegation();renderCsMonth(currentCsMonth);}
   if(tab==='pdca'){const q=currentQuarter!=='CMP'?currentQuarter:'Q2';currentSwotQ=q;renderPdcaSwot(q);}
   if(tab==='stats')renderStats();
 }
