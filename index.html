@@ -2897,6 +2897,89 @@ function clearFirebaseConfig(){
 }
 
 
+
+// ============================================================
+// REPORT MODAL UI
+// ============================================================
+function openReportModal(){
+  updateRptScopeGrid();
+  updateRptPreview();
+  document.getElementById('rptOverlay').classList.add('show');
+}
+function closeReportModal(){document.getElementById('rptOverlay').classList.remove('show');}
+function rptOverlayClick(e){if(e.target===document.getElementById('rptOverlay'))closeReportModal();}
+
+function getRptType(){return document.querySelector('input[name="rptType"]:checked')?.value||'month';}
+function getRptScope(){return Array.from(document.querySelectorAll('input[name="rptScope"]:checked')).map(e=>e.value);}
+
+function getReportMonths(){
+  const type=getRptType();
+  if(type==='year')return Object.keys(ML);
+  if(type==='quarter'){const q=getRptScope()[0]||currentQuarter||'Q2';return QUARTERS[q]?.months||QUARTERS['Q2'].months;}
+  return getRptScope().sort();
+}
+
+function switchRptType(){
+  updateRptScopeGrid();
+  updateRptPreview();
+}
+
+function updateRptScopeGrid(){
+  const type=getRptType();
+  const grid=document.getElementById('rptScopeGrid');
+  const sec=document.getElementById('rptScopeSection');
+  if(!grid)return;
+  if(type==='year'){if(sec)sec.style.display='none';return;}
+  if(sec)sec.style.display='';
+  const q=currentQuarter!=='CMP'?currentQuarter:'Q2';
+  if(type==='month'){
+    grid.className='rpt-month-grid';
+    const months=QUARTERS[q]?.months||QUARTERS['Q2'].months;
+    grid.innerHTML=Object.keys(ML).map(m=>`
+      <div class="rpt-opt">
+        <input type="checkbox" name="rptScope" id="rptS_${m}" value="${m}" ${months.includes(m)?'checked':''} onchange="updateRptPreview()">
+        <label for="rptS_${m}"><span style="font-size:16px">${ML[m].emoji}</span>${ML[m].short}</label>
+      </div>`).join('');
+  }else{
+    grid.className='rpt-optgrid';
+    grid.innerHTML=Object.entries(QUARTERS).map(([qk,d])=>`
+      <div class="rpt-opt">
+        <input type="radio" name="rptScope" id="rptS_${qk}" value="${qk}" ${qk===q?'checked':''} onchange="updateRptPreview()">
+        <label for="rptS_${qk}"><span style="font-size:18px">${d.emoji}</span>${qk}</label>
+      </div>`).join('');
+  }
+}
+
+function updateRptPreview(){
+  const type=getRptType();
+  const scope=getRptScope();
+  const incDaily=document.getElementById('rptIncDaily')?.checked;
+  const incSum=document.getElementById('rptIncSummary')?.checked;
+  const incRR=document.getElementById('rptIncRunRate')?.checked;
+  const incSt=document.getElementById('rptIncStatus')?.checked;
+  const prev=document.getElementById('rptPreview');
+  if(!prev)return;
+  let lines=[];
+  if(type==='year'){
+    lines.push(`<strong>ช่วงเวลา:</strong> ทั้งปี 2026`);
+    lines.push(`<strong>จำนวนวันที่มีข้อมูล:</strong> ${entries.length} วัน`);
+  }else if(type==='month'){
+    if(!scope.length){prev.innerHTML='<span style="color:var(--red)">⚠️ กรุณาเลือกอย่างน้อย 1 เดือน</span>';return;}
+    lines.push(`<strong>ช่วงเวลา:</strong> ${scope.sort().map(m=>ML[m]?.label||m).join(', ')}`);
+    lines.push(`<strong>วันที่มีข้อมูล:</strong> ${scope.reduce((s,m)=>s+getMe(m).length,0)} วัน`);
+  }else{
+    if(!scope.length){prev.innerHTML='<span style="color:var(--red)">⚠️ กรุณาเลือกไตรมาส</span>';return;}
+    lines.push(`<strong>ช่วงเวลา:</strong> ${QUARTERS[scope[0]]?.label||scope[0]}`);
+  }
+  const contents=[];
+  if(incSum)contents.push('สรุป FL/RO vs เป้า');
+  if(incRR)contents.push('Run Rate');
+  if(incDaily)contents.push('ตารางรายวัน');
+  if(incSt)contents.push('สถานะลูกค้า');
+  lines.push(`<strong>เนื้อหา:</strong> ${contents.join(' · ')||'—'}`);
+  prev.innerHTML=lines.join('<br>');
+}
+
 // ============================================================
 // REPORT DATA BUILDERS
 // ============================================================
